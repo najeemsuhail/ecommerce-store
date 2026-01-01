@@ -1,3 +1,9 @@
+'use client';
+
 export default function CartPage() {
-  return <div>Cart Page</div>;
+  return (
+    <div>
+      <h1>Cart</h1>
+    </div>
+  );
 }

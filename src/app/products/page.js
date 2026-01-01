@@ -1,3 +1,9 @@
+'use client';
+
 export default function ProductPage() {
-  return <div>ProductPage Page</div>;
+  return (
+    <div>
+      <h1>Products</h1>
+    </div>
+  );
 }
