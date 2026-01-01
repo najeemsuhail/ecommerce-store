@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  phone     String?
+  address   Json?    // Store multiple addresses as JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  description   String   @db.Text
+  price         Float
+  comparePrice  Float?   // Original price for showing discounts
+  
+  // Product type
+  isDigital     Boolean  @default(false)
+  
+  // Inventory
+  stock         Int?
+  sku           String?  @unique
+  trackInventory Boolean @default(true)
+  
+  // Media
+  images        String[] // Array of image URLs
+  
+  // Organization
+  category      String?
+  tags          String[] // ["electronics", "sale", "featured"]
+  brand         String?
+  
+  // Shipping (for physical products)
+  weight        Float?
+  dimensions    Json?    // {"length": 10, "width": 20, "height": 5, "unit": "cm"}
+  
+  // ALL product details in one flexible field
+  specifications Json?   // Store ANY key-value pairs
+  
+  // SEO
+  slug          String   @unique
+  metaTitle     String?
+  metaDescription String?
+  
+  // Status
+  isActive      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  orderItems    OrderItem[]
+  reviews       Review[]
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String?
+  guestEmail    String?
+  guestName     String?
+  status        String      @default("pending") // pending, processing, shipped, delivered, cancelled
+  total         Float
+  shippingCost  Float       @default(0)
+  shippingAddress Json?     // Store shipping details
+  // Billing Address
+  billingAddress  Json?     // {name, address, city, postalCode, country}
+  billingSameAsShipping Boolean @default(true)
+  paymentStatus String      @default("pending") // pending, paid, failed, refunded
+  paymentId     String?     // Stripe payment ID
+  trackingNumber String?
+  notes         String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User?       @relation(fields: [userId], references: [id])
+  items         OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float   // Price at time of purchase
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  userId     String?
+  rating     Int      // 1-5
+  comment    String?  @db.Text
+  isVerified Boolean  @default(false) // Verified purchase
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User?    @relation(fields: [userId], references: [id])
+}
