@@ -3,7 +3,9 @@ import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { extractToken, verifyToken } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-12-15.clover',
+});
 
 export async function POST(request: NextRequest) {
   try {
