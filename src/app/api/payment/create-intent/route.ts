@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
+import Razorpay from 'razorpay';
 import prisma from '@/lib/prisma';
-import { extractToken, verifyToken } from '@/lib/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
 export async function POST(request: NextRequest) {
@@ -46,35 +46,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(order.total * 100), // Convert to cents
-      currency: 'usd',
-      metadata: {
+    // Create Razorpay order
+    const razorpayOrder = await razorpay.orders.create({
+      amount: Math.round(order.total * 100), // Convert to paise (INR smallest unit)
+      currency: 'INR',
+      receipt: orderId,
+      notes: {
         orderId: order.id,
-      },
-      automatic_payment_methods: {
-        enabled: true,
       },
     });
 
-    // Update order with payment intent ID
+    // Update order with Razorpay order ID
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        paymentId: paymentIntent.id,
+        paymentId: razorpayOrder.id,
       },
     });
 
     return NextResponse.json({
       success: true,
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     });
   } catch (error: any) {
-    console.error('Error creating payment intent:', error);
+    console.error('Error creating Razorpay order:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to create payment intent' },
+      { success: false, error: error.message || 'Failed to create payment' },
       { status: 500 }
     );
   }
