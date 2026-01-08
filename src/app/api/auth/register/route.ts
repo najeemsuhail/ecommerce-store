@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, generateToken } from '@/lib/auth';
+import { sendWelcomeEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +47,11 @@ export async function POST(request: NextRequest) {
         phone: phone || null,
       },
     });
+
+    // Send welcome email (don't wait for it)
+    sendWelcomeEmail(user).catch((err) =>
+      console.error('Failed to send welcome email:', err)
+    );
 
     // Generate token
     const token = generateToken({

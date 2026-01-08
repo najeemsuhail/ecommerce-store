@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
+import { sendOrderConfirmationEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,6 +35,26 @@ export async function POST(request: NextRequest) {
         paymentId: razorpay_payment_id,
       },
     });
+
+    // Fetch full order details with items
+const fullOrder = await prisma.order.findUnique({
+  where: { id: orderId },
+  include: {
+    user: true,
+    items: {
+      include: {
+        product: true,
+      },
+    },
+  },
+});
+
+  // Send confirmation email
+  if (fullOrder) {
+    sendOrderConfirmationEmail(fullOrder).catch((err) =>
+      console.error('Failed to send confirmation email:', err)
+    );
+  }
 
     return NextResponse.json({
       success: true,
