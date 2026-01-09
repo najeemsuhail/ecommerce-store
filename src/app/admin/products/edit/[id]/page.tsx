@@ -119,7 +119,7 @@ export default function EditProductPage() {
         specifications: specs,
       };
 
-      const response = await fetch(`/api/products/edit/${product.slug}`, {
+      const response = await fetch(`/api/products/${product.slug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -356,10 +356,9 @@ export default function EditProductPage() {
                   className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="https://example.com/image.jpg"
                 />
-                                {formData.images.length > 1 && (
+                {formData.images.length > 1 && (
                   <button
-                    type="button"
-                    onClick={() => removeImage(index)}
+                    type="button"onClick={() => removeImage(index)}
                     className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
                   >
                     Remove
@@ -389,9 +388,7 @@ export default function EditProductPage() {
                 <input
                   type="text"
                   value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -403,9 +400,7 @@ export default function EditProductPage() {
                 <input
                   type="text"
                   value={formData.brand}
-                  onChange={(e) =>
-                    setFormData({ ...formData, brand: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -418,84 +413,84 @@ export default function EditProductPage() {
               <input
                 type="text"
                 value={formData.tags}
-                onChange={(e) =>
-                  setFormData({ ...formData, tags: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.isFeatured}
-                onChange={(e) =>
-                  setFormData({ ...formData, isFeatured: e.target.checked })
-                }
-                className="w-4 h-4"
-              />
-              <label className="text-sm font-medium">
-                Featured Product
-              </label>
-            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isFeatured"
+                  checked={formData.isFeatured}
+                  onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="isFeatured" className="text-sm font-medium">
+                  Featured Product
+                </label>
+              </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) =>
-                  setFormData({ ...formData, isActive: e.target.checked })
-                }
-                className="w-4 h-4"
-              />
-              <label className="text-sm font-medium">
-                Active (visible in store)
-              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="isActive" className="text-sm font-medium">
+                  Active
+                </label>
+              </div>
             </div>
           </div>
 
           {/* Specifications */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold border-b pb-2">
-              Specifications (JSON)
-            </h2>
+            <h2 className="text-xl font-semibold border-b pb-2">Specifications (JSON)</h2>
 
-            <textarea
-              rows={6}
-              value={formData.specifications}
-              onChange={(e) =>
-                setFormData({ ...formData, specifications: e.target.value })
-              }
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              placeholder='{"Color":"Black","Battery":"30h"}'
-            />
+            <div>
+              <textarea
+                rows={6}
+                value={formData.specifications}
+                onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                JSON format: {`{"key": "value", "key2": "value2"}`}
+              </p>
+            </div>
           </div>
 
           {/* SEO */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold border-b pb-2">
-              SEO
-            </h2>
+            <h2 className="text-xl font-semibold border-b pb-2">SEO (Optional)</h2>
 
-            <input
-              type="text"
-              value={formData.metaTitle}
-              onChange={(e) =>
-                setFormData({ ...formData, metaTitle: e.target.value })
-              }
-              placeholder="Meta Title"
-              className="w-full px-3 py-2 border rounded-lg"
-            />
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Meta Title
+              </label>
+              <input
+                type="text"
+                value={formData.metaTitle}
+                onChange={(e) => setFormData({ ...formData, metaTitle: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-            <textarea
-              rows={2}
-              value={formData.metaDescription}
-              onChange={(e) =>
-                setFormData({ ...formData, metaDescription: e.target.value })
-              }
-              placeholder="Meta Description"
-              className="w-full px-3 py-2 border rounded-lg"
-            />
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Meta Description
+              </label>
+              <textarea
+                rows={2}
+                value={formData.metaDescription}
+                onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
           {message && (
@@ -510,9 +505,8 @@ export default function EditProductPage() {
               disabled={saving}
               className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
             >
-              {saving ? 'Saving...' : 'Update Product'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
-
             <Link
               href="/admin/products"
               className="px-6 py-3 border rounded-lg hover:bg-gray-50 font-semibold text-center"

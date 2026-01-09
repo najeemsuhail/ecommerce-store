@@ -8,6 +8,7 @@ import Link from 'next/link';
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]); // Store all products
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -21,9 +22,33 @@ export default function ProductsPage() {
     }
   }, [searchParams]);
 
+  // Fetch all products once for categories
+  useEffect(() => {
+    fetchAllProducts();
+  }, []);
+
+  // Fetch filtered products when filters change
   useEffect(() => {
     fetchProducts();
   }, [searchTerm, selectedCategory]);
+
+  const fetchAllProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      if (data.success) {
+        setAllProducts(data.products);
+        
+        // Extract unique categories from all products
+        const uniqueCategories = Array.from(
+          new Set(data.products.map((p: any) => p.category).filter(Boolean))
+        ) as string[];
+        setCategories(uniqueCategories);
+      }
+    } catch (error) {
+      console.error('Failed to fetch all products');
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -36,12 +61,6 @@ export default function ProductsPage() {
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
-        
-        // Extract unique categories
-        const uniqueCategories = Array.from(
-          new Set(data.products.map((p: any) => p.category).filter(Boolean))
-        ) as string[];
-        setCategories(uniqueCategories);
       }
     } catch (error) {
       console.error('Failed to fetch products');
@@ -114,41 +133,104 @@ export default function ProductsPage() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setSelectedCategory('')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg transition-all ${
                 selectedCategory === ''
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-blue-600 text-white shadow-md'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >
-              All
+              All Categories ({allProducts.length})
             </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white border hover:bg-gray-50'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
+            {categories.map((category) => {
+              const count = allProducts.filter(p => p.category === category).length;
+              return (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedCategory === category
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-white border hover:bg-gray-50'
+                  }`}
+                >
+                  {category} ({count})
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Active Filters */}
+        {(searchTerm || selectedCategory) && (
+          <div className="mb-6 flex items-center gap-2 flex-wrap">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {searchTerm && (
+              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                Search: {searchTerm}
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="hover:bg-blue-200 rounded-full p-0.5"
+                >
+                  ✕
+                </button>
+              </span>
+            )}
+            {selectedCategory && (
+              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                Category: {selectedCategory}
+                <button
+                  onClick={() => setSelectedCategory('')}
+                  className="hover:bg-blue-200 rounded-full p-0.5"
+                >
+                  ✕
+                </button>
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+              }}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
           <div className="text-center py-12">
-            <p className="text-xl">Loading products...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="text-xl mt-4">Loading products...</p>
           </div>
         )}
 
         {/* No Results */}
         {!loading && products.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-600">No products found</p>
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-xl text-gray-600 mb-4">No products found</p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+              }}
+              className="text-blue-600 hover:underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
+        {/* Results Count */}
+        {!loading && products.length > 0 && (
+          <div className="mb-4 text-gray-600">
+            Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+            {selectedCategory && ` in ${selectedCategory}`}
+            {searchTerm && ` for "${searchTerm}"`}
           </div>
         )}
 
@@ -179,6 +261,11 @@ export default function ProductsPage() {
                       Featured
                     </span>
                   )}
+                  {product.comparePrice && (
+                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-semibold">
+                      SALE
+                    </span>
+                  )}
                 </div>
 
                 {/* Product Info */}
@@ -193,11 +280,11 @@ export default function ProductsPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <span className="text-2xl font-bold text-blue-600">
-                        ${product.price}
+                        ₹{product.price}
                       </span>
                       {product.comparePrice && (
                         <span className="text-sm text-gray-500 line-through ml-2">
-                          ${product.comparePrice}
+                          ₹{product.comparePrice}
                         </span>
                       )}
                     </div>
@@ -221,7 +308,7 @@ export default function ProductsPage() {
 
                   <button
                     onClick={(e) => handleAddToCart(product, e)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium"
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
                   >
                     Add to Cart
                   </button>
