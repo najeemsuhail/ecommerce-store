@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AdminLayout from '@/components/AdminLayout';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -49,9 +50,11 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Loading...</p>
-      </div>
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-xl">Loading...</p>
+        </div>
+      </AdminLayout>
     );
   }
 
@@ -60,27 +63,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-600">Admin Panel</h1>
-            <div className="flex gap-4">
-              <Link href="/" className="text-gray-600 hover:text-blue-600">
-                Store
-              </Link>
-              <Link href="/admin/products" className="text-gray-600 hover:text-blue-600">
-                Products
-              </Link>
-              <Link href="/admin/orders" className="text-gray-600 hover:text-blue-600">
-                Orders
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <AdminLayout>
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -199,6 +183,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </AdminLayout>
+    
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AdminLayout from '@/components/AdminLayout';
 
 export default function AdminProducts() {
   const router = useRouter();
@@ -94,29 +95,8 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/admin" className="text-2xl font-bold text-blue-600">
-              Admin Panel
-            </Link>
-            <div className="flex gap-4">
-              <Link href="/admin" className="text-gray-600 hover:text-blue-600">
-                Dashboard
-              </Link>
-              <Link href="/admin/products" className="font-semibold text-blue-600">
-                Products
-              </Link>
-              <Link href="/admin/orders" className="text-gray-600 hover:text-blue-600">
-                Orders
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+   <AdminLayout>  
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
@@ -265,6 +245,7 @@ export default function AdminProducts() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
