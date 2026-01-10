@@ -25,9 +25,12 @@ export default function Header() {
             <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition font-medium">
               Account
             </Link>
-            <Link href="/about" className="text-gray-700 hover:text-blue-600 transition font-medium">
-              About Us
-            </Link>
+        
+            {localStorage.getItem('token') && (
+              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 transition font-medium">
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/cart"
               className="relative bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2.5 rounded-full hover:shadow-lg transition-all duration-300 hover:scale-105 font-medium"
@@ -44,6 +47,7 @@ export default function Header() {
                 </span>
               )}
             </Link>
+            
           </div>
         </div>
       </div>
