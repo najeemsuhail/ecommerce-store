@@ -180,7 +180,9 @@ export async function POST(request: NextRequest) {
         shippingAddress,
         billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
         billingSameAsShipping: billingSameAsShipping || false,
-        paymentStatus: 'pending',
+        paymentMethod: body.paymentMethod || 'razorpay', 
+        paymentStatus: body.paymentMethod === 'cod' ? 'cod_pending' : 'pending',
+
         notes,
         items: {
           create: orderItems,

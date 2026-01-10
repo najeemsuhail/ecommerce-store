@@ -81,6 +81,7 @@ model Order {
   billingAddress  Json?     // {name, address, city, postalCode, country}
   billingSameAsShipping Boolean @default(true)
   paymentStatus String      @default("pending") // pending, paid, failed, refunded
+  paymentMethod String?
   paymentId     String?     // Stripe payment ID
   trackingNumber String?
   notes         String?     @db.Text
