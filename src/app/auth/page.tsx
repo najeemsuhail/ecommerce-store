@@ -2,8 +2,10 @@
 
 import Layout from '@/components/Layout';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AuthPage() {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -35,10 +37,12 @@ export default function AuthPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage(`✅ ${data.message}`);
+        //setMessage(`✅ ${data.message}`);
         setToken(data.token);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/dashboard');
+        return;
       } else {
         setMessage(`❌ ${data.error}`);
       }
