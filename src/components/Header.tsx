@@ -89,23 +89,69 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-4">
-          <Link href="/products" onClick={() => setMenuOpen(false)} className="block text-gray-700 font-medium">
-            Shop
-          </Link>
-          <Link href="/about" onClick={() => setMenuOpen(false)} className="block text-gray-700 font-medium">
-            About Us
-          </Link>
-          <Link href="/contact" onClick={() => setMenuOpen(false)} className="block text-gray-700 font-medium">
-            Contact Us
-          </Link>
-          {isLoggedIn && (
-            <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="block text-gray-700 font-medium">
-              Dashboard
-            </Link>
-          )}
-        </div>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 md:hidden z-40"
+            onClick={() => setMenuOpen(false)}
+            style={{ backdropFilter: 'blur(4px)' }}
+          />
+          
+          {/* Full Screen Menu */}
+          <div 
+            className="fixed top-16 left-0 right-0 bottom-0 md:hidden z-50 px-6 py-8 flex flex-col border-t-2 border-gray-200 shadow-2xl"
+            style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)', overflowY: 'hidden' }}
+          >
+            <div className="space-y-2 flex-1">
+              <Link 
+                href="/products" 
+                onClick={() => setMenuOpen(false)} 
+                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+              >
+                🛍️ Shop
+              </Link>
+              <Link 
+                href="/about" 
+                onClick={() => setMenuOpen(false)} 
+                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+              >
+                ℹ️ About Us
+              </Link>
+              <Link 
+                href="/contact" 
+                onClick={() => setMenuOpen(false)} 
+                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+              >
+                📞 Contact Us
+              </Link>
+              {isLoggedIn && (
+                <Link 
+                  href="/dashboard" 
+                  onClick={() => setMenuOpen(false)} 
+                  className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+                >
+                  📊 Dashboard
+                </Link>
+              )}
+              
+              {/* Divider */}
+              <div className="my-6 border-t-2 border-gray-300" />
+            </div>
+            
+            {/* Auth Links at Bottom */}
+            {!isLoggedIn && (
+              <Link 
+                href="/auth" 
+                onClick={() => setMenuOpen(false)} 
+                className="block w-full py-4 px-4 text-white text-base font-bold bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-150 text-center"
+              >
+                👤 Login / Register
+              </Link>
+            )}
+          </div>
+        </>
       )}
     </nav>
   );
 }
+
