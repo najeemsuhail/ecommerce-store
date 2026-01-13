@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 export default function Header() {
+  const router = useRouter();
   const { totalItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,6 +17,15 @@ export default function Header() {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
   }, []);
+
+  const handleAccountClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      router.push('/auth?redirect=/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
+  };
 
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -60,9 +71,13 @@ export default function Header() {
             </Link>
 
             {/* Account */}
-            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors" title="Account">
+            <button
+              onClick={handleAccountClick}
+              className="text-gray-700 hover:text-blue-600 transition-colors cursor-pointer"
+              title={isLoggedIn ? 'Dashboard' : 'Login'}
+            >
               <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
-            </Link>
+            </button>
 
             {/* Cart */}
             <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors" title="Shopping Cart">
@@ -108,31 +123,35 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)} 
                 className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
               >
-                🛍️ Shop
+                Shop
               </Link>
               <Link 
                 href="/about" 
                 onClick={() => setMenuOpen(false)} 
                 className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
               >
-                ℹ️ About Us
+                About Us
               </Link>
               <Link 
                 href="/contact" 
                 onClick={() => setMenuOpen(false)} 
                 className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
               >
-                📞 Contact Us
+                Contact Us
               </Link>
-              {isLoggedIn && (
-                <Link 
-                  href="/dashboard" 
-                  onClick={() => setMenuOpen(false)} 
-                  className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
-                >
-                  📊 Dashboard
-                </Link>
-              )}
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  if (!isLoggedIn) {
+                    router.push('/auth?redirect=/dashboard');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
+                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150 text-left"
+              >
+                {isLoggedIn ? 'Dashboard' : 'Account'}
+              </button>
               
               {/* Divider */}
               <div className="my-6 border-t-2 border-gray-300" />
@@ -145,7 +164,7 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)} 
                 className="block w-full py-4 px-4 text-white text-base font-bold bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-150 text-center"
               >
-                👤 Login / Register
+                Login / Register
               </Link>
             )}
           </div>

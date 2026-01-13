@@ -1,11 +1,13 @@
 'use client';
 
 import Layout from '@/components/Layout';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -41,7 +43,7 @@ export default function AuthPage() {
         setToken(data.token);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/dashboard');
+        router.push(redirectUrl);
         return;
       } else {
         setMessage(`❌ ${data.error}`);

@@ -39,11 +39,17 @@ export default function CheckoutFlowPage() {
   });
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-  const [guestEmail, setGuestEmail] = useState('');
 
   // Check if user is logged in
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const isLoggedIn = !!token;
+
+  // Redirect to login if not logged in
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/auth?redirect=/checkout-flow');
+    }
+  }, [isLoggedIn, router]);
 
   // Calculate totals
   const hasPhysicalProducts = items.some((item) => !item.isDigital);
@@ -97,7 +103,6 @@ export default function CheckoutFlowPage() {
         billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
         billingSameAsShipping,
         paymentMethod,
-        ...(isLoggedIn ? {} : { guestEmail, guestName: shippingAddress.name }),
       };
 
       console.log('Sending order data:', orderData);
@@ -165,7 +170,7 @@ export default function CheckoutFlowPage() {
         order_id: paymentResult.razorpayOrderId,
         prefill: {
           name: shippingAddress.name,
-          email: guestEmail || 'customer@example.com',
+          email: localStorage.getItem('userEmail') || 'customer@example.com',
           contact: shippingAddress.phone,
         },
         theme: {
@@ -272,23 +277,6 @@ export default function CheckoutFlowPage() {
                   <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
 
                   <div className="space-y-4">
-                    {/* Guest Email */}
-                    {!isLoggedIn && (
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={guestEmail}
-                          onChange={(e) => setGuestEmail(e.target.value)}
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="you@example.com"
-                        />
-                      </div>
-                    )}
-
                     {/* Shipping Address Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
