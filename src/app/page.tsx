@@ -5,9 +5,11 @@ import { useCart } from '@/contexts/CartContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import ProductCarousel from '@/components/ProductCarousel';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [bestSellers, setBestSellers] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
@@ -18,6 +20,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchFeaturedProducts();
+    fetchBestSellers();
     fetchCategories();
     fetchStats();
   }, []);
@@ -31,6 +34,22 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Failed to fetch featured products');
+    }
+  };
+
+  const fetchBestSellers = async () => {
+    try {
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      if (data.success) {
+        // Sort by average rating and take top 8
+        const sorted = data.products
+          .sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
+          .slice(0, 8);
+        setBestSellers(sorted);
+      }
+    } catch (error) {
+      console.error('Failed to fetch best sellers');
     }
   };
 
@@ -296,6 +315,15 @@ export default function HomePage() {
             </Link>
           </div>
         </section>
+
+        {/* Best Sellers Carousel */}
+        {bestSellers.length > 0 && (
+          <ProductCarousel
+            products={bestSellers}
+            title="Best Sellers"
+            description="Most popular products loved by our customers"
+          />
+        )}
 
         {/* Features */}
         <section className="bg-gradient-to-br from-blue-600 to-purple-600 py-20">
