@@ -3,7 +3,9 @@
 import { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import AddToCartNotification from './AddToCartNotification';
+import AddToWishlistModal from './AddToWishlistModal';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 
 interface Product {
   id: string;
@@ -38,7 +40,22 @@ export default function ProductCarousel({
     message: '',
     visible: false,
   });
+  const [wishlistModal, setWishlistModal] = useState<{
+    isOpen: boolean;
+    productId: string;
+    productName: string;
+    productPrice: number;
+    productImage?: string;
+    productSlug: string;
+  }>({
+    isOpen: false,
+    productId: '',
+    productName: '',
+    productPrice: 0,
+    productSlug: '',
+  });
   const { addItem } = useCart();
+  const { isInWishlist } = useWishlist();
 
   const checkScroll = () => {
     const element = carouselRef.current;
@@ -85,11 +102,23 @@ export default function ProductCarousel({
       quantity: 1,
       image: product.images?.[0],
       slug: product.slug,
-      isDigital: product.isDigital,
+      isDigital: product.isDigital || false,
     });
     setNotification({
       message: `${product.name} added to cart!`,
       visible: true,
+    });
+  };
+
+  const handleWishlistClick = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault();
+    setWishlistModal({
+      isOpen: true,
+      productId: product.id,
+      productName: product.name,
+      productPrice: product.price,
+      productImage: product.images?.[0],
+      productSlug: product.slug,
     });
   };
 
@@ -99,6 +128,15 @@ export default function ProductCarousel({
         message={notification.message}
         isVisible={notification.visible}
         onClose={() => setNotification({ ...notification, visible: false })}
+      />
+      <AddToWishlistModal
+        isOpen={wishlistModal.isOpen}
+        onClose={() => setWishlistModal({ ...wishlistModal, isOpen: false })}
+        productId={wishlistModal.productId}
+        productName={wishlistModal.productName}
+        productPrice={wishlistModal.productPrice}
+        productImage={wishlistModal.productImage}
+        productSlug={wishlistModal.productSlug}
       />
 
       <div className="mb-12">
@@ -222,6 +260,17 @@ export default function ProductCarousel({
                     className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-bold hover:scale-105 active:scale-95"
                   >
                     Add to Cart
+                  </button>
+                  <button
+                    onClick={(e) => handleWishlistClick(product, e)}
+                    className={`px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
+                      isInWishlist(product.id)
+                        ? 'bg-red-100 text-red-600 border-2 border-red-300'
+                        : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                    }`}
+                    title="Add to wishlist"
+                  >
+                    ♥
                   </button>
                 </div>
               </div>

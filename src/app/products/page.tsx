@@ -2,10 +2,12 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import AddToWishlistModal from '@/components/AddToWishlistModal';
 
 // Separate component that uses useSearchParams
 function ProductsContent() {
@@ -20,7 +22,22 @@ function ProductsContent() {
     message: '',
     visible: false,
   });
+  const [wishlistModal, setWishlistModal] = useState<{
+    isOpen: boolean;
+    productId: string;
+    productName: string;
+    productPrice: number;
+    productImage?: string;
+    productSlug: string;
+  }>({
+    isOpen: false,
+    productId: '',
+    productName: '',
+    productPrice: 0,
+    productSlug: '',
+  });
   const { addItem } = useCart();
+  const { isInWishlist, groups, createGroup, addItemToGroup, removeItemFromGroup } = useWishlist();
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -93,12 +110,51 @@ function ProductsContent() {
     });
   };
 
+  const handleWishlistToggle = (product: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (isInWishlist(product.id)) {
+      // If already in wishlist, remove from all groups
+      groups.forEach((group) => {
+        const isInThisGroup = group.items.some(
+          (item) => item.productId === product.id
+        );
+        if (isInThisGroup) {
+          removeItemFromGroup(group.id, product.id);
+        }
+      });
+      setNotification({
+        message: `${product.name} removed from wishlist!`,
+        visible: true,
+      });
+    } else {
+      // If not in wishlist, show modal to select group
+      setWishlistModal({
+        isOpen: true,
+        productId: product.id,
+        productName: product.name,
+        productPrice: product.price,
+        productImage: product.images?.[0],
+        productSlug: product.slug,
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
         onClose={() => setNotification({ ...notification, visible: false })}
+      />
+      <AddToWishlistModal
+        isOpen={wishlistModal.isOpen}
+        onClose={() => setWishlistModal({ ...wishlistModal, isOpen: false })}
+        productId={wishlistModal.productId}
+        productName={wishlistModal.productName}
+        productPrice={wishlistModal.productPrice}
+        productImage={wishlistModal.productImage}
+        productSlug={wishlistModal.productSlug}
       />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with Search */}
@@ -293,12 +349,25 @@ function ProductsContent() {
                     </div>
                   )}
 
-                  <button
-                    onClick={(e) => handleAddToCart(product, e)}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                  >
-                    Add to Cart
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => handleAddToCart(product, e)}
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={(e) => handleWishlistToggle(product, e)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        isInWishlist(product.id)
+                          ? 'bg-red-100 text-red-600 border-2 border-red-300'
+                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                      }`}
+                      title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                      ♥
+                    </button>
+                  </div>
                 </div>
               </Link>
             ))}

@@ -3,13 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import AddToWishlistModal from '@/components/AddToWishlistModal';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem, totalItems } = useCart();
+  const { isInWishlist } = useWishlist();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -17,6 +20,7 @@ export default function ProductDetailPage() {
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
 
   useEffect(() => {
     if (params.slug) {
@@ -307,12 +311,24 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative flex gap-4">
                       <button
                         onClick={handleAddToCart}
-                        className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition-all"
+                        className="flex-1 bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition-all"
                       >
-                        Add to Cart - ${((selectedVariant ? selectedVariant.price : product.price) * quantity).toFixed(2)}
+                        Add to Cart - ₹{((selectedVariant ? selectedVariant.price : product.price) * quantity).toFixed(2)}
+                      </button>
+                      
+                      <button
+                        onClick={() => setWishlistModalOpen(true)}
+                        className={`px-6 py-4 rounded-lg font-semibold text-lg transition-all ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-100 text-red-600 border-2 border-red-300'
+                            : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                        }`}
+                        title="Add to wishlist"
+                      >
+                        ♥
                       </button>
 
                       {/* Notification */}
@@ -370,6 +386,17 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
+        
+        {/* Wishlist Modal */}
+        <AddToWishlistModal
+          isOpen={wishlistModalOpen}
+          onClose={() => setWishlistModalOpen(false)}
+          productId={product?.id || ''}
+          productName={product?.name || ''}
+          productPrice={selectedVariant ? selectedVariant.price : (product?.price || 0)}
+          productImage={product?.images?.[0]}
+          productSlug={product?.slug || ''}
+        />
       </div>
     </Layout>
   );
