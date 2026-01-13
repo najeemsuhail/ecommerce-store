@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -53,27 +55,18 @@ export default function Header() {
           {/* RIGHT: Icons (all screens) */}
           <div className="flex items-center gap-4">
             {/* Wishlist */}
-            <Link href="/wishlist" className="text-gray-700 hover:text-blue-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.682 4.318 12.682a4.5 4.5 0 010-6.364z" />
-              </svg>
+            <Link href="/wishlist" className="text-gray-700 hover:text-red-500 transition-colors" title="Wishlist">
+              <FontAwesomeIcon icon={faHeart} className="w-5 h-5" />
             </Link>
 
             {/* Account */}
-            <Link href="/auth" className="text-gray-700 hover:text-blue-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
+            <Link href="/auth" className="text-gray-700 hover:text-blue-600 transition-colors" title="Account">
+              <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
             </Link>
 
             {/* Cart */}
-            <Link href="/cart" className="relative text-gray-700 hover:text-blue-600">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9m-5-9v9" />
-              </svg>
+            <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors" title="Shopping Cart">
+              <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
@@ -84,13 +77,11 @@ export default function Header() {
 
             {/* Hamburger (mobile only) */}
             <button
-              className="md:hidden text-gray-700"
+              className="md:hidden text-gray-700 hover:text-blue-600 transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
+              title="Menu"
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} className="w-6 h-6" />
             </button>
           </div>
         </div>
