@@ -115,33 +115,80 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch products and calculate total
+    // Fetch products and variants together
     const productIds = items.map((item: any) => item.productId);
+    const uniqueProductIds = [...new Set(productIds)]; // Remove duplicates
+    
+    console.log('Order items:', items);
+    console.log('Unique product IDs:', uniqueProductIds);
+    
     const products = await prisma.product.findMany({
       where: {
-        id: { in: productIds },
-        isActive: true,
+        id: { in: uniqueProductIds },
+      },
+      include: {
+        variants: true,
       },
     });
 
-    if (products.length !== productIds.length) {
+    console.log('Found products:', products.length, 'Expected:', uniqueProductIds.length);
+    console.log('Product IDs found:', products.map(p => p.id));
+
+    // Check if all products were found
+    const foundProductIds = products.map((p) => p.id);
+    const missingProductIds = uniqueProductIds.filter((id) => !foundProductIds.includes(id));
+    
+    if (missingProductIds.length > 0) {
+      console.error('Missing products:', missingProductIds);
       return NextResponse.json(
         { success: false, error: 'Some products are not available' },
         { status: 400 }
       );
     }
 
-    // Check stock for physical products
+    // Check if products are active
+    const inactiveProducts = products.filter((p) => !p.isActive);
+    if (inactiveProducts.length > 0) {
+      console.error('Inactive products:', inactiveProducts.map(p => p.name));
+      return NextResponse.json(
+        { success: false, error: 'Some products are no longer available' },
+        { status: 400 }
+      );
+    }
+
+    // Check stock for physical products and variants
     for (const item of items) {
       const product = products.find((p) => p.id === item.productId);
-      if (!product) continue;
+      if (!product) {
+        console.error('Product not found for item:', item);
+        continue;
+      }
 
-      if (!product.isDigital && product.trackInventory) {
-        if (!product.stock || product.stock < item.quantity) {
+      // If item has a variant, check variant stock
+      if (item.variantId) {
+        const variant = product.variants.find((v: any) => v.id === item.variantId);
+        if (!variant) {
+          console.error('Variant not found:', item.variantId, 'for product:', item.productId);
           return NextResponse.json(
-            { success: false, error: `Insufficient stock for ${product.name}` },
+            { success: false, error: 'Selected variant is not available' },
             { status: 400 }
           );
+        }
+        if (!product.isDigital && variant.stock < item.quantity) {
+          return NextResponse.json(
+            { success: false, error: `Insufficient stock for ${product.name} - ${variant.name}` },
+            { status: 400 }
+          );
+        }
+      } else {
+        // Check product stock if no variant
+        if (!product.isDigital && product.trackInventory) {
+          if (!product.stock || product.stock < item.quantity) {
+            return NextResponse.json(
+              { success: false, error: `Insufficient stock for ${product.name}` },
+              { status: 400 }
+            );
+          }
         }
       }
     }
@@ -152,13 +199,24 @@ export async function POST(request: NextRequest) {
       const product = products.find((p) => p.id === item.productId);
       if (!product) throw new Error('Product not found');
 
-      const itemTotal = product.price * item.quantity;
+      let itemPrice = product.price;
+      
+      // Use variant price if variant is selected
+      if (item.variantId) {
+        const variant = product.variants.find((v: any) => v.id === item.variantId);
+        if (variant) {
+          itemPrice = variant.price;
+        }
+      }
+
+      const itemTotal = itemPrice * item.quantity;
       subtotal += itemTotal;
 
       return {
         productId: product.id,
+        variantId: item.variantId || null,
         quantity: item.quantity,
-        price: product.price,
+        price: itemPrice,
       };
     });
 

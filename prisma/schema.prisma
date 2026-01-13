@@ -64,6 +64,7 @@ model Product {
   updatedAt     DateTime @updatedAt
   
   // Relations
+  variants    ProductVariant[]
   orderItems    OrderItem[]
   reviews       Review[]
 }
@@ -91,14 +92,46 @@ model Order {
   items         OrderItem[]
 }
 
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  name        String   // e.g., "Small - Red", "Large - Blue"
+  sku         String?  @unique
+  price       Float    // Can override product price
+  stock       Int      @default(0)
+  
+  // Variant attributes
+  size        String?
+  color       String?
+  material    String?
+  
+  // Other variant-specific fields
+  image       String?
+  weight      Float?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+  
+  @@index([productId])
+}
+
 model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
   productId String
+  variantId String?
   quantity  Int
   price     Float   // Price at time of purchase
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
 }
 
 model Review {

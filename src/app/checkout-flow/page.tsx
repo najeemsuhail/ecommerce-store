@@ -90,6 +90,7 @@ export default function CheckoutFlowPage() {
       const orderData = {
         items: items.map((item) => ({
           productId: item.productId,
+          variantId: item.variantId,
           quantity: item.quantity,
         })),
         shippingAddress,
@@ -98,6 +99,8 @@ export default function CheckoutFlowPage() {
         paymentMethod,
         ...(isLoggedIn ? {} : { guestEmail, guestName: shippingAddress.name }),
       };
+
+      console.log('Sending order data:', orderData);
 
       const orderResponse = await fetch('/api/orders', {
         method: 'POST',
@@ -109,6 +112,8 @@ export default function CheckoutFlowPage() {
       });
 
       const orderResult = await orderResponse.json();
+
+      console.log('Order response:', orderResult);
 
       if (!orderResult.success) {
         setMessage(`Error: ${orderResult.error}`);
@@ -379,6 +384,90 @@ export default function CheckoutFlowPage() {
                         </span>
                       </label>
                     </div>
+
+                    {/* Billing Address Form (shown when unchecked) */}
+                    {!billingSameAsShipping && (
+                      <div className="pt-4 border-t">
+                        <h3 className="font-semibold mb-4">Billing Address</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Full Name *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={billingAddress.name}
+                              onChange={(e) =>
+                                setBillingAddress({ ...billingAddress, name: e.target.value })
+                              }
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Address *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={billingAddress.address}
+                              onChange={(e) =>
+                                setBillingAddress({ ...billingAddress, address: e.target.value })
+                              }
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-1">City *</label>
+                            <input
+                              type="text"
+                              required
+                              value={billingAddress.city}
+                              onChange={(e) =>
+                                setBillingAddress({ ...billingAddress, city: e.target.value })
+                              }
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-1">
+                              PIN Code *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={billingAddress.postalCode}
+                              onChange={(e) =>
+                                setBillingAddress({
+                                  ...billingAddress,
+                                  postalCode: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder="400001"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1">
+                              Country
+                            </label>
+                            <input
+                              type="text"
+                              value={billingAddress.country}
+                              onChange={(e) =>
+                                setBillingAddress({ ...billingAddress, country: e.target.value })
+                              }
+                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -405,7 +494,7 @@ export default function CheckoutFlowPage() {
 
                 <div className="space-y-3 mb-4">
                   {items.map((item) => (
-                    <div key={item.productId} className="flex gap-3">
+                    <div key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId} className="flex gap-3">
                       <div className="w-16 h-16 bg-gray-200 rounded flex-shrink-0">
                         {item.image && (
                           <img
@@ -417,6 +506,9 @@ export default function CheckoutFlowPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{item.name}</p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-500">{item.variantName}</p>
+                        )}
                         <p className="text-sm text-gray-600">
                           Qty: {item.quantity} × ₹{item.price}
                         </p>

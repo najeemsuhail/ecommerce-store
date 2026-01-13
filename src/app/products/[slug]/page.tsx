@@ -14,6 +14,9 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   useEffect(() => {
     if (params.slug) {
@@ -27,6 +30,10 @@ export default function ProductDetailPage() {
       const data = await response.json();
       if (data.success) {
         setProduct(data.product);
+        // Set first variant as default if variants exist
+        if (data.product.variants && data.product.variants.length > 0) {
+          setSelectedVariant(data.product.variants[0]);
+        }
       } else {
         router.push('/products');
       }
@@ -41,17 +48,32 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product) return;
 
-    addItem({
+    const cartItem: any = {
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: selectedVariant ? selectedVariant.price : product.price,
       quantity,
       image: product.images?.[0],
       slug: product.slug,
       isDigital: product.isDigital,
-    });
+    };
 
-    alert(`${quantity} x ${product.name} added to cart!`);
+    if (selectedVariant) {
+      cartItem.variantId = selectedVariant.id;
+      cartItem.variantName = selectedVariant.name;
+    }
+
+    addItem(cartItem);
+
+    // Show notification
+    const message = `${quantity} x ${product.name}${selectedVariant ? ` (${selectedVariant.name})` : ''} added to cart!`;
+    setNotificationMessage(message);
+    setShowNotification(true);
+
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 3000);
   };
 
   if (loading) {
@@ -143,7 +165,7 @@ export default function ProductDetailPage() {
 
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-4xl font-bold text-blue-600">
-                    ${product.price}
+                    ${selectedVariant ? selectedVariant.price : product.price}
                   </span>
                   {product.comparePrice && (
                     <span className="text-xl text-gray-500 line-through">
@@ -168,14 +190,26 @@ export default function ProductDetailPage() {
                 {/* Stock Status */}
                 {!product.isDigital && (
                   <div className="mb-6">
-                    {product.stock > 0 ? (
-                      <span className="text-green-600 font-semibold">
-                        ✓ In Stock ({product.stock} available)
-                      </span>
+                    {selectedVariant ? (
+                      selectedVariant.stock > 0 ? (
+                        <span className="text-green-600 font-semibold">
+                          ✓ In Stock ({selectedVariant.stock} available)
+                        </span>
+                      ) : (
+                        <span className="text-red-600 font-semibold">
+                          ✗ Out of Stock
+                        </span>
+                      )
                     ) : (
-                      <span className="text-red-600 font-semibold">
-                        ✗ Out of Stock
-                      </span>
+                      product.stock > 0 ? (
+                        <span className="text-green-600 font-semibold">
+                          ✓ In Stock ({product.stock} available)
+                        </span>
+                      ) : (
+                        <span className="text-red-600 font-semibold">
+                          ✗ Out of Stock
+                        </span>
+                      )
                     )}
                   </div>
                 )}
@@ -207,8 +241,43 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
+                {/* Variants */}
+                {product.variants && product.variants.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg mb-3">Variants</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {product.variants.map((variant: any) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => setSelectedVariant(variant)}
+                          className={`p-4 rounded-lg border-2 transition-all ${
+                            selectedVariant?.id === variant.id
+                              ? 'border-blue-600 bg-blue-50'
+                              : 'border-gray-300 hover:border-gray-400'
+                          } ${variant.stock === 0 ? 'opacity-50' : ''}`}
+                          disabled={variant.stock === 0}
+                        >
+                          <div className="text-left">
+                            <p className="font-semibold text-sm">{variant.name}</p>
+                            <p className="text-blue-600 font-bold text-sm">
+                              ${variant.price}
+                            </p>
+                            {variant.stock === 0 ? (
+                              <p className="text-red-600 text-xs mt-1">Out of Stock</p>
+                            ) : (
+                              <p className="text-green-600 text-xs mt-1">
+                                {variant.stock} available
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Quantity and Add to Cart */}
-                {(!product.isDigital ? product.stock > 0 : true) && (
+                {(!product.isDigital ? (selectedVariant ? selectedVariant.stock > 0 : product.stock > 0) : true) && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       <label className="font-semibold">Quantity:</label>
@@ -224,7 +293,9 @@ export default function ProductDetailPage() {
                           onClick={() =>
                             setQuantity(
                               Math.min(
-                                product.isDigital ? 999 : product.stock,
+                                product.isDigital 
+                                  ? 999 
+                                  : (selectedVariant ? selectedVariant.stock : product.stock),
                                 quantity + 1
                               )
                             )
@@ -236,12 +307,22 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleAddToCart}
-                      className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg"
-                    >
-                      Add to Cart - ${(product.price * quantity).toFixed(2)}
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={handleAddToCart}
+                        className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition-all"
+                      >
+                        Add to Cart - ${((selectedVariant ? selectedVariant.price : product.price) * quantity).toFixed(2)}
+                      </button>
+
+                      {/* Notification */}
+                      {showNotification && (
+                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+                          <span className="text-xl">✓</span>
+                          <span className="font-medium">{notificationMessage}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

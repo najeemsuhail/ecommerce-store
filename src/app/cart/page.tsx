@@ -72,7 +72,7 @@ export default function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               {items.map((item) => (
                 <div
-                  key={item.productId}
+                  key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId}
                   className="bg-white rounded-lg shadow p-6 flex gap-4"
                 >
                   {/* Product Image */}
@@ -96,7 +96,11 @@ export default function CartPage() {
                     <h3 className="font-semibold text-lg mb-1">
                       {item.name}
                     </h3>
-
+                    {item.variantName && (
+                      <p className="text-gray-500 text-sm mb-2">
+                        {item.variantName}
+                      </p>
+                    )}
                     <p className="text-gray-600 text-sm mb-2">
                       ${item.price.toFixed(2)}
                       {item.isDigital && (
@@ -114,7 +118,8 @@ export default function CartPage() {
                           onClick={() =>
                             updateQuantity(
                               item.productId,
-                              item.quantity - 1
+                              item.quantity - 1,
+                              item.variantId
                             )
                           }
                           className="px-3 py-1 hover:bg-gray-100 disabled:opacity-50"
@@ -130,7 +135,8 @@ export default function CartPage() {
                           onClick={() =>
                             updateQuantity(
                               item.productId,
-                              item.quantity + 1
+                              item.quantity + 1,
+                              item.variantId
                             )
                           }
                           className="px-3 py-1 hover:bg-gray-100"
@@ -141,7 +147,7 @@ export default function CartPage() {
 
                       {/* Remove Button */}
                       <button
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => removeItem(item.productId, item.variantId)}
                         className="text-red-600 hover:text-red-700 text-sm"
                       >
                         Remove
