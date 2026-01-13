@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch products and variants together
     const productIds = items.map((item: any) => item.productId);
-    const uniqueProductIds = [...new Set(productIds)]; // Remove duplicates
+    const uniqueProductIds: string[] = [...new Set(productIds)]; // Remove duplicates
     
     console.log('Order items:', items);
     console.log('Unique product IDs:', uniqueProductIds);
