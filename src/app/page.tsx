@@ -4,11 +4,16 @@ import { useEffect, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import AddToCartNotification from '@/components/AddToCartNotification';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
+  const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
+    message: '',
+    visible: false,
+  });
   const { totalItems, addItem } = useCart();
 
   useEffect(() => {
@@ -70,10 +75,19 @@ export default function HomePage() {
       slug: product.slug,
       isDigital: product.isDigital,
     });
+    setNotification({
+      message: `${product.name} added to cart!`,
+      visible: true,
+    });
   };
 
   return (
     <Layout>
+      <AddToCartNotification
+        message={notification.message}
+        isVisible={notification.visible}
+        onClose={() => setNotification({ ...notification, visible: false })}
+      />
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Hero Section */}
         <section className="relative overflow-hidden">

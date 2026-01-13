@@ -5,6 +5,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import AddToCartNotification from '@/components/AddToCartNotification';
 
 // Separate component that uses useSearchParams
 function ProductsContent() {
@@ -15,6 +16,10 @@ function ProductsContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<string[]>([]);
+  const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
+    message: '',
+    visible: false,
+  });
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -82,11 +87,19 @@ function ProductsContent() {
       slug: product.slug,
       isDigital: product.isDigital,
     });
-    alert(`${product.name} added to cart!`);
+    setNotification({
+      message: `${product.name} added to cart!`,
+      visible: true,
+    });
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <AddToCartNotification
+        message={notification.message}
+        isVisible={notification.visible}
+        onClose={() => setNotification({ ...notification, visible: false })}
+      />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with Search */}
         <div className="mb-8">
