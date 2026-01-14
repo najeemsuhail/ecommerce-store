@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { extractToken, verifyToken } from '@/lib/auth';
 
+// Disable caching for this API route
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 async function getUser(request: NextRequest) {
   const authHeader = request.headers.get('Authorization');
   const token = extractToken(authHeader);
@@ -86,6 +90,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       groups: groupsWithProducts,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
   } catch (error) {
     console.error('Failed to fetch wishlist groups:', error);

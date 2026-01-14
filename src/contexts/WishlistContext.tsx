@@ -67,6 +67,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        cache: 'no-store',
       });
 
       if (response.ok) {
@@ -75,6 +76,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         setGroups(data.groups || []);
         setIsLoggedIn(true);
         setError(null);
+      } else if (response.status === 401) {
+        // Unauthorized - clear local data
+        setIsLoggedIn(false);
+        setGroups([]);
+        setError('Session expired - please login again');
+        // Clear the token
+        localStorage.removeItem('token');
       } else {
         setIsLoggedIn(false);
         setGroups([]);
@@ -102,6 +110,25 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [refreshWishlist]);
+
+  // Also watch for token changes in localStorage
+  useEffect(() => {
+    const checkTokenChange = () => {
+      const token = getToken();
+      if (!token) {
+        // Token was removed (user logged out)
+        setGroups([]);
+        setIsLoggedIn(false);
+      }
+    };
+
+    // Check on mount
+    checkTokenChange();
+
+    // Set up interval to check for token changes
+    const interval = setInterval(checkTokenChange, 1000);
+    return () => clearInterval(interval);
+  }, [getToken]);
 
   const createGroup = useCallback(async (groupName: string) => {
     const token = getToken();
