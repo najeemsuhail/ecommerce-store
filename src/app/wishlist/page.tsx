@@ -202,13 +202,23 @@ export default function WishlistPage() {
 
                           {/* Item Info */}
                           <div className="flex-1 min-w-0">
-                            <Link
-                              href={`/products/${item.slug}`}
-                              className="block font-medium text-gray-900 hover:text-blue-600 truncate"
-                            >
-                              {item.name}
-                            </Link>
-                            <p className="text-blue-600 font-bold">₹{item.price}</p>
+                            {item.slug ? (
+                              <Link
+                                href={`/products/${item.slug}`}
+                                className="block font-medium text-gray-900 hover:text-blue-600 truncate"
+                              >
+                                {item.name || 'Product'}
+                              </Link>
+                            ) : (
+                              <div className="block font-medium text-gray-900 truncate">
+                                {item.name || 'Product'}
+                              </div>
+                            )}
+                            <p className="text-blue-600 font-bold">
+                              {item.price !== undefined && item.price !== null 
+                                ? `₹${item.price}` 
+                                : 'Price not available'}
+                            </p>
                           </div>
 
                           {/* Remove Button */}

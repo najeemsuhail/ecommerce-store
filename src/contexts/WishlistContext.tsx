@@ -71,6 +71,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Wishlist data received:', data);
         setGroups(data.groups || []);
         setIsLoggedIn(true);
         setError(null);

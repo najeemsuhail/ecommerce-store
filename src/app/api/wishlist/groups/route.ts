@@ -41,10 +41,51 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { createdAt: 'desc' },
     });
-    
+
+    console.log(`Found ${groups.length} wishlist groups for user ${userId}`);
+    groups.forEach(g => console.log(`Group "${g.name}" has ${g.items.length} items`));
+
+    // Fetch product details for all items
+    const groupsWithProducts = await Promise.all(
+      groups.map(async (group) => {
+        const itemsWithProducts = await Promise.all(
+          group.items.map(async (item) => {
+            const product = await prisma.product.findUnique({
+              where: { id: item.productId },
+              select: {
+                id: true,
+                name: true,
+                price: true,
+                images: true,
+                slug: true,
+              },
+            });
+            
+            if (!product) {
+              console.warn(`Product not found for ID: ${item.productId}`);
+              return null;
+            }
+            
+            return {
+              ...item,
+              productId: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.images?.[0],
+              slug: product.slug,
+            };
+          })
+        );
+        return {
+          ...group,
+          items: itemsWithProducts.filter((item) => item !== null),
+        };
+      })
+    );
+
     return NextResponse.json({
       success: true,
-      groups,
+      groups: groupsWithProducts,
     });
   } catch (error) {
     console.error('Failed to fetch wishlist groups:', error);
