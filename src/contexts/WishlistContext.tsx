@@ -28,7 +28,7 @@ interface WishlistContextType {
   createGroup: (groupName: string) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;
   renameGroup: (groupId: string, newName: string) => Promise<void>;
-  addItemToGroup: (groupId: string, item: WishlistItem) => Promise<void>;
+  addItemToGroup: (groupId: string, productId: string) => Promise<void>;
   removeItemFromGroup: (groupId: string, productId: string) => Promise<void>;
   isInWishlist: (productId: string) => boolean;
   refreshWishlist: () => Promise<void>;
@@ -188,7 +188,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
   }, [getToken, groups]);
 
-  const addItemToGroup = useCallback(async (groupId: string, item: WishlistItem) => {
+  const addItemToGroup = useCallback(async (groupId: string, productId: string) => {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
@@ -202,7 +202,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ productId: item.productId }),
+        body: JSON.stringify({ productId }),
       });
 
       if (response.ok) {

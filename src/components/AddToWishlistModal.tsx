@@ -29,13 +29,7 @@ export default function AddToWishlistModal({
   const [message, setMessage] = useState('');
 
   const handleAddToExistingGroup = async (groupId: string) => {
-    await addItemToGroup(groupId, {
-      productId,
-      name: productName,
-      price: productPrice,
-      image: productImage,
-      slug: productSlug,
-    });
+    await addItemToGroup(groupId, productId);
     setMessage('Added to collection!');
     setTimeout(() => {
       onClose();
@@ -53,13 +47,7 @@ export default function AddToWishlistModal({
       setTimeout(async () => {
         // Add to the first group (most recently created)
         if (groups.length > 0) {
-          await addItemToGroup(groups[0].id, {
-            productId,
-            name: productName,
-            price: productPrice,
-            image: productImage,
-            slug: productSlug,
-          });
+          await addItemToGroup(groups[0].id, productId);
         }
       }, 500);
       setMessage('Added to new collection!');
