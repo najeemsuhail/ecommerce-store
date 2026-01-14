@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useWishlist } from '@/contexts/WishlistContext';
 
 interface AddToWishlistModalProps {
@@ -22,13 +23,13 @@ export default function AddToWishlistModal({
   productImage,
   productSlug,
 }: AddToWishlistModalProps) {
-  const { groups, createGroup, addItemToGroup } = useWishlist();
+  const { groups, isLoggedIn, isLoading, createGroup, addItemToGroup } = useWishlist();
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [message, setMessage] = useState('');
 
-  const handleAddToExistingGroup = (groupId: string) => {
-    addItemToGroup(groupId, {
+  const handleAddToExistingGroup = async (groupId: string) => {
+    await addItemToGroup(groupId, {
       productId,
       name: productName,
       price: productPrice,
@@ -44,32 +45,81 @@ export default function AddToWishlistModal({
     }, 1500);
   };
 
-  const handleCreateAndAdd = (e: React.FormEvent) => {
+  const handleCreateAndAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newGroupName.trim()) {
-      createGroup(newGroupName.trim());
-      // Get the newly created group (it will be the last one)
-      const newGroup = groups[groups.length];
-      if (newGroup) {
-        addItemToGroup(newGroup.id, {
-          productId,
-          name: productName,
-          price: productPrice,
-          image: productImage,
-          slug: productSlug,
-        });
-      }
+      await createGroup(newGroupName.trim());
+      // After creating group, refetch to get the new group
+      setTimeout(async () => {
+        // Add to the first group (most recently created)
+        if (groups.length > 0) {
+          await addItemToGroup(groups[0].id, {
+            productId,
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            slug: productSlug,
+          });
+        }
+      }, 500);
       setMessage('Added to new collection!');
       setTimeout(() => {
         onClose();
         setMessage('');
         setNewGroupName('');
         setSelectedGroupId('');
-      }, 1500);
+      }, 2000);
     }
   };
 
   if (!isOpen) return null;
+
+  // Show login prompt if not logged in
+  if (!isLoggedIn) {
+    return (
+      <>
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+          style={{ backdropFilter: 'blur(4px)' }}
+        />
+
+        {/* Login Modal */}
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-2xl z-50 w-full max-w-md mx-4">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Sign In Required</h2>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 text-2xl"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="p-6 text-center">
+            <p className="text-gray-700 mb-6">
+              You need to sign in to save items to your wishlist.
+            </p>
+            <div className="flex gap-3">
+              <Link
+                href="/auth"
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              >
+                Sign In
+              </Link>
+              <button
+                onClick={onClose}
+                className="flex-1 border-2 border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

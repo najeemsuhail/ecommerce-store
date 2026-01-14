@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { useWishlist } from '@/contexts/WishlistContext';
@@ -10,6 +10,15 @@ export default function WishlistPage() {
   const [newGroupName, setNewGroupName] = useState('');
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    setIsLoading(false);
+  }, []);
 
   const handleCreateGroup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +39,53 @@ export default function WishlistPage() {
       setRenamingGroupId(null);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading wishlist...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show login prompt if not logged in
+  if (!isLoggedIn) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md">
+            <svg
+              className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+            <h2 className="text-2xl font-bold mb-2 text-gray-800">Sign In Required</h2>
+            <p className="text-gray-600 mb-6">You need to sign in to view your wishlist collections.</p>
+            <Link
+              href="/auth"
+              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+            >
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
