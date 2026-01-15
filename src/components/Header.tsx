@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import SearchAutocomplete from './SearchAutocomplete';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -10,6 +10,7 @@ import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/f
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { totalItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -67,22 +68,57 @@ export default function Header() {
 
             {/* Desktop Menu (after logo) */}
             <div className="hidden md:flex gap-6 items-center">
-              <Link href="/products" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link 
+                href="/products" 
+                className={`font-medium transition-colors ${
+                  pathname === '/products' || pathname.startsWith('/products/')
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 Shop
               </Link>
-              <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link 
+                href="/about" 
+                className={`font-medium transition-colors ${
+                  pathname === '/about'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 About Us
               </Link>
-              <Link href="/contact" className="text-gray-700 hover:text-blue-600 font-medium">
+              <Link 
+                href="/contact" 
+                className={`font-medium transition-colors ${
+                  pathname === '/contact'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-700 hover:text-blue-600'
+                }`}
+              >
                 Contact Us
               </Link>
               {isLoggedIn && (
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
+                <Link 
+                  href="/dashboard" 
+                  className={`font-medium transition-colors ${
+                    pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
+                  }`}
+                >
                   Dashboard
                 </Link>
               )}
               {isAdmin && (
-                <Link href="/admin" className="text-red-600 hover:text-red-700 font-bold">
+                <Link 
+                  href="/admin" 
+                  className={`font-bold transition-colors ${
+                    pathname === '/admin' || pathname.startsWith('/admin/')
+                      ? 'text-red-600 border-b-2 border-red-600'
+                      : 'text-red-600 hover:text-red-700'
+                  }`}
+                >
                   Admin
                 </Link>
               )}
@@ -150,21 +186,33 @@ export default function Header() {
               <Link 
                 href="/products" 
                 onClick={() => setMenuOpen(false)} 
-                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                  pathname === '/products' || pathname.startsWith('/products/')
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                }`}
               >
                 Shop
               </Link>
               <Link 
                 href="/about" 
                 onClick={() => setMenuOpen(false)} 
-                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                  pathname === '/about'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                }`}
               >
                 About Us
               </Link>
               <Link 
                 href="/contact" 
                 onClick={() => setMenuOpen(false)} 
-                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150"
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                  pathname === '/contact'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                }`}
               >
                 Contact Us
               </Link>
@@ -172,7 +220,11 @@ export default function Header() {
                 <Link 
                   href="/admin" 
                   onClick={() => setMenuOpen(false)} 
-                  className="block w-full py-4 px-4 text-white text-base font-bold bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-150"
+                  className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                    pathname === '/admin' || pathname.startsWith('/admin/')
+                      ? 'bg-red-600 text-white'
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
                 >
                   Admin Dashboard
                 </Link>
@@ -186,7 +238,11 @@ export default function Header() {
                     router.push('/dashboard');
                   }
                 }}
-                className="block w-full py-4 px-4 text-gray-900 text-base font-bold hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all duration-150 text-left"
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 text-left ${
+                  pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                }`}
               >
                 {isLoggedIn ? 'Dashboard' : 'Account'}
               </button>
