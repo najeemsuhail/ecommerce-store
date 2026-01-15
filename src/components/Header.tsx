@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import SearchAutocomplete from './SearchAutocomplete';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+
+interface MobileSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string | null;
+}
 
 export default function Header() {
   const router = useRouter();
@@ -15,6 +23,11 @@ export default function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState('');
+  const [mobileSuggestions, setMobileSuggestions] = useState<MobileSuggestion[]>([]);
+  const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
+  const [mobileLoadingSearch, setMobileLoadingSearch] = useState(false);
+  const mobileSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -38,6 +51,48 @@ export default function Header() {
     } catch (error) {
       console.error('Failed to check admin status:', error);
     }
+  };
+
+  // Fetch mobile search autocomplete suggestions
+  const fetchMobileSuggestions = async (query: string) => {
+    if (query.trim().length < 1) {
+      setMobileSuggestions([]);
+      setShowMobileSuggestions(false);
+      return;
+    }
+
+    setMobileLoadingSearch(true);
+    try {
+      const response = await fetch(`/api/products/autocomplete?q=${encodeURIComponent(query)}&limit=6`);
+      const data = await response.json();
+      if (data.success) {
+        setMobileSuggestions(data.suggestions);
+        setShowMobileSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch mobile suggestions:', error);
+    } finally {
+      setMobileLoadingSearch(false);
+    }
+  };
+
+  const handleMobileSearchChange = (value: string) => {
+    setMobileSearchQuery(value);
+    
+    if (mobileSearchTimeoutRef.current) {
+      clearTimeout(mobileSearchTimeoutRef.current);
+    }
+
+    mobileSearchTimeoutRef.current = setTimeout(() => {
+      fetchMobileSuggestions(value);
+    }, 300);
+  };
+
+  const handleMobileSuggestionSelect = (suggestion: MobileSuggestion) => {
+    router.push(`/products/${suggestion.slug}`);
+    setMobileSearchQuery('');
+    setShowMobileSuggestions(false);
+    setMenuOpen(false);
   };
 
   const handleAccountClick = (e: React.MouseEvent) => {
@@ -183,24 +238,53 @@ export default function Header() {
             style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)' }}
           >
             {/* Mobile Search */}
-            <div className="mb-6">
+            <div className="mb-6 relative">
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                onFocus={(e) => {
-                  e.currentTarget.placeholder = '';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.placeholder = 'Search products...';
-                }}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    router.push(`/products?search=${encodeURIComponent(e.target.value)}`);
-                    setMenuOpen(false);
+                value={mobileSearchQuery}
+                onChange={(e) => handleMobileSearchChange(e.target.value)}
+                onFocus={() => {
+                  if (mobileSearchQuery.trim()) {
+                    setShowMobileSuggestions(true);
                   }
                 }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
+
+              {/* Mobile Autocomplete Dropdown */}
+              {showMobileSuggestions && mobileSearchQuery.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+                  {mobileLoadingSearch ? (
+                    <div className="px-4 py-3 text-gray-500 text-sm">Loading...</div>
+                  ) : mobileSuggestions.length > 0 ? (
+                    <ul className="max-h-64 overflow-y-auto">
+                      {mobileSuggestions.map((suggestion) => (
+                        <li key={suggestion.id}>
+                          <button
+                            onClick={() => handleMobileSuggestionSelect(suggestion)}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0 transition-colors"
+                          >
+                            {suggestion.image && (
+                              <img 
+                                src={suggestion.image} 
+                                alt={suggestion.name}
+                                className="w-10 h-10 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-900 truncate">{suggestion.name}</div>
+                              <div className="text-xs text-gray-600">₹{suggestion.price.toLocaleString('en-IN')}</div>
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-4 py-3 text-gray-500 text-sm">No products found</div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2 flex-1">
