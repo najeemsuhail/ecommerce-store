@@ -248,17 +248,17 @@ function ProductsContent() {
         productImage={wishlistModal.productImage}
         productSlug={wishlistModal.productSlug}
       />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-4 lg:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">All Products</h1>
+        <div className="mb-4 lg:mb-8">
+          <h1 className="text-2xl lg:text-3xl font-bold mb-2 lg:mb-4">All Products</h1>
         </div>
 
         {/* Mobile Filter and Sort Bar */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 z-40">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 p-4 flex z-40">
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="flex-1 text-gray-700 py-2 px-3 rounded-lg font-medium hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-sm"
+            className="flex-1 text-gray-700 py-2 px-3 font-medium hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-sm border-r border-gray-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -268,7 +268,7 @@ function ProductsContent() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="flex-1 text-gray-700 px-3 py-2 rounded-lg bg-white text-sm font-medium focus:outline-none hover:text-gray-900 transition-colors"
+            className="flex-1 text-gray-700 px-3 py-2 bg-white text-sm font-medium focus:outline-none hover:text-gray-900 transition-colors"
           >
             <option value="newest">Newest</option>
             <option value="price-low">Price: Low</option>
@@ -444,9 +444,9 @@ function ProductsContent() {
               </div>
             )}
 
-            {/* Results Count and Sort */}
+            {/* Results Count and Sort - Desktop Only */}
             {!loading && products.length > 0 && (
-              <div className="mb-6 flex justify-between items-center">
+              <div className="mb-6 hidden lg:flex justify-between items-center">
                 <div className="text-gray-600">
                   Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
                 </div>

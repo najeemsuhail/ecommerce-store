@@ -58,8 +58,8 @@ export default function WishlistPage() {
   if (!isLoggedIn) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-md">
+        <div className="min-h-screen bg-gray-50 pt-12 px-4">
+          <div className="text-center bg-white rounded-lg shadow-lg p-6 lg:p-8 max-w-md mx-auto">
             <svg
               className="w-16 h-16 text-gray-400 mx-auto mb-4"
               fill="none"
@@ -73,8 +73,8 @@ export default function WishlistPage() {
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
-            <h2 className="text-2xl font-bold mb-2 text-gray-800">Sign In Required</h2>
-            <p className="text-gray-600 mb-6">You need to sign in to view your wishlist collections.</p>
+            <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-800">Sign In Required</h2>
+            <p className="text-gray-600 mb-6 text-sm lg:text-base">You need to sign in to view your wishlist collections.</p>
             <Link
               href="/auth"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
@@ -98,19 +98,19 @@ export default function WishlistPage() {
           </div>
 
           {/* Create Group Form */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-bold mb-4">Create New Collection</h2>
-            <form onSubmit={handleCreateGroup} className="flex gap-3">
+          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-8">
+            <h2 className="text-lg lg:text-xl font-bold mb-4">Create New Collection</h2>
+            <form onSubmit={handleCreateGroup} className="flex flex-col lg:flex-row gap-3">
               <input
                 type="text"
                 placeholder="Collection name (e.g., Birthday Gifts, Home Decor)"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm lg:text-base"
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors whitespace-nowrap"
               >
                 Create Collection
               </button>

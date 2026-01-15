@@ -27,6 +27,7 @@ export default function Header() {
   const [mobileSuggestions, setMobileSuggestions] = useState<MobileSuggestion[]>([]);
   const [showMobileSuggestions, setShowMobileSuggestions] = useState(false);
   const [mobileLoadingSearch, setMobileLoadingSearch] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const mobileSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -191,13 +192,60 @@ export default function Header() {
             </Link>
 
             {/* Account */}
-            <button
-              onClick={handleAccountClick}
-              className="text-gray-700 hover:text-blue-600 transition-colors cursor-pointer"
-              title={isLoggedIn ? 'Dashboard' : 'Login'}
-            >
-              <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                className="text-gray-700 hover:text-blue-600 transition-colors cursor-pointer"
+                title={isLoggedIn ? 'Account' : 'Login'}
+              >
+                <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
+              </button>
+
+              {/* Account Dropdown Menu */}
+              {accountMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  {!isLoggedIn ? (
+                    <>
+                      <Link
+                        href="/auth"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium border-b border-gray-100 transition-colors"
+                      >
+                        Sign In
+                      </Link>
+                      <Link
+                        href="/auth"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium transition-colors"
+                      >
+                        Sign Up
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium border-b border-gray-100 transition-colors"
+                      >
+                        Dashboard
+                      </Link>
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem('token');
+                          setIsLoggedIn(false);
+                          setAccountMenuOpen(false);
+                          router.push('/');
+                        }}
+                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Cart */}
             <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors" title="Shopping Cart">
