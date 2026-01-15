@@ -161,8 +161,8 @@ function ProductsContent() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">All Products</h1>
           
-          {/* Search Bar */}
-          <div className="flex gap-4 mb-4">
+          {/* Search Bar - TEMPORARILY DISABLED */}
+          {/* <div className="flex gap-4 mb-4">
             <input
               type="text"
               placeholder="Search products..."
@@ -170,7 +170,7 @@ function ProductsContent() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </div> */}
 
           {/* Category Filter */}
           <div className="flex gap-2 flex-wrap">

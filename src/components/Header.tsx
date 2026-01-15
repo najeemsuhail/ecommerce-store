@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
+import SearchAutocomplete from './SearchAutocomplete';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -30,10 +31,10 @@ export default function Header() {
   return (
     <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-4">
 
           {/* LEFT: Logo + Menu */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-8 flex-shrink-0">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -63,8 +64,11 @@ export default function Header() {
             </div>
           </div>
 
+          {/* CENTER: Search Autocomplete */}
+          <SearchAutocomplete />
+
           {/* RIGHT: Icons (all screens) */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-shrink-0">
             {/* Wishlist */}
             <Link href="/wishlist" className="text-gray-700 hover:text-red-500 transition-colors" title="Wishlist">
               <FontAwesomeIcon icon={faHeart} className="w-5 h-5" />
