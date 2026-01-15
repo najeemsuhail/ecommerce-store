@@ -13,63 +13,50 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get statistics
-    const [
-      totalOrders,
-      totalRevenue,
-      totalProducts,
-      totalUsers,
-      recentOrders,
-      topProducts,
-      ordersByStatus,
-    ] = await Promise.all([
-      // Total orders
+    // Get basic counts (fast queries)
+    const [totalOrders, totalProducts, totalUsers] = await Promise.all([
       prisma.order.count(),
+      prisma.product.count(),
+      prisma.user.count(),
+    ]);
 
-      // Total revenue (only paid orders)
+    // Get revenue and orders by status
+    const [totalRevenue, ordersByStatus] = await Promise.all([
       prisma.order.aggregate({
         where: { paymentStatus: 'paid' },
         _sum: { total: true },
       }),
-
-      // Total products
-      prisma.product.count(),
-
-      // Total users
-      prisma.user.count(),
-
-      // Recent orders
-      prisma.order.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: { name: true, email: true },
-          },
-          items: {
-            include: {
-              product: {
-                select: { name: true },
-              },
-            },
-          },
-        },
-      }),
-
-      // Top selling products
-      prisma.orderItem.groupBy({
-        by: ['productId'],
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: 'desc' } },
-        take: 5,
-      }),
-
-      // Orders by status
       prisma.order.groupBy({
         by: ['status'],
         _count: true,
       }),
     ]);
+
+    // Get recent orders
+    const recentOrders = await prisma.order.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: { name: true, email: true },
+        },
+        items: {
+          include: {
+            product: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    // Get top products
+    const topProducts = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 5,
+    });
 
     // Get product details for top products
     const topProductIds = topProducts.map((p) => p.productId);
