@@ -146,15 +146,8 @@ export default function ProductDetailPage() {
                 <div
                   className="relative h-96 bg-gray-200 rounded overflow-hidden"
                   style={{ cursor: showImageZoom ? 'zoom-out' : 'default' }}
+                  onMouseMove={showImageZoom ? handleImageZoom : undefined}
                 >
-                  {/* Zoom tracking layer - only active when zoomed */}
-                  {showImageZoom && (
-                    <div
-                      className="absolute inset-0 pointer-events-auto"
-                      onMouseMove={handleImageZoom}
-                    />
-                  )}
-
                   {product.images?.[selectedImage] ? (
                     <>
                       <img
@@ -192,26 +185,6 @@ export default function ProductDetailPage() {
                     <FontAwesomeIcon icon={faMagnifyingGlassPlus} className="w-4 h-4" />
                     <span className="text-sm">{showImageZoom ? 'Exit Zoom' : 'Zoom'}</span>
                   </button>
-
-                  {/* Navigation Arrows */}
-                  {product.images?.length > 1 && (
-                    <>
-                      <button
-                        onClick={handlePrevImage}
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200"
-                        title="Previous image"
-                      >
-                        <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={handleNextImage}
-                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200"
-                        title="Next image"
-                      >
-                        <FontAwesomeIcon icon={faChevronRight} className="w-6 h-6" />
-                      </button>
-                    </>
-                  )}
                 </div>
 
               {/* Thumbnail Gallery */}
