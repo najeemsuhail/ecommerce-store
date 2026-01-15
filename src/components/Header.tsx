@@ -179,9 +179,30 @@ export default function Header() {
           
           {/* Full Screen Menu */}
           <div 
-            className="fixed top-16 left-0 right-0 bottom-0 md:hidden z-50 px-6 py-8 flex flex-col border-t-2 border-gray-200 shadow-2xl"
-            style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)', overflowY: 'hidden' }}
+            className="fixed top-16 left-0 right-0 bottom-0 md:hidden z-50 px-6 py-8 flex flex-col border-t-2 border-gray-200 shadow-2xl overflow-y-auto"
+            style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)' }}
           >
+            {/* Mobile Search */}
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                onFocus={(e) => {
+                  e.currentTarget.placeholder = '';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.placeholder = 'Search products...';
+                }}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    router.push(`/products?search=${encodeURIComponent(e.target.value)}`);
+                    setMenuOpen(false);
+                  }
+                }}
+              />
+            </div>
+
             <div className="space-y-2 flex-1">
               <Link 
                 href="/products" 
