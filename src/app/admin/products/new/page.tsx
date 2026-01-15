@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faCloudArrowUp } from '@fortawesome/free-solid-svg-icons';
 
 export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -35,6 +38,28 @@ export default function AddProductPage() {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      setMessage('Product name is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.description.trim()) {
+      setMessage('Description is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.price) {
+      setMessage('Price is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.slug.trim()) {
+      setMessage('Slug is required (auto-generated or manual)');
+      setLoading(false);
+      return;
+    }
 
     const token = localStorage.getItem('token');
 
@@ -88,7 +113,8 @@ export default function AddProductPage() {
         setMessage(`Error: ${data.error}`);
       }
     } catch (error) {
-      setMessage('Failed to create product');
+      console.error('Form submission error:', error);
+      setMessage('Failed to create product. Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -110,6 +136,33 @@ export default function AddProductPage() {
   const removeImage = (index: number) => {
     const newImages = formData.images.filter((_, i) => i !== index);
     setFormData({ ...formData, images: newImages });
+  };
+
+  const handleFileUpload = async (index: number, file: File) => {
+    setUploadingIndex(index);
+    try {
+      const formDataForUpload = new FormData();
+      formDataForUpload.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataForUpload,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        updateImage(index, data.url);
+        setMessage(`Image uploaded successfully: ${file.name}`);
+      } else {
+        setMessage(`Upload failed: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('Failed to upload image');
+      console.error(error);
+    } finally {
+      setUploadingIndex(null);
+    }
   };
 
   const generateSlug = () => {
@@ -324,22 +377,69 @@ export default function AddProductPage() {
                 <h2 className="text-xl font-semibold border-b pb-2">Product Images</h2>
 
                 {formData.images.map((image, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      type="url"
-                      value={image}
-                      onChange={(e) => updateImage(index, e.target.value)}
-                      className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                    {formData.images.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
-                      >
-                        Remove
-                      </button>
+                  <div key={index} className="space-y-2 p-4 border rounded-lg bg-gray-50">
+                    {/* Image Preview */}
+                    {image && (
+                      <div className="mb-3">
+                        <img
+                          src={image}
+                          alt={`Product image ${index + 1}`}
+                          className="h-32 w-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+
+                    {/* File Upload */}
+                    <div className="flex gap-2">
+                      <label className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-blue-300 rounded-lg bg-blue-50 cursor-pointer hover:bg-blue-100 transition">
+                        <FontAwesomeIcon icon={faCloudArrowUp} className="text-blue-600" />
+                        <span className="text-sm font-medium text-blue-600">
+                          {uploadingIndex === index ? 'Uploading...' : 'Click to upload image'}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(index, file);
+                            }
+                          }}
+                          disabled={uploadingIndex === index}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {formData.images.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                        >
+                          <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* OR Divider */}
+                    {!image && <div className="flex items-center gap-2 my-2 opacity-50"><div className="flex-1 h-px bg-gray-300"></div><span className="text-xs text-gray-500">OR</span><div className="flex-1 h-px bg-gray-300"></div></div>}
+
+                    {/* URL Input - for pasting image URLs */}
+                    {!image && (
+                      <input
+                        type="url"
+                        value={image}
+                        onChange={(e) => updateImage(index, e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                        placeholder="Paste image URL here (optional)"
+                      />
+                    )}
+
+                    {/* Show URL if uploaded */}
+                    {image && (
+                      <div className="text-xs text-gray-600 break-all p-2 bg-white rounded border">
+                        <strong>URL:</strong> {image}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -347,7 +447,7 @@ export default function AddProductPage() {
                 <button
                   type="button"
                   onClick={addImageField}
-                  className="text-blue-600 hover:underline text-sm"
+                  className="text-blue-600 hover:underline text-sm font-medium"
                 >
                   + Add Another Image
                 </button>
@@ -462,7 +562,11 @@ export default function AddProductPage() {
               </div>
 
               {message && (
-                <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+                <div className={`p-4 rounded-lg ${
+                  message.includes('Error') || message.includes('Invalid') || message.includes('Failed')
+                    ? 'bg-red-50 text-red-700 border border-red-200'
+                    : 'bg-green-50 text-green-700 border border-green-200'
+                }`}>
                   {message}
                 </div>
               )}

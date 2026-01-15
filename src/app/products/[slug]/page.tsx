@@ -7,6 +7,8 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -21,6 +23,8 @@ export default function ProductDetailPage() {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
+  const [showImageZoom, setShowImageZoom] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (params.slug) {
@@ -47,6 +51,26 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrevImage = () => {
+    setSelectedImage((prev) =>
+      prev === 0 ? product.images.length - 1 : prev - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setSelectedImage((prev) =>
+      prev === product.images.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleImageZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+    setShowImageZoom(true);
   };
 
   const handleAddToCart = () => {
@@ -115,46 +139,110 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Images */}
+            {/* Images Gallery */}
             <div>
-              <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-                <div className="relative h-96 bg-gray-200 rounded overflow-hidden">
-                  {product.images?.[selectedImage] ? (
-                    <img
-                      src={product.images[selectedImage]}
-                      alt={product.name}
-                      className="w-full h-full object-contain"
+              {/* Main Image */}
+              <div className="bg-white rounded-lg shadow-lg p-4 mb-4 relative group">
+                <div
+                  className="relative h-96 bg-gray-200 rounded overflow-hidden"
+                  style={{ cursor: showImageZoom ? 'zoom-out' : 'default' }}
+                >
+                  {/* Zoom tracking layer - only active when zoomed */}
+                  {showImageZoom && (
+                    <div
+                      className="absolute inset-0 pointer-events-auto"
+                      onMouseMove={handleImageZoom}
                     />
+                  )}
+
+                  {product.images?.[selectedImage] ? (
+                    <>
+                      <img
+                        src={product.images[selectedImage]}
+                        alt={product.name}
+                        className={`w-full h-full object-contain transition-transform duration-200 ${
+                          showImageZoom ? 'scale-150' : 'scale-100'
+                        }`}
+                        style={
+                          showImageZoom
+                            ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` }
+                            : undefined
+                        }
+                      />
+                      <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                        {selectedImage + 1} / {product.images.length}
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       No Image
                     </div>
                   )}
-                </div>
-              </div>
 
-              {/* Thumbnail Images */}
+                  {/* Zoom Button */}
+                  <button
+                    onClick={() => setShowImageZoom(!showImageZoom)}
+                    className={`absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 z-10 ${
+                      showImageZoom
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                    title={showImageZoom ? 'Exit zoom' : 'Click to zoom'}
+                  >
+                    <FontAwesomeIcon icon={faMagnifyingGlassPlus} className="w-4 h-4" />
+                    <span className="text-sm">{showImageZoom ? 'Exit Zoom' : 'Zoom'}</span>
+                  </button>
+
+                  {/* Navigation Arrows */}
+                  {product.images?.length > 1 && (
+                    <>
+                      <button
+                        onClick={handlePrevImage}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200"
+                        title="Previous image"
+                      >
+                        <FontAwesomeIcon icon={faChevronLeft} className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={handleNextImage}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200"
+                        title="Next image"
+                      >
+                        <FontAwesomeIcon icon={faChevronRight} className="w-6 h-6" />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+              {/* Thumbnail Gallery */}
               {product.images && product.images.length > 1 && (
-                <div className="flex gap-2">
-                  {product.images.map((image: string, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      className={`w-20 h-20 border-2 rounded overflow-hidden ${
-                        selectedImage === index
-                          ? 'border-blue-600'
-                          : 'border-gray-300'
-                      }`}
-                    >
-                      <img
-                        src={image}
-                        alt={`${product.name} ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
+                <div>
+                  <p className="text-sm text-gray-600 mb-2 font-semibold">
+                    Click to select image
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {product.images.map((image: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImage(index)}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition-all duration-200 hover:shadow-md ${
+                          selectedImage === index
+                            ? 'border-blue-600 ring-2 ring-blue-300'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                        title={`Image ${index + 1}`}
+                      >
+                        <img
+                          src={image}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
+            </div>
             </div>
 
             {/* Product Info */}
