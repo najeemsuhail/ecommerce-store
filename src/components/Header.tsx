@@ -397,23 +397,9 @@ export default function Header() {
                     : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
                 }`}
               >
-                {isLoggedIn ? 'Dashboard' : 'Account'}
+                {isLoggedIn ? 'Dashboard' : 'Login / Register'}
               </button>
-              
-              {/* Divider */}
-              <div className="my-6 border-t-2 border-gray-300" />
             </div>
-            
-            {/* Auth Links at Bottom */}
-            {!isLoggedIn && (
-              <Link 
-                href="/auth" 
-                onClick={() => setMenuOpen(false)} 
-                className="block w-full py-4 px-4 text-white text-base font-bold bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-150 text-center"
-              >
-                Login / Register
-              </Link>
-            )}
           </div>
         </>
       )}

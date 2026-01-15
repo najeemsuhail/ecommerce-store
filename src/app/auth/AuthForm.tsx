@@ -59,10 +59,10 @@ export default function AuthForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-start lg:items-center justify-center pt-8 lg:pt-0 px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-center text-slate-800 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+          <h2 className="text-2xl lg:text-3xl font-bold text-center text-slate-800 mb-4 lg:mb-6">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
 

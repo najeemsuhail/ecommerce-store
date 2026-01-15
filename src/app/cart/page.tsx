@@ -156,7 +156,7 @@ export default function CartPage() {
                   </div>
 
                   {/* Item Total */}
-                  <div className="text-right">
+                  <div className="text-right flex flex-col items-end">
                     <p className="font-semibold text-lg">
                       ${(item.price * item.quantity).toFixed(2)}
                     </p>
