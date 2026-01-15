@@ -42,37 +42,35 @@ export default function EditProductPage() {
   const fetchProduct = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`/api/admin/products?search=${params.id}`, {
+      const response = await fetch(`/api/admin/products/${params.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
-      if (data.success && data.products.length > 0) {
-        const prod = data.products.find((p: any) => p.id === params.id);
-        if (prod) {
-          setProduct(prod);
-          setFormData({
-            name: prod.name,
-            description: prod.description,
-            price: prod.price.toString(),
-            comparePrice: prod.comparePrice?.toString() || '',
-            isDigital: prod.isDigital,
-            stock: prod.stock?.toString() || '',
-            sku: prod.sku || '',
-            trackInventory: prod.trackInventory,
-            images: prod.images.length > 0 ? prod.images : [''],
-            category: prod.category || '',
-            tags: prod.tags.join(', '),
-            brand: prod.brand || '',
-            weight: prod.weight?.toString() || '',
-            slug: prod.slug,
-            metaTitle: prod.metaTitle || '',
-            metaDescription: prod.metaDescription || '',
-            isFeatured: prod.isFeatured,
-            isActive: prod.isActive,
-            specifications: prod.specifications ? JSON.stringify(prod.specifications, null, 2) : '{}',
-          });
-        }
+      if (data.success && data.product) {
+        const prod = data.product;
+        setProduct(prod);
+        setFormData({
+          name: prod.name,
+          description: prod.description,
+          price: prod.price.toString(),
+          comparePrice: prod.comparePrice?.toString() || '',
+          isDigital: prod.isDigital,
+          stock: prod.stock?.toString() || '',
+          sku: prod.sku || '',
+          trackInventory: prod.trackInventory,
+          images: prod.images.length > 0 ? prod.images : [''],
+          category: prod.category || '',
+          tags: prod.tags.join(', '),
+          brand: prod.brand || '',
+          weight: prod.weight?.toString() || '',
+          slug: prod.slug,
+          metaTitle: prod.metaTitle || '',
+          metaDescription: prod.metaDescription || '',
+          isFeatured: prod.isFeatured,
+          isActive: prod.isActive,
+          specifications: prod.specifications ? JSON.stringify(prod.specifications, null, 2) : '{}',
+        });
       }
     } catch (error) {
       console.error('Error:', error);
