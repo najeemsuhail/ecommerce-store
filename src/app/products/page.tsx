@@ -8,6 +8,24 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
+import FacetFilter from '@/components/FacetFilter';
+
+interface FacetFilters {
+  brands: string[];
+  categories: string[];
+  priceRange: {
+    min: number;
+    max: number;
+  };
+  isDigital?: boolean;
+  isFeatured?: boolean;
+}
+
+interface FacetData {
+  brands: { name: string; count: number }[];
+  categories: { name: string; count: number }[];
+  priceRange: { min: number; max: number };
+}
 
 // Separate component that uses useSearchParams
 function ProductsContent() {
@@ -16,8 +34,16 @@ function ProductsContent() {
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [facets, setFacets] = useState<FacetData>({
+    brands: [],
+    categories: [],
+    priceRange: { min: 0, max: 100000 },
+  });
+  const [facetFilters, setFacetFilters] = useState<FacetFilters>({
+    brands: [],
+    categories: [],
+    priceRange: { min: 0, max: 100000 },
+  });
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
@@ -42,11 +68,14 @@ function ProductsContent() {
   useEffect(() => {
     const category = searchParams.get('category');
     if (category) {
-      setSelectedCategory(category);
+      setFacetFilters((prev) => ({
+        ...prev,
+        categories: [category],
+      }));
     }
   }, [searchParams]);
 
-  // Fetch all products once for categories
+  // Fetch all products once for facets
   useEffect(() => {
     fetchAllProducts();
   }, []);
@@ -54,7 +83,7 @@ function ProductsContent() {
   // Fetch filtered products when filters change
   useEffect(() => {
     fetchProducts();
-  }, [searchTerm, selectedCategory]);
+  }, [facetFilters]);
 
   const fetchAllProducts = async () => {
     try {
@@ -63,11 +92,43 @@ function ProductsContent() {
       if (data.success) {
         setAllProducts(data.products);
         
-        // Extract unique categories from all products
-        const uniqueCategories = Array.from(
-          new Set(data.products.map((p: any) => p.category).filter(Boolean))
-        ) as string[];
-        setCategories(uniqueCategories);
+        // Extract facets from all products
+        const brands = new Map<string, number>();
+        const categories = new Map<string, number>();
+        let minPrice = Number.MAX_VALUE;
+        let maxPrice = 0;
+
+        data.products.forEach((p: any) => {
+          if (p.brand) {
+            brands.set(p.brand, (brands.get(p.brand) || 0) + 1);
+          }
+          if (p.category) {
+            categories.set(p.category, (categories.get(p.category) || 0) + 1);
+          }
+          if (p.price) {
+            minPrice = Math.min(minPrice, p.price);
+            maxPrice = Math.max(maxPrice, p.price);
+          }
+        });
+
+        setFacets({
+          brands: Array.from(brands.entries())
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+          categories: Array.from(categories.entries())
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count),
+          priceRange: { min: minPrice === Number.MAX_VALUE ? 0 : minPrice, max: maxPrice },
+        });
+
+        // Set initial price range
+        setFacetFilters((prev) => ({
+          ...prev,
+          priceRange: {
+            min: prev.priceRange.min,
+            max: maxPrice,
+          },
+        }));
       }
     } catch (error) {
       console.error('Failed to fetch all products');
@@ -78,8 +139,34 @@ function ProductsContent() {
     setLoading(true);
     try {
       let url = '/api/products?';
-      if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`;
-      if (selectedCategory) url += `category=${encodeURIComponent(selectedCategory)}&`;
+      
+      if (facetFilters.brands.length > 0) {
+        facetFilters.brands.forEach((brand) => {
+          url += `brand=${encodeURIComponent(brand)}&`;
+        });
+      }
+      
+      if (facetFilters.categories.length > 0) {
+        facetFilters.categories.forEach((category) => {
+          url += `category=${encodeURIComponent(category)}&`;
+        });
+      }
+      
+      if (facetFilters.priceRange.min > 0) {
+        url += `minPrice=${facetFilters.priceRange.min}&`;
+      }
+      
+      if (facetFilters.priceRange.max < facets.priceRange.max) {
+        url += `maxPrice=${facetFilters.priceRange.max}&`;
+      }
+      
+      if (facetFilters.isDigital !== undefined) {
+        url += `isDigital=${facetFilters.isDigital}&`;
+      }
+      
+      if (facetFilters.isFeatured !== undefined) {
+        url += `isFeatured=${facetFilters.isFeatured}&`;
+      }
 
       const response = await fetch(url);
       const data = await response.json();
@@ -157,91 +244,134 @@ function ProductsContent() {
         productSlug={wishlistModal.productSlug}
       />
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with Search */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">All Products</h1>
-          
-          {/* Search Bar - TEMPORARILY DISABLED */}
-          {/* <div className="flex gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div> */}
-
-          {/* Category Filter */}
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setSelectedCategory('')}
-              className={`px-4 py-2 rounded-lg transition-all ${
-                selectedCategory === ''
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white border hover:bg-gray-50'
-              }`}
-            >
-              All Categories ({allProducts.length})
-            </button>
-            {categories.map((category) => {
-              const count = allProducts.filter(p => p.category === category).length;
-              return (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-lg transition-all ${
-                    selectedCategory === category
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white border hover:bg-gray-50'
-                  }`}
-                >
-                  {category} ({count})
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Active Filters */}
-        {(searchTerm || selectedCategory) && (
-          <div className="mb-6 flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-600">Active filters:</span>
-            {searchTerm && (
-              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                Search: {searchTerm}
+        {/* Selected Filters Display */}
+        {(facetFilters.brands.length > 0 ||
+          facetFilters.categories.length > 0 ||
+          facetFilters.isDigital ||
+          facetFilters.isFeatured ||
+          facetFilters.priceRange.min > 0 ||
+          facetFilters.priceRange.max < facets.priceRange.max) && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900">Active Filters:</h3>
+              <button
+                onClick={() =>
+                  setFacetFilters({
+                    brands: [],
+                    categories: [],
+                    priceRange: { min: 0, max: facets.priceRange.max },
+                    isDigital: undefined,
+                    isFeatured: undefined,
+                  })
+                }
+                className="text-sm text-red-600 hover:text-red-700 font-semibold"
+              >
+                Clear All
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {facetFilters.brands.map((brand) => (
                 <button
-                  onClick={() => setSearchTerm('')}
-                  className="hover:bg-blue-200 rounded-full p-0.5"
+                  key={brand}
+                  onClick={() =>
+                    setFacetFilters((prev) => ({
+                      ...prev,
+                      brands: prev.brands.filter((b) => b !== brand),
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
                 >
-                  ✕
+                  {brand}
+                  <span className="text-blue-400">✕</span>
                 </button>
-              </span>
-            )}
-            {selectedCategory && (
-              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                Category: {selectedCategory}
+              ))}
+              {facetFilters.categories.map((category) => (
                 <button
-                  onClick={() => setSelectedCategory('')}
-                  className="hover:bg-blue-200 rounded-full p-0.5"
+                  key={category}
+                  onClick={() =>
+                    setFacetFilters((prev) => ({
+                      ...prev,
+                      categories: prev.categories.filter((c) => c !== category),
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
                 >
-                  ✕
+                  {category}
+                  <span className="text-blue-400">✕</span>
                 </button>
-              </span>
-            )}
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('');
-              }}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Clear all
-            </button>
+              ))}
+              {(facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) && (
+                <button
+                  onClick={() =>
+                    setFacetFilters((prev) => ({
+                      ...prev,
+                      priceRange: { min: 0, max: facets.priceRange.max },
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
+                >
+                  Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
+                  <span className="text-blue-400">✕</span>
+                </button>
+              )}
+              {facetFilters.isDigital && (
+                <button
+                  onClick={() =>
+                    setFacetFilters((prev) => ({
+                      ...prev,
+                      isDigital: undefined,
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
+                >
+                  Digital Products
+                  <span className="text-blue-400">✕</span>
+                </button>
+              )}
+              {facetFilters.isFeatured && (
+                <button
+                  onClick={() =>
+                    setFacetFilters((prev) => ({
+                      ...prev,
+                      isFeatured: undefined,
+                    }))
+                  }
+                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
+                >
+                  Featured Only
+                  <span className="text-blue-400">✕</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Loading */}
+        {/* Products Layout with Facet Filter */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar Filters (hidden on mobile) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <FacetFilter
+              facets={facets}
+              selectedFilters={facetFilters}
+              onFilterChange={setFacetFilters}
+            />
+          </div>
+
+          {/* Main Content Area */}
+          <div className="lg:col-span-3">
+            {/* Results Count */}
+            {!loading && products.length > 0 && (
+              <div className="mb-6 text-gray-600">
+                Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+              </div>
+            )}
+
+            {/* Loading */}
         {loading && (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -258,8 +388,11 @@ function ProductsContent() {
             <p className="text-xl text-gray-600 mb-4">No products found</p>
             <button
               onClick={() => {
-                setSearchTerm('');
-                setSelectedCategory('');
+                setFacetFilters({
+                  brands: [],
+                  categories: [],
+                  priceRange: { min: 0, max: facets.priceRange.max },
+                });
               }}
               className="text-blue-600 hover:underline"
             >
@@ -268,111 +401,134 @@ function ProductsContent() {
           </div>
         )}
 
-        {/* Results Count */}
-        {!loading && products.length > 0 && (
-          <div className="mb-4 text-gray-600">
-            Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
-            {selectedCategory && ` in ${selectedCategory}`}
-            {searchTerm && ` for "${searchTerm}"`}
-          </div>
-        )}
+            {/* Loading */}
+            {loading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="text-xl mt-4">Loading products...</p>
+              </div>
+            )}
 
-        {/* Products Grid */}
-        {!loading && products.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/products/${product.slug}`}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group"
-              >
-                {/* Product Image */}
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
-                  {product.images?.[0] ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      No Image
-                    </div>
-                  )}
-                  {product.isFeatured && (
-                    <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-1 rounded">
-                      Featured
-                    </span>
-                  )}
-                  {product.comparePrice && (
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-semibold">
-                      SALE
-                    </span>
-                  )}
-                </div>
+            {/* No Results */}
+            {!loading && products.length === 0 && (
+              <div className="text-center py-12 bg-white rounded-lg shadow">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-xl text-gray-600 mb-4">No products found</p>
+                <button
+                  onClick={() =>
+                    setFacetFilters({
+                      brands: [],
+                      categories: [],
+                      priceRange: { min: 0, max: facets.priceRange.max },
+                    })
+                  }
+                  className="text-blue-600 hover:underline"
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
 
-                {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                    {product.name}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <span className="text-2xl font-bold text-blue-600">
-                        ₹{product.price}
-                      </span>
+            {/* Products Grid */}
+            {!loading && products.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug}`}
+                    className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group"
+                  >
+                    {/* Product Image */}
+                    <div className="relative h-48 bg-gray-200 overflow-hidden">
+                      {product.images?.[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No Image
+                        </div>
+                      )}
+                      {product.isFeatured && (
+                        <span className="absolute top-2 right-2 bg-yellow-400 text-xs px-2 py-1 rounded">
+                          Featured
+                        </span>
+                      )}
                       {product.comparePrice && (
-                        <span className="text-sm text-gray-500 line-through ml-2">
-                          ₹{product.comparePrice}
+                        <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-semibold">
+                          SALE
                         </span>
                       )}
                     </div>
-                    {product.isDigital && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Digital
-                      </span>
-                    )}
-                  </div>
 
-                  {product.averageRating > 0 && (
-                    <div className="flex items-center gap-1 mb-3 text-sm">
-                      <span className="text-yellow-400">
-                        {'★'.repeat(Math.round(product.averageRating))}
-                      </span>
-                      <span className="text-gray-600">
-                        ({product.reviewCount})
-                      </span>
+                    {/* Product Info */}
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                        {product.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {product.description}
+                      </p>
+
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <span className="text-2xl font-bold text-blue-600">
+                            ₹{product.price}
+                          </span>
+                          {product.comparePrice && (
+                            <span className="text-sm text-gray-500 line-through ml-2">
+                              ₹{product.comparePrice}
+                            </span>
+                          )}
+                        </div>
+                        {product.isDigital && (
+                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            Digital
+                          </span>
+                        )}
+                      </div>
+
+                      {product.averageRating > 0 && (
+                        <div className="flex items-center gap-1 mb-3 text-sm">
+                          <span className="text-yellow-400">
+                            {'★'.repeat(Math.round(product.averageRating))}
+                          </span>
+                          <span className="text-gray-600">
+                            ({product.reviewCount})
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={(e) => handleAddToCart(product, e)}
+                          className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                        >
+                          Add to Cart
+                        </button>
+                        <button
+                          onClick={(e) => handleWishlistToggle(product, e)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            isInWishlist(product.id)
+                              ? 'bg-red-100 text-red-600 border-2 border-red-300'
+                              : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                          }`}
+                          title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                        >
+                          ♥
+                        </button>
+                      </div>
                     </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(e) => handleAddToCart(product, e)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
-                    >
-                      Add to Cart
-                    </button>
-                    <button
-                      onClick={(e) => handleWishlistToggle(product, e)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        isInWishlist(product.id)
-                          ? 'bg-red-100 text-red-600 border-2 border-red-300'
-                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
-                      }`}
-                      title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                    >
-                      ♥
-                    </button>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

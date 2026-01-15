@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
-    const category = searchParams.get('category');
-    const brand = searchParams.get('brand');
+    const categories = searchParams.getAll('category'); // Get all category values
+    const brands = searchParams.getAll('brand'); // Get all brand values
     const isDigital = searchParams.get('isDigital');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
@@ -26,12 +26,18 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    if (category) {
-      where.category = category;
+    // Handle multiple categories
+    if (categories.length > 0) {
+      where.category = {
+        in: categories,
+      };
     }
 
-    if (brand) {
-      where.brand = brand;
+    // Handle multiple brands
+    if (brands.length > 0) {
+      where.brand = {
+        in: brands,
+      };
     }
 
     if (isDigital === 'true') {
