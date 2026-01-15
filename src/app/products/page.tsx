@@ -44,6 +44,7 @@ function ProductsContent() {
     categories: [],
     priceRange: { min: 0, max: 100000 },
   });
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
@@ -253,7 +254,7 @@ function ProductsContent() {
 
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Filters (hidden on mobile) */}
+          {/* Desktop Sidebar Filters */}
           <div className="hidden lg:block lg:col-span-1">
             <FacetFilter
               facets={facets}
@@ -261,6 +262,75 @@ function ProductsContent() {
               onFilterChange={setFacetFilters}
             />
           </div>
+
+          {/* Mobile Filter Button */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={() => setMobileFilterOpen(true)}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 9.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 007 15.618V9.414L3.293 5.707A1 1 0 013 5V3z" clipRule="evenodd" />
+              </svg>
+              Filters
+            </button>
+          </div>
+
+          {/* Mobile Filter Modal */}
+          {mobileFilterOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                onClick={() => setMobileFilterOpen(false)}
+              />
+              {/* Drawer */}
+              <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-white z-50 overflow-y-auto lg:hidden">
+                <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold">Filters</h2>
+                  <button
+                    onClick={() => setMobileFilterOpen(false)}
+                    className="text-gray-600 hover:text-gray-900"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-4">
+                  <FacetFilter
+                    facets={facets}
+                    selectedFilters={facetFilters}
+                    onFilterChange={(filters) => {
+                      setFacetFilters(filters);
+                    }}
+                  />
+                </div>
+                <div className="sticky bottom-0 bg-white border-t p-4 space-y-2">
+                  <button
+                    onClick={() => setMobileFilterOpen(false)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    Show Results
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFacetFilters({
+                        brands: [],
+                        categories: [],
+                        priceRange: { min: 0, max: facets.priceRange.max },
+                        isDigital: undefined,
+                        isFeatured: undefined,
+                      });
+                    }}
+                    className="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
