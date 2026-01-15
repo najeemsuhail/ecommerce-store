@@ -254,7 +254,29 @@ function ProductsContent() {
           <h1 className="text-3xl font-bold mb-4">All Products</h1>
         </div>
 
-
+        {/* Mobile Filter and Sort Bar */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 z-40">
+          <button
+            onClick={() => setMobileFilterOpen(true)}
+            className="flex-1 text-gray-700 py-2 px-3 rounded-lg font-medium hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filter
+          </button>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="flex-1 text-gray-700 px-3 py-2 rounded-lg bg-white text-sm font-medium focus:outline-none hover:text-gray-900 transition-colors"
+          >
+            <option value="newest">Newest</option>
+            <option value="price-low">Price: Low</option>
+            <option value="price-high">Price: High</option>
+            <option value="popular">Popular</option>
+            <option value="rating">Rated</option>
+          </select>
+        </div>
 
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-24 lg:pb-0">
