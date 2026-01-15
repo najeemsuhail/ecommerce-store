@@ -253,7 +253,7 @@ function ProductsContent() {
 
 
         {/* Products Layout with Facet Filter */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
           <div className="hidden lg:block lg:col-span-1">
             <FacetFilter
@@ -261,19 +261,6 @@ function ProductsContent() {
               selectedFilters={facetFilters}
               onFilterChange={setFacetFilters}
             />
-          </div>
-
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden mb-4">
-            <button
-              onClick={() => setMobileFilterOpen(true)}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 9.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 007 15.618V9.414L3.293 5.707A1 1 0 013 5V3z" clipRule="evenodd" />
-              </svg>
-              Filters
-            </button>
           </div>
 
           {/* Mobile Filter Modal */}
@@ -567,6 +554,17 @@ function ProductsContent() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Filter Button (Fixed Bottom) */}
+      <button
+        onClick={() => setMobileFilterOpen(true)}
+        className="fixed bottom-6 left-4 right-4 lg:hidden bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg z-30"
+      >
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 9.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 007 15.618V9.414L3.293 5.707A1 1 0 013 5V3z" clipRule="evenodd" />
+        </svg>
+        Filters
+      </button>
     </div>
   );
 }
