@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const tag = searchParams.get('tag');
     const isFeatured = searchParams.get('isFeatured');
+    const sort = searchParams.get('sort') || 'newest';
 
     // Build filter object
     const where: any = {
@@ -60,9 +61,29 @@ export async function GET(request: NextRequest) {
       where.isFeatured = true;
     }
 
+    // Determine sort order
+    let orderBy: any = { createdAt: 'desc' };
+    switch (sort) {
+      case 'price-low':
+        orderBy = { price: 'asc' };
+        break;
+      case 'price-high':
+        orderBy = { price: 'desc' };
+        break;
+      case 'popular':
+        orderBy = { createdAt: 'desc' }; // Could be enhanced with view count
+        break;
+      case 'rating':
+        orderBy = { createdAt: 'desc' }; // Will be sorted after calculating ratings
+        break;
+      case 'newest':
+      default:
+        orderBy = { createdAt: 'desc' };
+    }
+
     const products = await prisma.product.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       include: {
         reviews: {
           select: {
@@ -87,6 +108,11 @@ export async function GET(request: NextRequest) {
         reviewCount: reviews.length,
       };
     });
+
+    // Sort by rating if requested
+    if (sort === 'rating') {
+      productsWithRating.sort((a, b) => b.averageRating - a.averageRating);
+    }
 
     return NextResponse.json({
       success: true,

@@ -45,6 +45,7 @@ function ProductsContent() {
     priceRange: { min: 0, max: 100000 },
   });
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
@@ -84,7 +85,7 @@ function ProductsContent() {
   // Fetch filtered products when filters change
   useEffect(() => {
     fetchProducts();
-  }, [facetFilters]);
+  }, [facetFilters, sortBy]);
 
   const fetchAllProducts = async () => {
     try {
@@ -168,6 +169,9 @@ function ProductsContent() {
       if (facetFilters.isFeatured !== undefined) {
         url += `isFeatured=${facetFilters.isFeatured}&`;
       }
+
+      // Add sort parameter
+      url += `sort=${sortBy}&`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -418,10 +422,27 @@ function ProductsContent() {
               </div>
             )}
 
-            {/* Results Count */}
+            {/* Results Count and Sort */}
             {!loading && products.length > 0 && (
-              <div className="mb-6 text-gray-600">
-                Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+              <div className="mb-6 flex justify-between items-center">
+                <div className="text-gray-600">
+                  Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="sort" className="text-sm font-medium text-gray-700">Sort by:</label>
+                  <select
+                    id="sort"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="popular">Most Popular</option>
+                    <option value="rating">Highest Rated</option>
+                  </select>
+                </div>
               </div>
             )}
 
