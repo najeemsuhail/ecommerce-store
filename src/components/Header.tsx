@@ -12,12 +12,32 @@ export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsLoggedIn(!!token);
+
+    // Check if user is admin
+    if (token) {
+      checkAdminStatus(token);
+    }
   }, []);
+
+  const checkAdminStatus = async (token: string) => {
+    try {
+      const response = await fetch('/api/auth/admin-check', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setIsAdmin(data.isAdmin);
+    } catch (error) {
+      console.error('Failed to check admin status:', error);
+    }
+  };
 
   const handleAccountClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,6 +79,11 @@ export default function Header() {
               {isLoggedIn && (
                 <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
                   Dashboard
+                </Link>
+              )}
+              {isAdmin && (
+                <Link href="/admin" className="text-red-600 hover:text-red-700 font-bold">
+                  Admin
                 </Link>
               )}
             </div>
@@ -143,6 +168,15 @@ export default function Header() {
               >
                 Contact Us
               </Link>
+              {isAdmin && (
+                <Link 
+                  href="/admin" 
+                  onClick={() => setMenuOpen(false)} 
+                  className="block w-full py-4 px-4 text-white text-base font-bold bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-150"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
               <button
                 onClick={() => {
                   setMenuOpen(false);
