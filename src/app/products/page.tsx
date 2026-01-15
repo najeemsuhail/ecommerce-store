@@ -249,107 +249,7 @@ function ProductsContent() {
           <h1 className="text-3xl font-bold mb-4">All Products</h1>
         </div>
 
-        {/* Selected Filters Display */}
-        {(facetFilters.brands.length > 0 ||
-          facetFilters.categories.length > 0 ||
-          facetFilters.isDigital ||
-          facetFilters.isFeatured ||
-          facetFilters.priceRange.min > 0 ||
-          facetFilters.priceRange.max < facets.priceRange.max) && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900">Active Filters:</h3>
-              <button
-                onClick={() =>
-                  setFacetFilters({
-                    brands: [],
-                    categories: [],
-                    priceRange: { min: 0, max: facets.priceRange.max },
-                    isDigital: undefined,
-                    isFeatured: undefined,
-                  })
-                }
-                className="text-sm text-red-600 hover:text-red-700 font-semibold"
-              >
-                Clear All
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {facetFilters.brands.map((brand) => (
-                <button
-                  key={brand}
-                  onClick={() =>
-                    setFacetFilters((prev) => ({
-                      ...prev,
-                      brands: prev.brands.filter((b) => b !== brand),
-                    }))
-                  }
-                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
-                >
-                  {brand}
-                  <span className="text-blue-400">✕</span>
-                </button>
-              ))}
-              {facetFilters.categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() =>
-                    setFacetFilters((prev) => ({
-                      ...prev,
-                      categories: prev.categories.filter((c) => c !== category),
-                    }))
-                  }
-                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
-                >
-                  {category}
-                  <span className="text-blue-400">✕</span>
-                </button>
-              ))}
-              {(facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) && (
-                <button
-                  onClick={() =>
-                    setFacetFilters((prev) => ({
-                      ...prev,
-                      priceRange: { min: 0, max: facets.priceRange.max },
-                    }))
-                  }
-                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
-                >
-                  Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
-                  <span className="text-blue-400">✕</span>
-                </button>
-              )}
-              {facetFilters.isDigital && (
-                <button
-                  onClick={() =>
-                    setFacetFilters((prev) => ({
-                      ...prev,
-                      isDigital: undefined,
-                    }))
-                  }
-                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
-                >
-                  Digital Products
-                  <span className="text-blue-400">✕</span>
-                </button>
-              )}
-              {facetFilters.isFeatured && (
-                <button
-                  onClick={() =>
-                    setFacetFilters((prev) => ({
-                      ...prev,
-                      isFeatured: undefined,
-                    }))
-                  }
-                  className="inline-flex items-center gap-2 bg-white border border-blue-300 text-blue-700 px-3 py-1 rounded-full text-sm hover:bg-blue-100 transition-colors"
-                >
-                  Featured Only
-                  <span className="text-blue-400">✕</span>
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+
 
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -364,42 +264,109 @@ function ProductsContent() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
+            {/* Active Filters */}
+            {(facetFilters.brands.length > 0 ||
+              facetFilters.categories.length > 0 ||
+              facetFilters.isDigital ||
+              facetFilters.isFeatured ||
+              facetFilters.priceRange.min > 0 ||
+              facetFilters.priceRange.max < facets.priceRange.max) && (
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                {facetFilters.brands.map((brand) => (
+                  <button
+                    key={brand}
+                    onClick={() =>
+                      setFacetFilters((prev) => ({
+                        ...prev,
+                        brands: prev.brands.filter((b) => b !== brand),
+                      }))
+                    }
+                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    {brand}
+                    <span>✕</span>
+                  </button>
+                ))}
+                {facetFilters.categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() =>
+                      setFacetFilters((prev) => ({
+                        ...prev,
+                        categories: prev.categories.filter((c) => c !== category),
+                      }))
+                    }
+                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    {category}
+                    <span>✕</span>
+                  </button>
+                ))}
+                {(facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) && (
+                  <button
+                    onClick={() =>
+                      setFacetFilters((prev) => ({
+                        ...prev,
+                        priceRange: { min: 0, max: facets.priceRange.max },
+                      }))
+                    }
+                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
+                    <span>✕</span>
+                  </button>
+                )}
+                {facetFilters.isDigital && (
+                  <button
+                    onClick={() =>
+                      setFacetFilters((prev) => ({
+                        ...prev,
+                        isDigital: undefined,
+                      }))
+                    }
+                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Digital
+                    <span>✕</span>
+                  </button>
+                )}
+                {facetFilters.isFeatured && (
+                  <button
+                    onClick={() =>
+                      setFacetFilters((prev) => ({
+                        ...prev,
+                        isFeatured: undefined,
+                      }))
+                    }
+                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Featured
+                    <span>✕</span>
+                  </button>
+                )}
+                <button
+                  onClick={() =>
+                    setFacetFilters({
+                      brands: [],
+                      categories: [],
+                      priceRange: { min: 0, max: facets.priceRange.max },
+                      isDigital: undefined,
+                      isFeatured: undefined,
+                    })
+                  }
+                  className="text-sm text-gray-600 hover:text-gray-900 font-semibold ml-2"
+                >
+                  Clear all
+                </button>
+              </div>
+            )}
+
             {/* Results Count */}
             {!loading && products.length > 0 && (
               <div className="mb-6 text-gray-600">
                 Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
               </div>
             )}
-
-            {/* Loading */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-xl mt-4">Loading products...</p>
-          </div>
-        )}
-
-        {/* No Results */}
-        {!loading && products.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-xl text-gray-600 mb-4">No products found</p>
-            <button
-              onClick={() => {
-                setFacetFilters({
-                  brands: [],
-                  categories: [],
-                  priceRange: { min: 0, max: facets.priceRange.max },
-                });
-              }}
-              className="text-blue-600 hover:underline"
-            >
-              Clear filters
-            </button>
-          </div>
-        )}
 
             {/* Loading */}
             {loading && (
