@@ -10,6 +10,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdmin();
@@ -38,8 +39,14 @@ export default function AdminDashboard() {
       });
 
       if (response.status === 403) {
-        alert('Access denied. Admin only.');
-        router.push('/');
+        setAuthError('Access denied. You are not authorized to view this page.');
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setAuthError('Failed to load admin panel. Please refresh the page.');
+        setLoading(false);
         return;
       }
 
@@ -47,10 +54,13 @@ export default function AdminDashboard() {
       if (data.success) {
         setStats(data.stats);
         setIsAdmin(true);
+        setAuthError(null);
+      } else {
+        setAuthError('Failed to load admin data.');
       }
     } catch (error) {
       console.error('Error:', error);
-      router.push('/');
+      setAuthError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -61,6 +71,26 @@ export default function AdminDashboard() {
       <AdminLayout>
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-xl">Loading...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (authError) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="bg-white rounded-lg shadow p-8 max-w-md text-center">
+            <div className="text-red-600 text-5xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold mb-2 text-gray-900">{authError}</h1>
+            <p className="text-gray-600 mb-6">Please contact an administrator or try logging in again.</p>
+            <Link 
+              href="/" 
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Back to Store
+            </Link>
+          </div>
         </div>
       </AdminLayout>
     );

@@ -43,11 +43,18 @@ export default function Header() {
               Authorization: `Bearer ${token}`,
             },
           });
-          const data = await response.json();
-          setIsAdmin(data.isAdmin);
+          
+          // Only set admin status if response is ok
+          if (response.ok) {
+            const data = await response.json();
+            setIsAdmin(data.isAdmin === true);
+          } else {
+            // Don't set to false on API error - keep previous state
+            console.error('Admin check failed with status:', response.status);
+          }
         } catch (error) {
           console.error('Failed to check admin status:', error);
-          setIsAdmin(false);
+          // Don't set to false on network error - keep previous state
         }
       } else {
         setIsAdmin(false);

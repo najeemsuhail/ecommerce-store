@@ -12,6 +12,7 @@ export default function AdminOrders() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -41,16 +42,27 @@ export default function AdminOrders() {
       });
 
       if (response.status === 403) {
-        router.push('/');
+        setAuthError('Access denied. Admin only.');
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setAuthError('Failed to load orders. Please refresh.');
+        setLoading(false);
         return;
       }
 
       const data = await response.json();
       if (data.success) {
         setOrders(data.orders);
+        setAuthError(null);
+      } else {
+        setAuthError('Failed to load orders.');
       }
     } catch (error) {
       console.error('Error:', error);
+      setAuthError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -85,6 +97,36 @@ export default function AdminOrders() {
     setSelectedOrder(order);
     setShowModal(true);
   };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-xl">Loading orders...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (authError) {
+    return (
+      <AdminLayout>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="bg-white rounded-lg shadow p-8 max-w-md text-center">
+            <div className="text-red-600 text-5xl mb-4">⚠️</div>
+            <h1 className="text-2xl font-bold mb-2 text-gray-900">{authError}</h1>
+            <p className="text-gray-600 mb-6">Please contact an administrator or try logging in again.</p>
+            <Link 
+              href="/" 
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
+              Back to Store
+            </Link>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
