@@ -295,7 +295,7 @@ export default function Header() {
             </button>
 
             {/* Mobile Search */}
-            <div className="mb-6 relative">
+            <div className="mt-12 mb-6 relative">
               <input
                 type="text"
                 placeholder="Search products..."
