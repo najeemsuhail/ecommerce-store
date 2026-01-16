@@ -169,10 +169,10 @@ export default function Header() {
               {isAdmin && (
                 <Link 
                   href="/admin" 
-                  className={`font-bold transition-colors ${
+                  className={`font-medium transition-colors ${
                     pathname === '/admin' || pathname.startsWith('/admin/')
-                      ? 'text-red-600 border-b-2 border-red-600'
-                      : 'text-red-600 hover:text-red-700'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
                   }`}
                 >
                   Admin
@@ -285,6 +285,15 @@ export default function Header() {
             className="fixed top-16 left-0 right-0 bottom-0 md:hidden z-50 px-6 py-8 flex flex-col border-t-2 border-gray-200 shadow-2xl overflow-y-auto"
             style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)' }}
           >
+            {/* Close Button */}
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="absolute top-4 right-4 text-gray-700 hover:text-blue-600 transition-colors"
+              title="Close menu"
+            >
+              <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
+            </button>
+
             {/* Mobile Search */}
             <div className="mb-6 relative">
               <input
@@ -369,19 +378,6 @@ export default function Header() {
               >
                 Contact Us
               </Link>
-              {isAdmin && (
-                <Link 
-                  href="/admin" 
-                  onClick={() => setMenuOpen(false)} 
-                  className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
-                    pathname === '/admin' || pathname.startsWith('/admin/')
-                      ? 'bg-red-600 text-white'
-                      : 'bg-red-600 text-white hover:bg-red-700'
-                  }`}
-                >
-                  Admin Dashboard
-                </Link>
-              )}
               <button
                 onClick={() => {
                   setMenuOpen(false);
@@ -399,6 +395,19 @@ export default function Header() {
               >
                 {isLoggedIn ? 'Dashboard' : 'Login / Register'}
               </button>
+              {isAdmin && (
+                <Link 
+                  href="/admin" 
+                  onClick={() => setMenuOpen(false)} 
+                  className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                    pathname === '/admin' || pathname.startsWith('/admin/')
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                  }`}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
             </div>
           </div>
         </>
