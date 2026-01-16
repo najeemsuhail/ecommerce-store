@@ -13,6 +13,14 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     checkAdmin();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      checkAdmin();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const checkAdmin = async () => {

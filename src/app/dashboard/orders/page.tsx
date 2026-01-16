@@ -11,6 +11,14 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      fetchOrders();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const fetchOrders = async () => {

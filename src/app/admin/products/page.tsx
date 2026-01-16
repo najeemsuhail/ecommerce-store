@@ -13,6 +13,14 @@ export default function AdminProducts() {
 
   useEffect(() => {
     fetchProducts();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      fetchProducts();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [searchTerm]);
 
   const fetchProducts = async () => {

@@ -46,10 +46,23 @@ export default function CheckoutFlowPage() {
 
   // Redirect to login if not logged in
   useEffect(() => {
-    if (!isLoggedIn) {
-      router.push('/auth?redirect=/checkout-flow');
-    }
-  }, [isLoggedIn, router]);
+    const checkAuth = () => {
+      const currentToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!currentToken) {
+        router.push('/auth?redirect=/checkout-flow');
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [router]);
 
   // Calculate totals
   const hasPhysicalProducts = items.some((item) => !item.isDigital);

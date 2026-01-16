@@ -15,6 +15,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      fetchDashboardData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const fetchDashboardData = async () => {

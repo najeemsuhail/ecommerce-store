@@ -13,6 +13,14 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     fetchOrder();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      fetchOrder();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const fetchOrder = async () => {

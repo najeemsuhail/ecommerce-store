@@ -19,6 +19,14 @@ export default function AddressesPage() {
 
   useEffect(() => {
     loadAddresses();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      loadAddresses();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const loadAddresses = () => {

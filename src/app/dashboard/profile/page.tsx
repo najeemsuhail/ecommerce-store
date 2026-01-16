@@ -17,6 +17,14 @@ export default function ProfilePage() {
 
   useEffect(() => {
     fetchProfile();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      fetchProfile();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const fetchProfile = async () => {

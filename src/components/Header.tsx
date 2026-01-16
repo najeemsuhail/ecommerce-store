@@ -31,13 +31,38 @@ export default function Header() {
   const mobileSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
 
-    // Check if user is admin
-    if (token) {
-      checkAdminStatus(token);
-    }
+      // Check if user is admin
+      if (token) {
+        try {
+          const response = await fetch('/api/auth/admin-check', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          setIsAdmin(data.isAdmin);
+        } catch (error) {
+          console.error('Failed to check admin status:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const checkAdminStatus = async (token: string) => {

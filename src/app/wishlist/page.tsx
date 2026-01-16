@@ -15,9 +15,21 @@ export default function WishlistPage() {
 
   // Check if user is logged in
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-    setIsLoading(false);
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      setIsLoggedIn(!!token);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleCreateGroup = (e: React.FormEvent) => {
