@@ -209,7 +209,7 @@ export default function AddProductPage() {
               </Link>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-light-theme rounded-lg shadow p-6 space-y-6">>
+            <form onSubmit={handleSubmit} className="bg-light-theme rounded-lg shadow p-6 space-y-6">
               {/* Basic Info */}
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold border-b pb-2">Basic Information</h2>
