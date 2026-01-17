@@ -3,60 +3,36 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="bg-dark-theme text-white-theme py-12 mt-auto">
+    <footer className="bg-gradient-to-b from-slate-900 via-slate-900 to-black text-white py-16 mt-auto border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
           
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-                <Image
-                  src="/images/logo/logo.png"
-                  alt="OnlyInKani Logo"
-                  width={200}
-                  height={80}
-                  className="rounded-lg"
-                />
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">∞</span>
+              </div>
+              <span className="font-bold text-xl">E-Store</span>
             </div>
-            <p className="text-dark-theme">
-              Your one-stop shop for amazing products at great prices.
+            <p className="text-gray-300 text-sm leading-relaxed">
+              Your ultimate destination for premium products and amazing shopping experiences. Quality products, great prices, delivered fast.
             </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4 text-dark-theme">Quick Links</h3>
-            <ul className="space-y-2">
-              <li><Link href="/products" className="text-dark-theme hover:text-dark-theme transition font-medium">Products</Link></li>
-              <li><Link href="/products?isFeatured=true" className="text-dark-theme hover:text-dark-theme transition font-medium">Featured</Link></li>
-              <li><Link href="/auth" className="text-dark-theme hover:text-dark-theme transition font-medium">Account</Link></li>
-              <li><Link href="/cart" className="text-dark-theme hover:text-dark-theme transition font-medium">Cart</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4 text-dark-theme">Support</h3>
-            <ul className="space-y-2">
-              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Contact Us</a></li>
-              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">FAQs</a></li>
-              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Shipping</a></li>
-              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Returns</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-4 text-dark-theme">Follow Us</h3>
-            <div className="flex gap-4">
-              {['facebook', 'twitter', 'instagram'].map((social) => (
+            <div className="flex gap-3 pt-4">
+              {[
+                { icon: 'facebook', url: '#' },
+                { icon: 'twitter', url: '#' },
+                { icon: 'instagram', url: '#' },
+                { icon: 'linkedin', url: '#' }
+              ].map((social) => (
                 <a
-                  key={social}
-                  href="#"
-                  className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-primary-theme transition-all duration-300 hover:scale-110"
+                  key={social.icon}
+                  href={social.url}
+                  className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 transition-all duration-300 hover:scale-110"
+                  aria-label={social.icon}
                 >
-                  <span className="sr-only">{social}</span>
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12z" />
                   </svg>
                 </a>
@@ -64,10 +40,83 @@ export default function Footer() {
             </div>
           </div>
 
+          {/* Quick Links */}
+          <div>
+            <h3 className="font-bold text-lg mb-6 text-white">Products</h3>
+            <ul className="space-y-3">
+              <li><Link href="/products" className="text-gray-300 hover:text-blue-400 transition font-medium">All Products</Link></li>
+              <li><Link href="/products?isFeatured=true" className="text-gray-300 hover:text-blue-400 transition font-medium">Featured</Link></li>
+              <li><Link href="/products?category=sales" className="text-gray-300 hover:text-blue-400 transition font-medium">On Sale</Link></li>
+              <li><Link href="/products?sort=new" className="text-gray-300 hover:text-blue-400 transition font-medium">New Arrivals</Link></li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h3 className="font-bold text-lg mb-6 text-white">Support</h3>
+            <ul className="space-y-3">
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Contact Us</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">FAQs</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Shipping Info</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Returns</a></li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h3 className="font-bold text-lg mb-6 text-white">Company</h3>
+            <ul className="space-y-3">
+              <li><Link href="/about" className="text-gray-300 hover:text-blue-400 transition font-medium">About Us</Link></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Blog</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Careers</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Press</a></li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h3 className="font-bold text-lg mb-6 text-white">Subscribe</h3>
+            <p className="text-gray-300 text-sm mb-4">Get exclusive deals and updates delivered to your inbox.</p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                placeholder="Your email"
+                className="flex-1 px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition"
+              />
+              <button className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                →
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-center text-dark-theme">
-          <p>&copy; 2025 E-Store. All rights reserved.</p>
+        {/* Divider */}
+        <div className="border-t border-slate-800 pt-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[
+              { icon: '🚚', title: 'Free Shipping', desc: 'On orders over ₹500' },
+              { icon: '🛡️', title: 'Secure Payment', desc: '100% encrypted' },
+              { icon: '↩️', title: 'Easy Returns', desc: '30-day guarantee' }
+            ].map((item, idx) => (
+              <div key={idx} className="text-center">
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <p className="font-semibold text-white text-sm">{item.title}</p>
+                <p className="text-gray-400 text-xs">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-slate-800 pt-8 text-center">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <p className="text-gray-400 text-sm">&copy; 2025 E-Store. All rights reserved.</p>
+            <div className="flex gap-6 text-gray-400 text-sm">
+              <a href="#" className="hover:text-blue-400 transition">Privacy Policy</a>
+              <a href="#" className="hover:text-blue-400 transition">Terms of Service</a>
+              <a href="#" className="hover:text-blue-400 transition">Cookie Settings</a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
