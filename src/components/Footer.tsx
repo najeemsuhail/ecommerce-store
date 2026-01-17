@@ -10,8 +10,8 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
                 <Image
-                  src="/images/logo.png"
-                  alt="E-Store Logo"
+                  src="/images/logo/logo.png"
+                  alt="OnlyInKani Logo"
                   width={200}
                   height={80}
                   className="rounded-lg"
