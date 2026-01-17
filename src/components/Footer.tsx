@@ -10,12 +10,15 @@ export default function Footer() {
           
           {/* Brand Section */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">∞</span>
-              </div>
-              <span className="font-bold text-xl">E-Store</span>
-            </div>
+            <Link href="/" className="inline-flex items-center gap-2">
+              <Image 
+                src="/images/logo/logo.png" 
+                alt="E-Store Logo" 
+                width={200} 
+                height={80}
+                className="rounded-lg"
+              />
+            </Link>
             <p className="text-gray-300 text-sm leading-relaxed">
               Your ultimate destination for premium products and amazing shopping experiences. Quality products, great prices, delivered fast.
             </p>
@@ -68,7 +71,6 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link href="/about" className="text-gray-300 hover:text-blue-400 transition font-medium">About Us</Link></li>
               <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Blog</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Careers</a></li>
               <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Press</a></li>
             </ul>
           </div>
@@ -110,7 +112,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-slate-800 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-            <p className="text-gray-400 text-sm">&copy; 2025 E-Store. All rights reserved.</p>
+            <p className="text-gray-400 text-sm">&copy; 2026 Onlyinka.in All rights reserved.</p>
             <div className="flex gap-6 text-gray-400 text-sm">
               <a href="#" className="hover:text-blue-400 transition">Privacy Policy</a>
               <a href="#" className="hover:text-blue-400 transition">Terms of Service</a>
