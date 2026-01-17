@@ -7,6 +7,7 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
+import AddToCartNotification from '@/components/AddToCartNotification';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -448,6 +449,13 @@ export default function ProductDetailPage() {
           )}
         </div>
         
+        {/* Notifications */}
+        <AddToCartNotification 
+          isVisible={showNotification}
+          message={notificationMessage}
+          onClose={() => setShowNotification(false)}
+        />
+
         {/* Wishlist Modal */}
         <AddToWishlistModal
           isOpen={wishlistModalOpen}

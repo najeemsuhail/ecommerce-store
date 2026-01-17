@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -8,44 +9,47 @@ export default function Footer() {
           
           <div>
             <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 gradient-primary-accent rounded-lg flex items-center justify-center">
-                <span className="text-white-theme font-bold text-xl">E</span>
-              </div>
-              <span className="text-xl font-bold">E-Store</span>
+                <Image
+                  src="/images/logo.png"
+                  alt="E-Store Logo"
+                  width={200}
+                  height={80}
+                  className="rounded-lg"
+                />
             </div>
-            <p className="text-light-theme">
+            <p className="text-dark-theme">
               Your one-stop shop for amazing products at great prices.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li><Link href="/products" className="hover:text-white-theme transition">Products</Link></li>
-              <li><Link href="/products?isFeatured=true" className="hover:text-white-theme transition">Featured</Link></li>
-              <li><Link href="/auth" className="hover:text-white-theme transition">Account</Link></li>
-              <li><Link href="/cart" className="hover:text-white-theme transition">Cart</Link></li>
+            <h3 className="font-semibold mb-4 text-dark-theme">Quick Links</h3>
+            <ul className="space-y-2">
+              <li><Link href="/products" className="text-dark-theme hover:text-dark-theme transition font-medium">Products</Link></li>
+              <li><Link href="/products?isFeatured=true" className="text-dark-theme hover:text-dark-theme transition font-medium">Featured</Link></li>
+              <li><Link href="/auth" className="text-dark-theme hover:text-dark-theme transition font-medium">Account</Link></li>
+              <li><Link href="/cart" className="text-dark-theme hover:text-dark-theme transition font-medium">Cart</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Support</h3>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white-theme transition">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white-theme transition">FAQs</a></li>
-              <li><a href="#" className="hover:text-white-theme transition">Shipping</a></li>
-              <li><a href="#" className="hover:text-white-theme transition">Returns</a></li>
+            <h3 className="font-semibold mb-4 text-dark-theme">Support</h3>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Contact Us</a></li>
+              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">FAQs</a></li>
+              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Shipping</a></li>
+              <li><a href="#" className="text-dark-theme hover:text-dark-theme transition font-medium">Returns</a></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Follow Us</h3>
+            <h3 className="font-semibold mb-4 text-dark-theme">Follow Us</h3>
             <div className="flex gap-4">
               {['facebook', 'twitter', 'instagram'].map((social) => (
                 <a
                   key={social}
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-primary-theme transition-all duration-300 hover:scale-110"
+                  className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-primary-theme transition-all duration-300 hover:scale-110"
                 >
                   <span className="sr-only">{social}</span>
                   <svg
@@ -62,7 +66,7 @@ export default function Footer() {
 
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+        <div className="border-t border-gray-800 pt-8 text-center text-dark-theme">
           <p>&copy; 2025 E-Store. All rights reserved.</p>
         </div>
       </div>

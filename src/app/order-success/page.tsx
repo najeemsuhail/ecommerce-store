@@ -75,7 +75,7 @@ function OrderSuccessContent() {
                 </p>
                 <p>
                   <span className="text-gray-600">Payment:</span>{' '}
-                  <span className={`font-semibold ${isCOD ? 'text-orange-600' : 'text-green-600'}`}>
+                  <span className={`font-semibold ${isCOD ? 'text-warning' : 'text-success-theme'}`}>
                     {isCOD ? 'Cash on Delivery' : 'Paid Online'}
                   </span>
                 </p>

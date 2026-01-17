@@ -277,7 +277,7 @@ export default function CheckoutFlowPage() {
                         <div className="font-semibold">Cash on Delivery</div>
                         <div className="text-sm text-gray-600">Pay when you receive the product</div>
                         {paymentMethod === 'cod' && (
-                          <div className="text-xs text-orange-600 mt-1">+ ₹{codFee} handling fee</div>
+                          <div className="text-xs text-warning mt-1">+ ₹{codFee} handling fee</div>
                         )}
                       </div>
                       <div className="text-2xl">💵</div>
@@ -535,7 +535,7 @@ export default function CheckoutFlowPage() {
                   )}
 
                   {codFee > 0 && (
-                    <div className="flex justify-between text-orange-600">
+                    <div className="flex justify-between text-warning">
                       <span>COD Handling Fee</span>
                       <span>₹{codFee.toFixed(2)}</span>
                     </div>

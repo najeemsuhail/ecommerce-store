@@ -215,7 +215,7 @@ export default function ProductCarousel({
                     </div>
                   )}
                   {product.comparePrice && (
-                    <div className="absolute top-3 right-3 bg-danger-theme text-white-theme px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-bold shadow-lg text-white" style={{backgroundColor: '#dc2626'}}>
                       SALE
                     </div>
                   )}
@@ -242,7 +242,7 @@ export default function ProductCarousel({
                     )}
                   </div>
                   {product.averageRating && product.averageRating > 0 && (
-                    <div className="flex items-center gap-1 text-yellow-500 text-sm">
+                    <div className="flex items-center gap-1 text-warning text-sm">
                       <svg
                         className="w-4 h-4 fill-current"
                         viewBox="0 0 20 20"

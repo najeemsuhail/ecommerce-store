@@ -235,10 +235,10 @@ export default function AdminProducts() {
                         <span
                           className={`text-sm ${
                             product.stock > 10
-                              ? 'text-green-600'
+                              ? 'text-success-theme'
                               : product.stock > 0
-                              ? 'text-yellow-600'
-                              : 'text-red-600'
+                              ? 'text-warning'
+                              : 'text-danger-theme'
                           }`}
                         >
                           {product.stock || 0}

@@ -141,7 +141,7 @@ export default function AdminOrders() {
               onClick={() => setStatusFilter('')}
               className={`px-4 py-2 rounded-lg ${
                 statusFilter === ''
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >
@@ -151,7 +151,7 @@ export default function AdminOrders() {
               onClick={() => setStatusFilter('pending')}
               className={`px-4 py-2 rounded-lg ${
                 statusFilter === 'pending'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >
@@ -161,7 +161,7 @@ export default function AdminOrders() {
               onClick={() => setStatusFilter('processing')}
               className={`px-4 py-2 rounded-lg ${
                 statusFilter === 'processing'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >
@@ -171,7 +171,7 @@ export default function AdminOrders() {
               onClick={() => setStatusFilter('shipped')}
               className={`px-4 py-2 rounded-lg ${
                 statusFilter === 'shipped'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >
@@ -181,7 +181,7 @@ export default function AdminOrders() {
               onClick={() => setStatusFilter('delivered')}
               className={`px-4 py-2 rounded-lg ${
                 statusFilter === 'delivered'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
             >

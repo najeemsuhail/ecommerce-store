@@ -80,9 +80,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Pending Orders</p>
-                <p className="text-3xl font-bold text-orange-600">{stats.pendingOrders}</p>
+                <p className="text-3xl font-bold text-warning">{stats.pendingOrders}</p>
               </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-warning rounded-full flex items-center justify-center opacity-20">
                 <span className="text-2xl">⏳</span>
               </div>
             </div>
@@ -179,14 +179,14 @@ export default function DashboardPage() {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         order.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
+                          ? 'badge-pending'
                           : order.status === 'processing'
-                          ? 'bg-blue-100 text-blue-800'
+                          ? 'badge-processing'
                           : order.status === 'shipped'
-                          ? 'bg-purple-100 text-purple-800'
+                          ? 'badge-shipped'
                           : order.status === 'delivered'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                          ? 'badge-delivered'
+                          : 'badge-cancelled'
                       }`}
                     >
                       {order.status}

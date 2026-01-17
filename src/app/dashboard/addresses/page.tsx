@@ -151,7 +151,7 @@ export default function AddressesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-light-theme rounded-lg shadow p-6">>
+        <div className="bg-light-theme rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Saved Addresses</h2>
             {!showForm && (

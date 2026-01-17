@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import SearchAutocomplete from './SearchAutocomplete';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 
@@ -146,12 +147,13 @@ export default function Header() {
           <div className="flex items-center gap-8 flex-shrink-0">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary-theme rounded-lg flex items-center justify-center">
-                <span className="text-white-theme font-bold text-xl">E</span>
-              </div>
-              <span className="text-2xl font-bold text-primary-theme">
-                E-Store
-              </span>
+              <Image 
+                src="/images/logo.png" 
+                alt="E-Store Logo" 
+                width={200} 
+                height={80}
+                className="rounded-lg"
+              />
             </Link>
 
             {/* Desktop Menu (after logo) */}
@@ -284,7 +286,7 @@ export default function Header() {
               <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-danger-theme text-white-theme text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-2 -right-2 bg-danger text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold" style={{backgroundColor: '#dc2626'}}>
                   {totalItems}
                 </span>
               )}
@@ -338,12 +340,12 @@ export default function Header() {
                     setShowMobileSuggestions(true);
                   }
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-4 py-3 border border-border-color rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               />
 
               {/* Mobile Autocomplete Dropdown */}
               {showMobileSuggestions && mobileSearchQuery.trim() && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-light-theme border border-gray-300 rounded-lg shadow-lg z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-light-theme border border-border-color rounded-lg shadow-lg z-50">
                   {mobileLoadingSearch ? (
                     <div className="px-4 py-3 text-gray-500 text-sm">Loading...</div>
                   ) : mobileSuggestions.length > 0 ? (
@@ -382,8 +384,8 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)} 
                 className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
                   pathname === '/products' || pathname.startsWith('/products/')
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
                 Shop
@@ -393,8 +395,8 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)} 
                 className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
                   pathname === '/about'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
                 About Us
@@ -404,8 +406,8 @@ export default function Header() {
                 onClick={() => setMenuOpen(false)} 
                 className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
                   pathname === '/contact'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
                 Contact Us
@@ -421,8 +423,8 @@ export default function Header() {
                 }}
                 className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 text-left ${
                   pathname === '/dashboard' || pathname.startsWith('/dashboard/')
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
                 {isLoggedIn ? 'Dashboard' : 'Login / Register'}

@@ -85,7 +85,7 @@ export default function WishlistPage() {
                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
               />
             </svg>
-            <h2 className="text-xl lg:text-2xl font-bold mb-2 text-gray-800">Sign In Required</h2>
+            <h2 className="text-xl lg:text-2xl font-bold mb-2 text-dark-theme">Sign In Required</h2>
             <p className="text-gray-600 mb-6 text-sm lg:text-base">You need to sign in to view your wishlist collections.</p>
             <Link
               href="/auth"

@@ -245,7 +245,7 @@ export default function HomePage() {
                       </div>
                     )}
                     {product.comparePrice && (
-                      <div className="absolute top-3 right-3 bg-danger-theme text-white-theme px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-bold shadow-lg text-white" style={{backgroundColor: '#dc2626'}}>
                         SALE
                       </div>
                     )}
@@ -326,7 +326,7 @@ export default function HomePage() {
         )}
 
         {/* Features */}
-        <section className="bg-primary-theme py-20">
+        <section className="bg-primary-theme text-white-theme py-20">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[

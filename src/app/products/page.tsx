@@ -364,7 +364,7 @@ function ProductsContent() {
                         brands: prev.brands.filter((b) => b !== brand),
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     {brand}
                     <span>✕</span>
@@ -379,7 +379,7 @@ function ProductsContent() {
                         categories: prev.categories.filter((c) => c !== category),
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary  px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     {category}
                     <span>✕</span>
@@ -393,7 +393,7 @@ function ProductsContent() {
                         priceRange: { min: 0, max: facets.priceRange.max },
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary  px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
                     <span>✕</span>
@@ -526,7 +526,7 @@ function ProductsContent() {
                         </span>
                       )}
                       {product.comparePrice && (
-                        <span className="absolute top-2 left-2 bg-danger-theme text-white-theme text-xs px-2 py-1 rounded font-semibold">
+                        <span className="absolute top-2 left-2 bg-danger text-white text-xs px-2 py-1 rounded font-semibold" style={{backgroundColor: '#dc2626'}}>
                           SALE
                         </span>
                       )}
@@ -581,7 +581,7 @@ function ProductsContent() {
                           onClick={(e) => handleWishlistToggle(product, e)}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
                             isInWishlist(product.id)
-                              ? 'bg-danger-light text-danger-theme border-2 border-danger-theme'
+                              ? 'wishlist-btn-active'
                               : 'bg-gray-light text-gray-theme border-2 border-gray-theme hover:border-danger-theme hover:text-danger-theme'
                           }`}
                           title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}

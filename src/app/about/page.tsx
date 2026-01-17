@@ -8,8 +8,8 @@ export default function About() {
       {/* Hero Section */}
       <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-4">About Our Store</h1>
-          <p className="text-xl text-indigo-100">
+          <h1 className="text-5xl font-bold mb-4 text-white">About Our Store</h1>
+          <p className="text-xl text-white-theme">
             Your trusted destination for quality products and exceptional customer service
           </p>
         </div>
