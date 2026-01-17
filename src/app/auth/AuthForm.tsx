@@ -61,7 +61,7 @@ export default function AuthForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-start lg:items-center justify-center pt-8 lg:pt-0 px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+        <div className="bg-light-theme rounded-lg shadow-lg p-6 lg:p-8">
           <h2 className="text-2xl lg:text-3xl font-bold text-center text-slate-800 mb-4 lg:mb-6">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
@@ -148,7 +148,7 @@ export default function AuthForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-2 rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn-gradient-primary font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Please wait...' : isLogin ? 'Login' : 'Register'}
             </button>

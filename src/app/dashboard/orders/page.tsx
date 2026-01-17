@@ -58,7 +58,7 @@ export default function OrdersPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-light-theme rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold mb-4">My Orders</h2>
 
           {/* Filter Tabs */}
@@ -69,7 +69,7 @@ export default function OrdersPage() {
                 onClick={() => setFilter(status)}
                 className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
                   filter === status
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-primary-theme text-white-theme'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -84,7 +84,7 @@ export default function OrdersPage() {
               <p className="mb-4">No orders found</p>
               <Link
                 href="/products"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                className="btn-block-primary"
               >
                 Start Shopping
               </Link>
@@ -160,7 +160,7 @@ export default function OrdersPage() {
                   <div className="flex gap-3">
                     <Link
                       href={`/dashboard/orders/${order.id}`}
-                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 text-center font-medium"
+                      className="btn-primary-sm"
                     >
                       View Details
                     </Link>

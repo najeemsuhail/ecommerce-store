@@ -131,11 +131,11 @@ export default function SearchAutocomplete() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => query && setIsOpen(true)}
-            className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+            className="w-full px-4 py-2 pl-10 rounded-lg border border-border-color focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
           />
           <FontAwesomeIcon
             icon={faSearch}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-lighter w-4 h-4"
           />
         </div>
 
@@ -143,10 +143,10 @@ export default function SearchAutocomplete() {
         {isOpen && (suggestions.length > 0 || isLoading) && (
           <div
             ref={suggestionsRef}
-            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-1 bg-light-theme border border-border-color rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
           >
             {isLoading ? (
-              <div className="px-4 py-3 text-center text-gray-500 text-sm">
+              <div className="px-4 py-3 text-center text-text-lighter text-sm">
                 Loading suggestions...
               </div>
             ) : suggestions.length > 0 ? (
@@ -160,13 +160,13 @@ export default function SearchAutocomplete() {
                       onMouseEnter={() => setSelectedIndex(index)}
                       className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors border-b last:border-b-0 ${
                         index === selectedIndex
-                          ? 'bg-blue-50'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-primary/10'
+                          : 'hover:bg-bg-gray'
                       }`}
                     >
                       {/* Product Image */}
                       {suggestion.image && (
-                        <div className="w-10 h-10 flex-shrink-0 bg-gray-200 rounded overflow-hidden">
+                        <div className="w-10 h-10 flex-shrink-0 bg-bg-gray rounded overflow-hidden">
                           <img
                             src={suggestion.image}
                             alt={suggestion.name}
@@ -180,10 +180,10 @@ export default function SearchAutocomplete() {
 
                       {/* Product Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 text-sm truncate">
+                        <div className="font-medium text-text-dark text-sm truncate">
                           {suggestion.name}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2 text-xs text-text-light">
                           {suggestion.brand && <span>{suggestion.brand}</span>}
                           {suggestion.category && (
                             <>
@@ -195,7 +195,7 @@ export default function SearchAutocomplete() {
                       </div>
 
                       {/* Price */}
-                      <div className="flex-shrink-0 font-semibold text-gray-900 text-sm">
+                      <div className="flex-shrink-0 font-semibold text-text-dark text-sm">
                         ₹{suggestion.price.toFixed(2)}
                       </div>
                     </button>
@@ -206,7 +206,7 @@ export default function SearchAutocomplete() {
                 {suggestions.length >= 8 && (
                   <button
                     onClick={handleSearch}
-                    className="w-full px-4 py-2 text-center text-blue-600 hover:bg-blue-50 font-medium text-sm border-t"
+                    className="w-full px-4 py-2 text-center text-primary-theme hover:bg-primary-light font-medium text-sm border-t"
                   >
                     View all results for "{query}"
                   </button>

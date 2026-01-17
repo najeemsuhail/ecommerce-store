@@ -70,7 +70,7 @@ export default function DashboardPage() {
                 <p className="text-gray-600 text-sm">Total Orders</p>
                 <p className="text-3xl font-bold text-gray-900">{stats.totalOrders}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-light rounded-full flex items-center justify-center">
                 <span className="text-2xl">📦</span>
               </div>
             </div>
@@ -92,9 +92,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Completed</p>
-                <p className="text-3xl font-bold text-green-600">{stats.completedOrders}</p>
+                <p className="text-3xl font-bold text-success-theme">{stats.completedOrders}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-success-light rounded-full flex items-center justify-center">
                 <span className="text-2xl">✅</span>
               </div>
             </div>
@@ -107,28 +107,28 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link
               href="/products"
-              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-all"
+              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:bg-primary-light transition-all"
             >
               <span className="text-3xl">🛍️</span>
               <span className="font-medium text-sm">Shop Now</span>
             </Link>
             <Link
               href="/dashboard/orders"
-              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-all"
+              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:bg-primary-light transition-all"
             >
               <span className="text-3xl">📋</span>
               <span className="font-medium text-sm">View Orders</span>
             </Link>
             <Link
               href="/dashboard/profile"
-              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-all"
+              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:bg-primary-light transition-all"
             >
               <span className="text-3xl">⚙️</span>
               <span className="font-medium text-sm">Settings</span>
             </Link>
             <Link
               href="/dashboard/addresses"
-              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-all"
+              className="flex flex-col items-center gap-2 p-4 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:bg-primary-light transition-all"
             >
               <span className="text-3xl">📍</span>
               <span className="font-medium text-sm">Addresses</span>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-bold">Recent Orders</h2>
             <Link
               href="/dashboard/orders"
-              className="text-blue-600 hover:underline text-sm"
+              className="text-primary-theme hover:underline text-sm"
             >
               View All
             </Link>
@@ -153,7 +153,7 @@ export default function DashboardPage() {
               <p className="mb-4">No orders yet</p>
               <Link
                 href="/products"
-                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                className="btn-block-primary-md"
               >
                 Start Shopping
               </Link>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                     </p>
                     <Link
                       href={`/dashboard/orders/${order.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-primary-theme hover:underline text-sm"
                     >
                       View Details
                     </Link>

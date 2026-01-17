@@ -34,11 +34,11 @@ function OrderSuccessContent() {
   return (
     <Layout>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md text-center">
+        <div className="bg-light-theme rounded-lg shadow-lg p-8 w-full max-w-md text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-green-600"
+                className="w-8 h-8 text-success-theme"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -108,13 +108,13 @@ function OrderSuccessContent() {
           <div className="space-y-3">
             
              <Link href="/products"
-              className="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-medium"
+              className="w-full btn-full-primary"
             >
               Continue Shopping
             </Link>
             
              <Link href="/orders/test"
-              className="block w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 font-medium"
+              className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 font-medium"
             >
               View My Orders
             </Link>

@@ -6,7 +6,7 @@ export default function About() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 px-6">
+      <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold mb-4">About Our Store</h1>
           <p className="text-xl text-indigo-100">
@@ -82,14 +82,14 @@ export default function About() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg text-white p-8 text-center">
+        <section className="gradient-primary-accent rounded-lg text-white-theme p-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Shop?</h2>
           <p className="text-lg text-indigo-100 mb-6">
             Explore our wide selection of quality products today.
           </p>
           <Link
             href="/products"
-            className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold hover:bg-indigo-50 transition"
+            className="inline-block bg-light-theme text-primary-theme px-8 py-3 rounded-lg font-bold hover:bg-light-gray-theme transition"
           >
             Browse Products
           </Link>

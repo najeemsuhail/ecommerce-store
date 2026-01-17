@@ -233,7 +233,7 @@ function ProductsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg-gray">
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
@@ -255,10 +255,10 @@ function ProductsContent() {
         </div>
 
         {/* Mobile Filter and Sort Bar */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 p-4 flex z-40">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-light-theme border-t border-border-300 p-4 flex z-40">
           <button
             onClick={() => setMobileFilterOpen(true)}
-            className="flex-1 text-gray-700 py-2 px-3 font-medium hover:text-gray-900 transition-colors flex items-center justify-center gap-2 text-sm border-r border-gray-300"
+            className="flex-1 text-text-700 py-2 px-3 font-medium hover:text-text-900 transition-colors flex items-center justify-center gap-2 text-sm border-r border-border-300"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -268,7 +268,7 @@ function ProductsContent() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="flex-1 text-gray-700 px-3 py-2 bg-white text-sm font-medium focus:outline-none hover:text-gray-900 transition-colors"
+            className="flex-1 text-text-light px-3 py-2 bg-light-theme text-sm font-medium focus:outline-none hover:text-text-dark transition-colors"
           >
             <option value="newest">Newest</option>
             <option value="price-low">Price: Low</option>
@@ -298,12 +298,12 @@ function ProductsContent() {
                 onClick={() => setMobileFilterOpen(false)}
               />
               {/* Drawer */}
-              <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-white z-50 overflow-y-auto lg:hidden">
-                <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+                <div className="fixed inset-y-0 left-0 w-full max-w-sm bg-light-theme z-50 overflow-y-auto lg:hidden">
+                <div className="sticky top-0 bg-light-theme border-b p-4 flex items-center justify-between">
                   <h2 className="text-xl font-bold">Filters</h2>
                   <button
                     onClick={() => setMobileFilterOpen(false)}
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-text-600 hover:text-text-900"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -319,10 +319,10 @@ function ProductsContent() {
                     }}
                   />
                 </div>
-                <div className="sticky bottom-0 bg-white border-t p-4 space-y-2">
+                <div className="sticky bottom-0 bg-light-theme border-t p-4 space-y-2">
                   <button
                     onClick={() => setMobileFilterOpen(false)}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                    className="w-full btn-primary-theme py-3 rounded-lg font-semibold"
                   >
                     Show Results
                   </button>
@@ -336,7 +336,7 @@ function ProductsContent() {
                         isFeatured: undefined,
                       });
                     }}
-                    className="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                    className="w-full bg-bg-200 text-text-900 py-3 rounded-lg font-semibold hover:bg-bg-300 transition-colors"
                   >
                     Clear All
                   </button>
@@ -364,7 +364,7 @@ function ProductsContent() {
                         brands: prev.brands.filter((b) => b !== brand),
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     {brand}
                     <span>✕</span>
@@ -379,7 +379,7 @@ function ProductsContent() {
                         categories: prev.categories.filter((c) => c !== category),
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     {category}
                     <span>✕</span>
@@ -393,7 +393,7 @@ function ProductsContent() {
                         priceRange: { min: 0, max: facets.priceRange.max },
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
                     <span>✕</span>
@@ -407,7 +407,7 @@ function ProductsContent() {
                         isDigital: undefined,
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     Digital
                     <span>✕</span>
@@ -421,7 +421,7 @@ function ProductsContent() {
                         isFeatured: undefined,
                       }))
                     }
-                    className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-1 bg-primary text-white px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     Featured
                     <span>✕</span>
@@ -437,7 +437,7 @@ function ProductsContent() {
                       isFeatured: undefined,
                     })
                   }
-                  className="text-sm text-gray-600 hover:text-gray-900 font-semibold ml-2"
+                  className="text-sm text-text-600 hover:text-text-900 font-semibold ml-2"
                 >
                   Clear all
                 </button>
@@ -447,16 +447,16 @@ function ProductsContent() {
             {/* Results Count and Sort - Desktop Only */}
             {!loading && products.length > 0 && (
               <div className="mb-6 hidden lg:flex justify-between items-center">
-                <div className="text-gray-600">
+                <div className="text-text-600">
                   Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
                 </div>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="sort" className="text-sm font-medium text-gray-700">Sort by:</label>
+                  <label htmlFor="sort" className="text-sm font-medium text-text-700">Sort by:</label>
                   <select
                     id="sort"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-2 border border-border-300 rounded-lg bg-light-theme text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="newest">Newest</option>
                     <option value="price-low">Price: Low to High</option>
@@ -471,18 +471,18 @@ function ProductsContent() {
             {/* Loading */}
             {loading && (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                 <p className="text-xl mt-4">Loading products...</p>
               </div>
             )}
 
             {/* No Results */}
             {!loading && products.length === 0 && (
-              <div className="text-center py-12 bg-white rounded-lg shadow">
-                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="text-center py-12 bg-light-theme rounded-lg shadow">
+                <svg className="w-16 h-16 text-text-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-xl text-gray-600 mb-4">No products found</p>
+                <p className="text-xl text-text-600 mb-4">No products found</p>
                 <button
                   onClick={() =>
                     setFacetFilters({
@@ -491,7 +491,7 @@ function ProductsContent() {
                       priceRange: { min: 0, max: facets.priceRange.max },
                     })
                   }
-                  className="text-blue-600 hover:underline"
+                  className="text-primary-theme hover:underline"
                 >
                   Clear filters
                 </button>
@@ -505,10 +505,10 @@ function ProductsContent() {
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
-                    className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group"
+                    className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group"
                   >
                     {/* Product Image */}
-                    <div className="relative h-48 bg-gray-200 overflow-hidden">
+                    <div className="relative h-48 bg-bg-200 overflow-hidden">
                       {product.images?.[0] ? (
                         <img
                           src={product.images[0]}
@@ -516,7 +516,7 @@ function ProductsContent() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="w-full h-full flex items-center justify-center text-text-400">
                           No Image
                         </div>
                       )}
@@ -526,7 +526,7 @@ function ProductsContent() {
                         </span>
                       )}
                       {product.comparePrice && (
-                        <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-semibold">
+                        <span className="absolute top-2 left-2 bg-danger-theme text-white-theme text-xs px-2 py-1 rounded font-semibold">
                           SALE
                         </span>
                       )}
@@ -537,23 +537,23 @@ function ProductsContent() {
                       <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                         {product.name}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      <p className="text-text-600 text-sm mb-3 line-clamp-2">
                         {product.description}
                       </p>
 
                       <div className="flex items-center justify-between mb-3">
                         <div>
-                          <span className="text-2xl font-bold text-blue-600">
+                          <span className="text-2xl font-bold text-primary-theme">
                             ₹{product.price}
                           </span>
                           {product.comparePrice && (
-                            <span className="text-sm text-gray-500 line-through ml-2">
+                            <span className="text-sm text-text-500 line-through ml-2">
                               ₹{product.comparePrice}
                             </span>
                           )}
                         </div>
                         {product.isDigital && (
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          <span className="text-xs bg-primary-light text-primary-theme px-2 py-1 rounded">
                             Digital
                           </span>
                         )}
@@ -564,7 +564,7 @@ function ProductsContent() {
                           <span className="text-yellow-400">
                             {'★'.repeat(Math.round(product.averageRating))}
                           </span>
-                          <span className="text-gray-600">
+                          <span className="text-text-600">
                             ({product.reviewCount})
                           </span>
                         </div>
@@ -573,7 +573,7 @@ function ProductsContent() {
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => handleAddToCart(product, e)}
-                          className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                          className="flex-1 btn-primary-theme py-2"
                         >
                           Add to Cart
                         </button>
@@ -581,8 +581,8 @@ function ProductsContent() {
                           onClick={(e) => handleWishlistToggle(product, e)}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
                             isInWishlist(product.id)
-                              ? 'bg-red-100 text-red-600 border-2 border-red-300'
-                              : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                              ? 'bg-danger-light text-danger-theme border-2 border-danger-theme'
+                              : 'bg-gray-light text-gray-theme border-2 border-gray-theme hover:border-danger-theme hover:text-danger-theme'
                           }`}
                           title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                         >
@@ -601,7 +601,7 @@ function ProductsContent() {
       {/* Mobile Filter Button (Fixed Bottom) */}
       <button
         onClick={() => setMobileFilterOpen(true)}
-        className="fixed bottom-6 left-4 right-4 lg:hidden bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 shadow-lg z-30"
+        className="fixed bottom-6 left-4 right-4 lg:hidden btn-primary-theme py-3 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg z-30"
       >
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 9.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 007 15.618V9.414L3.293 5.707A1 1 0 013 5V3z" clipRule="evenodd" />
@@ -615,23 +615,23 @@ function ProductsContent() {
 // Loading fallback component
 function ProductsLoading() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg-gray">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="animate-pulse">
-          <div className="h-10 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="h-12 bg-gray-200 rounded mb-4"></div>
+          <div className="h-10 bg-bg-200 rounded w-1/4 mb-8"></div>
+          <div className="h-12 bg-bg-200 rounded mb-4"></div>
           <div className="flex gap-2 mb-8">
-            <div className="h-10 bg-gray-200 rounded w-32"></div>
-            <div className="h-10 bg-gray-200 rounded w-32"></div>
-            <div className="h-10 bg-gray-200 rounded w-32"></div>
+            <div className="h-10 bg-bg-200 rounded w-32"></div>
+            <div className="h-10 bg-bg-200 rounded w-32"></div>
+            <div className="h-10 bg-bg-200 rounded w-32"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-4">
-                <div className="h-48 bg-gray-200 rounded mb-4"></div>
-                <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded mb-4"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
+              <div key={i} className="bg-light-theme rounded-lg shadow p-4">
+                <div className="h-48 bg-bg-200 rounded mb-4"></div>
+                <div className="h-6 bg-bg-200 rounded mb-2"></div>
+                <div className="h-4 bg-bg-200 rounded mb-4"></div>
+                <div className="h-10 bg-bg-200 rounded"></div>
               </div>
             ))}
           </div>

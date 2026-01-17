@@ -24,7 +24,7 @@ export default function AddToCartNotification({
 
   return (
     <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right duration-300">
-      <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-xs">
+      <div className="bg-success-light text-success-theme px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-xs">
         <svg
           className="w-5 h-5 flex-shrink-0"
           fill="none"

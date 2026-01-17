@@ -128,13 +128,13 @@ export default function AdminProducts() {
     return (
       <AdminLayout>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="bg-white rounded-lg shadow p-8 max-w-md text-center">
+          <div className="bg-light-theme rounded-lg shadow p-8 max-w-md text-center">
             <div className="text-red-600 text-5xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold mb-2 text-gray-900">{authError}</h1>
             <p className="text-gray-600 mb-6">Please contact an administrator or try logging in again.</p>
             <Link 
               href="/" 
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className="btn-block-primary-md"
             >
               Back to Store
             </Link>
@@ -153,7 +153,7 @@ export default function AdminProducts() {
           <h1 className="text-3xl font-bold">Products Management</h1>
           <Link
             href="/admin/products/new"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="btn-block-primary-md"
           >
             + Add Product
           </Link>
@@ -174,7 +174,7 @@ export default function AdminProducts() {
         {loading ? (
           <div className="text-center py-12">Loading...</div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-light-theme rounded-lg shadow overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>

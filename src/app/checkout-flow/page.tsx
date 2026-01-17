@@ -89,7 +89,7 @@ export default function CheckoutFlowPage() {
             <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
             
               <Link href="/products"
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="btn-block-primary"
             >
               Continue Shopping
             </Link>
@@ -481,7 +481,7 @@ export default function CheckoutFlowPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold text-lg"
+                  className="btn-full-primary-lg"
                 >
                   {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ₹${total.toFixed(2)}` : `Pay ₹${total.toFixed(2)}`}
                 </button>
@@ -490,7 +490,7 @@ export default function CheckoutFlowPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow p-6 sticky top-8">
+              <div className="bg-light-theme rounded-lg shadow p-6 sticky top-8">
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
                 <div className="space-y-3 mb-4">

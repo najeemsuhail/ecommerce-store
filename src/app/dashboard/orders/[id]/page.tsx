@@ -78,7 +78,7 @@ export default function OrderDetailPage() {
             <div>
               <Link
                 href="/dashboard/orders"
-                className="text-blue-600 hover:underline text-sm mb-2 inline-block"
+                className="text-primary-theme hover:underline text-sm mb-2 inline-block"
               >
                 ← Back to Orders
               </Link>
@@ -119,7 +119,7 @@ export default function OrderDetailPage() {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         step.completed
-                          ? 'bg-green-500 text-white'
+                          ? 'bg-success-theme text-white-theme'
                           : 'bg-gray-200 text-gray-500'
                       }`}
                     >
@@ -203,7 +203,7 @@ export default function OrderDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Shipping Address */}
           {order.shippingAddress && (
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-light-theme rounded-lg shadow p-6">
               <h3 className="font-bold text-lg mb-4">Shipping Address</h3>
               <div className="text-gray-700 space-y-1">
                 <p className="font-semibold">{order.shippingAddress.name}</p>
@@ -250,7 +250,7 @@ export default function OrderDetailPage() {
         </div>
 
         {/* Help Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <div className="bg-primary-light border border-primary-theme rounded-lg p-6">
           <div className="flex items-start gap-4">
             <div className="text-3xl">💬</div>
             <div>
@@ -258,7 +258,7 @@ export default function OrderDetailPage() {
               <p className="text-sm text-gray-700 mb-4">
                 If you have any questions about your order, please contact our customer support.
               </p>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+              <button className="btn-sm-primary">
                 Contact Support
               </button>
             </div>

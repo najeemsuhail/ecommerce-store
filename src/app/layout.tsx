@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+// Change this import to switch themes:
+// '@/styles/themes/default.css'  -> Professional Blue (default)
+// '@/styles/themes/minimal.css'  -> Clean & Minimal
+// '@/styles/themes/modern.css'   -> Vibrant & Bold
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 

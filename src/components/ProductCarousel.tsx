@@ -141,12 +141,12 @@ export default function ProductCarousel({
 
       <div className="mb-12">
         <h2 className="text-4xl font-bold mb-4">
-          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-primary-theme">
             {title}
           </span>
         </h2>
         {description && (
-          <p className="text-gray-600 text-lg">{description}</p>
+          <p className="text-text-light text-lg">{description}</p>
         )}
       </div>
 
@@ -154,7 +154,7 @@ export default function ProductCarousel({
         {/* Left Navigation Button */}
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -ml-6 opacity-0 group-hover:opacity-100"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 btn-primary-theme shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -ml-6 opacity-0 group-hover:opacity-100"
           aria-label="Scroll left"
         >
           <svg
@@ -187,10 +187,10 @@ export default function ProductCarousel({
           {products.map((product) => (
             <div
               key={product.id}
-              className="flex-shrink-0 w-80 group/card bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-400"
+              className="flex-shrink-0 w-80 group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary"
             >
               <Link href={`/products/${product.slug}`} className="block">
-                <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+                <div className="relative h-64 bg-bg-gray overflow-hidden">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -198,7 +198,7 @@ export default function ProductCarousel({
                       className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center text-text-lighter">
                       <svg
                         className="w-20 h-20"
                         fill="none"
@@ -215,7 +215,7 @@ export default function ProductCarousel({
                     </div>
                   )}
                   {product.comparePrice && (
-                    <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                    <div className="absolute top-3 right-3 bg-danger-theme text-white-theme px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                       SALE
                     </div>
                   )}
@@ -225,18 +225,18 @@ export default function ProductCarousel({
 
               <div className="p-5">
                 <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-blue-600 transition-colors min-h-[3.5rem]">
+                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-primary-theme transition-colors min-h-[3.5rem]">
                     {product.name}
                   </h3>
                 </Link>
 
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <span className="text-2xl font-bold text-primary-theme">
                       ₹{product.price}
                     </span>
                     {product.comparePrice && (
-                      <span className="text-sm text-gray-500 line-through ml-2">
+                      <span className="text-sm text-text-lighter line-through ml-2">
                         ₹{product.comparePrice}
                       </span>
                     )}
@@ -257,7 +257,7 @@ export default function ProductCarousel({
                 <div className="flex gap-2">
                   <button
                     onClick={(e) => handleAddToCart(product, e)}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-bold hover:scale-105 active:scale-95"
+                    className="flex-1 btn-primary-theme py-3 rounded-xl font-bold hover:scale-105 active:scale-95"
                   >
                     Add to Cart
                   </button>
@@ -265,8 +265,8 @@ export default function ProductCarousel({
                     onClick={(e) => handleWishlistClick(product, e)}
                     className={`px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
                       isInWishlist(product.id)
-                        ? 'bg-red-100 text-red-600 border-2 border-red-300'
-                        : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                        ? 'bg-danger/20 text-danger border-2 border-danger'
+                        : 'bg-bg-gray text-text-light border-2 border-border-color hover:border-danger hover:text-danger'
                     }`}
                     title="Add to wishlist"
                   >
@@ -281,7 +281,7 @@ export default function ProductCarousel({
         {/* Right Navigation Button */}
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -mr-6 opacity-0 group-hover:opacity-100"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 gradient-primary-accent text-white-theme shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -mr-6 opacity-0 group-hover:opacity-100"
           aria-label="Scroll right"
         >
           <svg

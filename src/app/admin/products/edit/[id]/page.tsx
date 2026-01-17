@@ -198,7 +198,7 @@ export default function EditProductPage() {
             </Link>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-light-theme rounded-lg shadow p-6 space-y-6">
             {/* Same form fields as Add Product - copy from above */}
             {/* Basic Info */}
             <div className="space-y-4">
@@ -484,7 +484,7 @@ export default function EditProductPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
+                className="btn-primary-md"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>

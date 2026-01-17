@@ -35,7 +35,7 @@ export default function Contact() {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-16 px-6">
+      <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl font-bold mb-4">Contact Us</h1>
           <p className="text-xl text-indigo-100">
@@ -84,11 +84,11 @@ export default function Contact() {
         </div>
 
         {/* Form Section */}
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+        <div className="bg-light-theme rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-slate-800 mb-6">Send us a Message</h2>
           
           {submitted && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
+            <div className="bg-success-light border border-success-theme text-success-theme px-4 py-3 rounded mb-6">
               <p className="font-bold">Success!</p>
               <p>Thank you for your message. We'll get back to you soon.</p>
             </div>
@@ -161,7 +161,7 @@ export default function Contact() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-lg hover:shadow-lg transition"
+              className="w-full btn-gradient-primary-lg font-bold"
             >
               Send Message
             </button>

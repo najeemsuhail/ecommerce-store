@@ -97,7 +97,7 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-light-theme rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,7 +153,7 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
+              className="btn-full-primary"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

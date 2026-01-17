@@ -127,11 +127,11 @@ export default function ProductDetailPage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <div className="mb-6 text-sm text-gray-600">
-            <Link href="/" className="hover:text-blue-600">
+            <Link href="/" className="hover:text-primary-theme">
               Home
             </Link>
             {' / '}
-            <Link href="/products" className="hover:text-blue-600">
+            <Link href="/products" className="hover:text-primary-theme">
               Products
             </Link>
             {' / '}
@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
             {/* Images Gallery */}
             <div>
               {/* Main Image */}
-              <div className="bg-white rounded-lg shadow-lg p-4 mb-4 relative group">
+              <div className="bg-light-theme rounded-lg shadow-lg p-4 mb-4 relative group">
                 <div
                   className="relative h-96 bg-gray-200 rounded overflow-hidden"
                   style={{ cursor: showImageZoom ? 'zoom-out' : 'default' }}
@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
                             : undefined
                         }
                       />
-                      <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                      <div className="absolute top-4 right-4 bg-black/50 text-white-theme px-3 py-1 rounded-full text-sm">
                         {selectedImage + 1} / {product.images.length}
                       </div>
                     </>
@@ -177,8 +177,8 @@ export default function ProductDetailPage() {
                     onClick={() => setShowImageZoom(!showImageZoom)}
                     className={`absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 z-10 ${
                       showImageZoom
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50'
+                        ? 'bg-primary-theme text-white-theme hover:bg-primary-hover'
+                        : 'bg-light-theme text-dark-theme border border-gray-300 hover:bg-light-gray-theme'
                     }`}
                     title={showImageZoom ? 'Exit zoom' : 'Click to zoom'}
                   >
@@ -220,7 +220,7 @@ export default function ProductDetailPage() {
 
             {/* Product Info */}
             <div>
-              <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="bg-light-theme rounded-lg shadow-lg p-6">
                 {/* Title and Price */}
                 <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
                 
@@ -229,7 +229,7 @@ export default function ProductDetailPage() {
                 )}
 
                 <div className="flex items-center gap-4 mb-6">
-                  <span className="text-4xl font-bold text-blue-600">
+                  <span className="text-4xl font-bold text-primary-theme">
                     ${selectedVariant ? selectedVariant.price : product.price}
                   </span>
                   {product.comparePrice && (
@@ -324,13 +324,13 @@ export default function ProductDetailPage() {
                         >
                           <div className="text-left">
                             <p className="font-semibold text-sm">{variant.name}</p>
-                            <p className="text-blue-600 font-bold text-sm">
+                            <p className="text-primary-theme font-bold text-sm">
                               ${variant.price}
                             </p>
                             {variant.stock === 0 ? (
-                              <p className="text-red-600 text-xs mt-1">Out of Stock</p>
+                              <p className="text-danger-theme text-xs mt-1">Out of Stock</p>
                             ) : (
-                              <p className="text-green-600 text-xs mt-1">
+                              <p className="text-success-theme text-xs mt-1">
                                 {variant.stock} available
                               </p>
                             )}
@@ -375,7 +375,7 @@ export default function ProductDetailPage() {
                     <div className="relative flex gap-4">
                       <button
                         onClick={handleAddToCart}
-                        className="flex-1 bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition-all"
+                        className="btn-primary-lg"
                       >
                         Add to Cart - ₹{((selectedVariant ? selectedVariant.price : product.price) * quantity).toFixed(2)}
                       </button>
@@ -385,7 +385,7 @@ export default function ProductDetailPage() {
                         className={`px-6 py-4 rounded-lg font-semibold text-lg transition-all ${
                           isInWishlist(product.id)
                             ? 'bg-red-100 text-red-600 border-2 border-red-300'
-                            : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:border-red-500 hover:text-red-600'
+                            : 'bg-light-gray-theme text-dark-theme border-2 border-dark-theme hover:border-danger-theme hover:text-danger-theme'
                         }`}
                         title="Add to wishlist"
                       >
@@ -394,7 +394,7 @@ export default function ProductDetailPage() {
 
                       {/* Notification */}
                       {showNotification && (
-                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-success-theme text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
                           <span className="text-xl">✓</span>
                           <span className="font-medium">{notificationMessage}</span>
                         </div>
@@ -428,7 +428,7 @@ export default function ProductDetailPage() {
               <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
               <div className="space-y-4">
                 {product.reviews.map((review: any) => (
-                  <div key={review.id} className="bg-white rounded-lg shadow p-6">
+                  <div key={review.id} className="bg-light-theme rounded-lg shadow p-6">
                     <div className="flex items-center gap-4 mb-2">
                       <div className="flex text-yellow-400">
                         {'★'.repeat(review.rating)}

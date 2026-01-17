@@ -107,38 +107,38 @@ export default function HomePage() {
         isVisible={notification.visible}
         onClose={() => setNotification({ ...notification, visible: false })}
       />
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-bg-gray">
         {/* Hero Section */}
         <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10"></div>
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/30 rounded-full filter blur-3xl animate-blob"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-400/30 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-pink-400/30 rounded-full filter blur-3xl animate-blob animation-delay-4000"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/30 rounded-full filter blur-3xl animate-blob"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-primary/20 rounded-full filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-20 left-1/2 w-72 h-72 bg-primary/10 rounded-full filter blur-3xl animate-blob animation-delay-4000"></div>
           
           <div className="relative max-w-7xl mx-auto px-4 py-24 md:py-32">
             <div className="text-center space-y-8">
               <div className="inline-block">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
+                <span className="badge-primary-theme px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
                   ✨ New Arrivals Available
                 </span>
               </div>
               
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient">
+                <span className="gradient-primary-pink bg-clip-text text-transparent animate-gradient">
                   Discover Amazing
                 </span>
                 <br />
-                <span className="text-gray-900">Products</span>
+                <span className="text-text-dark">Products</span>
               </h1>
               
-              <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto">
+              <p className="text-xl md:text-2xl text-text-light max-w-2xl mx-auto">
                 Shop the latest trends with unbeatable prices and fast delivery
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
                   href="/products"
-                  className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
+                  className="group btn-primary-theme px-8 py-4 rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
                 >
                   Shop Now
                   <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +147,7 @@ export default function HomePage() {
                 </Link>
                 <Link
                   href="/products?isFeatured=true"
-                  className="bg-white text-gray-800 px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-200 hover:border-blue-600"
+                  className="bg-light-theme text-text-dark px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-border-color hover:border-primary"
                 >
                   View Featured
                 </Link>
@@ -157,7 +157,7 @@ export default function HomePage() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-12 bg-white border-y border-gray-100">
+        <section className="py-12 bg-light-theme border-y border-border-color">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -172,7 +172,7 @@ export default function HomePage() {
                   <div className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                     {stat.value}+
                   </div>
-                  <div className="text-gray-600 font-medium mt-1">{stat.label}</div>
+                  <div className="text-text-light font-medium mt-1">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -184,7 +184,7 @@ export default function HomePage() {
           <section className="max-w-7xl mx-auto px-4 py-20">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold mb-4">Shop by Category</h2>
-              <p className="text-gray-600 text-lg">Explore our wide range of products</p>
+              <p className="text-text-light text-lg">Explore our wide range of products</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -192,7 +192,7 @@ export default function HomePage() {
                 <Link
                   key={category}
                   href={`/products?category=${encodeURIComponent(category)}`}
-                  className="group relative bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-500"
+                  className="group relative bg-bg-gray p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-border-color hover:border-primary-theme"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-600/0 to-purple-600/0 group-hover:from-blue-600/10 group-hover:to-purple-600/10 transition-all duration-300"></div>
@@ -200,7 +200,7 @@ export default function HomePage() {
                     <div className="text-4xl mb-3">
                       {index === 0 ? '💻' : index === 1 ? '👕' : index === 2 ? '📱' : index === 3 ? '🏠' : index === 4 ? '⚽' : '📚'}
                     </div>
-                    <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-text-dark group-hover:text-primary-theme transition-colors">
                       {category}
                     </h3>
                   </div>
@@ -214,19 +214,19 @@ export default function HomePage() {
         <section className="max-w-7xl mx-auto px-4 py-20 bg-gradient-to-b from-white to-gray-50">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="gradient-primary-accent bg-clip-text text-transparent">
                 Featured
               </span>{' '}
               Products
             </h2>
-            <p className="text-gray-600 text-lg">Hand-picked items just for you</p>
+            <p className="text-text-light text-lg">Hand-picked items just for you</p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product, index) => (
               <div
                 key={product.id}
-                className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-blue-500 hover:-translate-y-2"
+                className="group bg-light-theme rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary hover:-translate-y-2"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <Link href={`/products/${product.slug}`} className="block">
@@ -238,14 +238,14 @@ export default function HomePage() {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-text-lighter">
                         <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
                     {product.comparePrice && (
-                      <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                      <div className="absolute top-3 right-3 bg-danger-theme text-white-theme px-3 py-1 rounded-full text-sm font-bold shadow-lg">
                         SALE
                       </div>
                     )}
@@ -255,18 +255,18 @@ export default function HomePage() {
                 
                 <div className="p-5">
                   <Link href={`/products/${product.slug}`}>
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[3.5rem]">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary-theme transition-colors min-h-[3.5rem]">
                       {product.name}
                     </h3>
                   </Link>
                   
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      <span className="text-2xl font-bold text-primary-theme">
                         ₹{product.price}
                       </span>
                       {product.comparePrice && (
-                        <span className="text-sm text-gray-500 line-through ml-2">
+                        <span className="text-sm text-text-lighter line-through ml-2">
                           ₹{product.comparePrice}
                         </span>
                       )}
@@ -284,13 +284,13 @@ export default function HomePage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleQuickAdd(product)}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg hover:shadow-lg transition-all duration-300 font-medium hover:scale-105"
+                      className="flex-1 btn-primary-theme py-2.5 rounded-lg font-medium hover:scale-105"
                     >
                       Add to Cart
                     </button>
                     <Link
                       href={`/products/${product.slug}`}
-                      className="px-4 py-2.5 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 transition-all duration-300 flex items-center justify-center"
+                      className="px-4 py-2.5 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:text-primary-theme transition-all duration-300 flex items-center justify-center"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -326,7 +326,7 @@ export default function HomePage() {
         )}
 
         {/* Features */}
-        <section className="bg-gradient-to-br from-blue-600 to-purple-600 py-20">
+        <section className="bg-primary-theme py-20">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -358,7 +358,7 @@ export default function HomePage() {
                   description: '30-day return policy',
                 },
               ].map((feature, index) => (
-                <div key={index} className="text-center text-white group cursor-pointer">
+                <div key={index} className="text-center text-white-theme group cursor-pointer">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-4 group-hover:bg-white/30 group-hover:scale-110 transition-all duration-300">
                     {feature.icon}
                   </div>

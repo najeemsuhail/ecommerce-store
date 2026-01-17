@@ -118,7 +118,7 @@ export default function AdminOrders() {
             <p className="text-gray-600 mb-6">Please contact an administrator or try logging in again.</p>
             <Link 
               href="/" 
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+              className="btn-block-primary-md"
             >
               Back to Store
             </Link>
@@ -461,7 +461,7 @@ export default function AdminOrders() {
                           notes: selectedOrder.notes,
                         });
                       }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="btn-sm-primary"
                     >
                       Save
                     </button>
@@ -489,7 +489,7 @@ export default function AdminOrders() {
                         notes: textarea.value,
                       });
                     }}
-                    className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="mt-2 px-4 py-2 bg-success-theme text-white-theme rounded-lg hover:opacity-90"
                   >
                     Save Notes
                   </button>

@@ -151,13 +151,13 @@ export default function AddressesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-light-theme rounded-lg shadow p-6">>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Saved Addresses</h2>
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                className="btn-block-primary-md"
               >
                 + Add New Address
               </button>
@@ -166,7 +166,7 @@ export default function AddressesPage() {
 
           {/* Add/Edit Form */}
           {showForm && (
-            <div className="mb-6 p-6 border-2 border-blue-600 rounded-lg bg-blue-50">
+            <div className="mb-6 p-6 border-2 border-primary-theme rounded-lg bg-primary-light">
               <h3 className="font-bold text-lg mb-4">
                 {editingIndex !== null ? 'Edit Address' : 'Add New Address'}
               </h3>
@@ -263,7 +263,7 @@ export default function AddressesPage() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold"
+                    className="btn-primary-md"
                   >
                     {editingIndex !== null ? 'Update Address' : 'Save Address'}
                   </button>
@@ -286,7 +286,7 @@ export default function AddressesPage() {
               {!showForm && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                  className="btn-block-primary"
                 >
                   Add Your First Address
                 </button>
@@ -302,7 +302,7 @@ export default function AddressesPage() {
                   }`}
                 >
                   {address.isDefault && (
-                    <span className="inline-block bg-blue-600 text-white text-xs px-2 py-1 rounded mb-2">
+                    <span className="btn-xs-primary text-white-theme mb-2">
                       Default
                     </span>
                   )}
@@ -317,13 +317,13 @@ export default function AddressesPage() {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleEdit(index)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm"
+                      className="flex-1 bg-primary-theme text-white-theme py-2 rounded-lg hover:bg-primary-hover text-sm"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(index)}
-                      className="px-4 py-2 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 text-sm"
+                      className="px-4 py-2 border-2 border-danger-theme text-danger-theme rounded-lg hover:bg-danger-light text-sm"
                     >
                       Delete
                     </button>

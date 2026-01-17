@@ -71,7 +71,7 @@ export default function WishlistPage() {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50 pt-12 px-4">
-          <div className="text-center bg-white rounded-lg shadow-lg p-6 lg:p-8 max-w-md mx-auto">
+          <div className="text-center bg-light-theme rounded-lg shadow-lg p-6 lg:p-8 max-w-md mx-auto">
             <svg
               className="w-16 h-16 text-gray-400 mx-auto mb-4"
               fill="none"
@@ -89,7 +89,7 @@ export default function WishlistPage() {
             <p className="text-gray-600 mb-6 text-sm lg:text-base">You need to sign in to view your wishlist collections.</p>
             <Link
               href="/auth"
-              className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              className="btn-block-primary"
             >
               Sign In
             </Link>
@@ -110,7 +110,7 @@ export default function WishlistPage() {
           </div>
 
           {/* Create Group Form */}
-          <div className="bg-white rounded-lg shadow-md p-4 lg:p-6 mb-8">
+          <div className="bg-light-theme rounded-lg shadow-md p-4 lg:p-6 mb-8">
             <h2 className="text-lg lg:text-xl font-bold mb-4">Create New Collection</h2>
             <form onSubmit={handleCreateGroup} className="flex flex-col lg:flex-row gap-3">
               <input
@@ -122,7 +122,7 @@ export default function WishlistPage() {
               />
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors whitespace-nowrap"
+                className="btn-block-primary-md whitespace-nowrap"
               >
                 Create Collection
               </button>
@@ -131,7 +131,7 @@ export default function WishlistPage() {
 
           {/* Collections */}
           {groups.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow-md">
+            <div className="text-center py-12 bg-light-theme rounded-lg shadow-md">
               <svg
                 className="w-16 h-16 text-gray-400 mx-auto mb-4"
                 fill="none"
@@ -153,10 +153,10 @@ export default function WishlistPage() {
               {groups.map((group) => (
                 <div
                   key={group.id}
-                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
+                  className="bg-light-theme rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
                 >
                   {/* Group Header */}
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+                  <div className="gradient-primary-accent p-4 text-white-theme">
                     {renamingGroupId === group.id ? (
                       <div className="flex gap-2">
                         <input
@@ -168,7 +168,7 @@ export default function WishlistPage() {
                         />
                         <button
                           onClick={() => handleSaveRename(group.id)}
-                          className="bg-white text-blue-600 px-3 py-1 rounded text-sm font-bold hover:bg-gray-100"
+                          className="bg-light-theme text-primary-theme px-3 py-1 rounded text-sm font-bold hover-bg-gray-light"
                         >
                           Save
                         </button>
@@ -183,7 +183,7 @@ export default function WishlistPage() {
                         </div>
                         <button
                           onClick={() => handleRenameGroup(group.id, group.name)}
-                          className="text-blue-100 hover:text-white text-sm"
+                          className="text-blue-100 hover:text-white-theme text-sm"
                         >
                           Edit
                         </button>
@@ -250,7 +250,7 @@ export default function WishlistPage() {
                   <div className="border-t p-4">
                     <button
                       onClick={() => deleteGroup(group.id)}
-                      className="w-full text-red-600 hover:text-red-700 py-2 font-medium border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                          className="w-full text-danger-theme hover:text-danger-theme py-2 font-medium border border-danger-theme rounded-lg hover:bg-danger-light transition-colors"
                     >
                       Delete Collection
                     </button>
@@ -265,7 +265,7 @@ export default function WishlistPage() {
             <div className="text-center mt-8">
               <Link
                 href="/products"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium"
+                className="btn-block-primary"
               >
                 Continue Shopping
               </Link>

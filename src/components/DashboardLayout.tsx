@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow p-4 sticky top-24">
+              <div className="bg-light-theme rounded-lg shadow p-4 sticky top-24">
                 <nav className="space-y-1">
                   {menuItems.map((item) => (
                     <Link
@@ -68,8 +68,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       href={item.path}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                         isActive(item.path)
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'bg-primary-theme text-white-theme shadow-md'
+                          : 'text-dark-theme hover:bg-light-gray-theme'
                       }`}
                     >
                       <span className="text-xl">{item.icon}</span>
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   ))}
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-danger-theme hover:bg-danger-light transition-all"
                   >
                     <span className="text-xl">🚪</span>
                     <span className="font-medium">Logout</span>

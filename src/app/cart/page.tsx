@@ -37,13 +37,13 @@ export default function CartPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
               Your cart is empty
             </h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-text-light mb-6">
               Add some products to get started!
             </p>
 
             <Link
               href="/products"
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="inline-block bg-primary-theme text-white-theme px-6 py-3 rounded-lg hover:bg-primary-hover"
             >
               Browse Products
             </Link>
@@ -55,13 +55,13 @@ export default function CartPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50 py-4 md:py-8">
+      <div className="min-h-screen bg-bg-gray py-4 md:py-8">
         <div className="max-w-6xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3">
             <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
             <button
               onClick={clearCart}
-              className="text-red-600 hover:text-red-700 text-xs md:text-sm"
+              className="text-danger hover:text-danger text-xs md:text-sm"
             >
               Clear Cart
             </button>
@@ -73,10 +73,10 @@ export default function CartPage() {
               {items.map((item) => (
                 <div
                   key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId}
-                  className="bg-white rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4"
+                  className="bg-light-theme rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4"
                 >
                   {/* Product Image */}
-                  <div className="w-full md:w-24 md:h-24 h-40 bg-gray-200 rounded flex-shrink-0 relative">
+                  <div className="w-full md:w-24 md:h-24 h-40 bg-bg-gray rounded flex-shrink-0 relative">
                     {item.image ? (
                       <Image
                         src={item.image}
@@ -85,7 +85,7 @@ export default function CartPage() {
                         className="object-cover rounded"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <div className="w-full h-full flex items-center justify-center text-text-lighter">
                         No Image
                       </div>
                     )}
@@ -97,14 +97,14 @@ export default function CartPage() {
                       {item.name}
                     </h3>
                     {item.variantName && (
-                      <p className="text-gray-500 text-xs md:text-sm mb-2">
+                      <p className="text-text-lighter text-xs md:text-sm mb-2">
                         {item.variantName}
                       </p>
                     )}
-                    <p className="text-gray-600 text-sm mb-3 md:mb-2">
+                    <p className="text-text-light text-sm mb-3 md:mb-2">
                       ${item.price.toFixed(2)}
                       {item.isDigital && (
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">
                           Digital
                         </span>
                       )}
@@ -168,7 +168,7 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8">
+              <div className="bg-light-theme rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8">
                 <h2 className="text-lg md:text-xl font-bold mb-4">
                   Order Summary
                 </h2>
@@ -194,7 +194,7 @@ export default function CartPage() {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full bg-blue-600 text-white py-2 md:py-3 rounded-lg hover:bg-blue-700 font-medium text-sm md:text-base"
+                  className="w-full bg-primary-theme text-white-theme py-2 md:py-3 rounded-lg hover:bg-primary-hover font-medium text-sm md:text-base"
                 >
                   Proceed to Checkout
                 </button>

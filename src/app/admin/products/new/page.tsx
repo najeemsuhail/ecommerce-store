@@ -209,7 +209,7 @@ export default function AddProductPage() {
               </Link>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="bg-light-theme rounded-lg shadow p-6 space-y-6">>
               {/* Basic Info */}
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold border-b pb-2">Basic Information</h2>
@@ -575,7 +575,7 @@ export default function AddProductPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold"
+                  className="btn-primary-md"
                 >
                   {loading ? 'Creating...' : 'Create Product'}
                 </button>

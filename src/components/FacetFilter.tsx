@@ -100,7 +100,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     selectedFilters.priceRange.max < facets.priceRange.max;
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 h-fit sticky top-20">
+    <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Filters</h2>
@@ -115,7 +115,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                 isFeatured: undefined,
               })
             }
-            className="text-xs text-red-600 hover:text-red-700 font-semibold"
+            className="text-xs text-danger-theme hover:text-danger-theme font-semibold"
           >
             Clear All
           </button>
@@ -137,7 +137,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         {expandedSections.categories && (
           <div className="mt-4 space-y-3">
             {facets.categories.map((category) => (
-              <label key={category.name} className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              <label key={category.name} className="flex items-center gap-3 cursor-pointer hover:text-primary-theme">
                 <input
                   type="checkbox"
                   checked={selectedFilters.categories.includes(category.name)}
@@ -156,7 +156,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
       <div className="mb-6 border-b pb-6">
         <button
           onClick={() => toggleSection('brands')}
-          className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+          className="w-full flex items-center justify-between font-semibold text-gray-theme hover:text-primary-theme transition-colors"
         >
           <span>Brands</span>
           <FontAwesomeIcon
@@ -167,7 +167,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         {expandedSections.brands && (
           <div className="mt-4 space-y-3">
             {facets.brands.map((brand) => (
-              <label key={brand.name} className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
+              <label key={brand.name} className="flex items-center gap-3 cursor-pointer hover:text-primary-theme">
                 <input
                   type="checkbox"
                   checked={selectedFilters.brands.includes(brand.name)}
@@ -186,7 +186,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
       <div className="mb-6 border-b pb-6">
         <button
           onClick={() => toggleSection('price')}
-          className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+          className="w-full flex items-center justify-between font-semibold text-gray-theme hover:text-primary-theme transition-colors"
         >
           <span>Price</span>
           <FontAwesomeIcon
@@ -222,7 +222,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             </div>
             <button
               onClick={applyPriceFilter}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm"
+              className="btn-filter-primary"
             >
               Apply Price
             </button>
@@ -234,7 +234,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
       <div className="mb-6 border-b pb-6">
         <button
           onClick={() => toggleSection('type')}
-          className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+          className="w-full flex items-center justify-between font-semibold text-gray-theme hover:text-primary-theme transition-colors"
         >
           <span>Product Type</span>
           <FontAwesomeIcon
@@ -274,7 +274,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             {selectedFilters.brands.map((brand) => (
               <div
                 key={brand}
-                className="flex items-center justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm"
               >
                 <span>Brand: {brand}</span>
                 <button
@@ -288,7 +288,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             {selectedFilters.categories.map((category) => (
               <div
                 key={category}
-                className="flex items-center justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm"
               >
                 <span>Category: {category}</span>
                 <button
@@ -300,7 +300,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
               </div>
             ))}
             {(selectedFilters.priceRange.min > 0 || selectedFilters.priceRange.max < facets.priceRange.max) && (
-              <div className="flex items-center justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+              <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>
                   Price: ₹{selectedFilters.priceRange.min} - ₹{selectedFilters.priceRange.max}
                 </span>
@@ -311,14 +311,14 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                       priceRange: { min: 0, max: facets.priceRange.max },
                     })
                   }
-                  className="hover:text-blue-900 ml-2"
+                  className="hover:text-primary-dark ml-2"
                 >
                   <FontAwesomeIcon icon={faX} className="w-3 h-3" />
                 </button>
               </div>
             )}
             {selectedFilters.isDigital && (
-              <div className="flex items-center justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+              <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>Digital Products</span>
                 <button
                   onClick={() =>
@@ -327,14 +327,14 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                       isDigital: undefined,
                     })
                   }
-                  className="hover:text-blue-900 ml-2"
+                  className="hover:text-primary-dark ml-2"
                 >
                   <FontAwesomeIcon icon={faX} className="w-3 h-3" />
                 </button>
               </div>
             )}
             {selectedFilters.isFeatured && (
-              <div className="flex items-center justify-between bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+              <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>Featured Only</span>
                 <button
                   onClick={() =>
@@ -343,7 +343,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                       isFeatured: undefined,
                     })
                   }
-                  className="hover:text-blue-900 ml-2"
+                  className="hover:text-primary-dark ml-2"
                 >
                   <FontAwesomeIcon icon={faX} className="w-3 h-3" />
                 </button>

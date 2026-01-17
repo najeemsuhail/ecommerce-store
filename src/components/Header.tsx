@@ -138,7 +138,7 @@ export default function Header() {
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <nav className="bg-light-theme/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex justify-between items-center gap-4">
 
@@ -146,10 +146,10 @@ export default function Header() {
           <div className="flex items-center gap-8 flex-shrink-0">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">E</span>
+              <div className="w-10 h-10 bg-primary-theme rounded-lg flex items-center justify-center">
+                <span className="text-white-theme font-bold text-xl">E</span>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold text-primary-theme">
                 E-Store
               </span>
             </Link>
@@ -160,8 +160,8 @@ export default function Header() {
                 href="/products" 
                 className={`font-medium transition-colors ${
                   pathname === '/products' || pathname.startsWith('/products/')
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-text-light hover:text-primary'
                 }`}
               >
                 Shop
@@ -170,8 +170,8 @@ export default function Header() {
                 href="/about" 
                 className={`font-medium transition-colors ${
                   pathname === '/about'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-text-light hover:text-primary'
                 }`}
               >
                 About Us
@@ -180,8 +180,8 @@ export default function Header() {
                 href="/contact" 
                 className={`font-medium transition-colors ${
                   pathname === '/contact'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-text-light hover:text-primary'
                 }`}
               >
                 Contact Us
@@ -191,8 +191,8 @@ export default function Header() {
                   href="/dashboard" 
                   className={`font-medium transition-colors ${
                     pathname === '/dashboard' || pathname.startsWith('/dashboard/')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-primary border-b-2 border-primary'
+                      : 'text-text-light hover:text-primary'
                   }`}
                 >
                   Dashboard
@@ -203,8 +203,8 @@ export default function Header() {
                   href="/admin" 
                   className={`font-medium transition-colors ${
                     pathname === '/admin' || pathname.startsWith('/admin/')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-primary border-b-2 border-primary'
+                      : 'text-text-light hover:text-primary'
                   }`}
                 >
                   Admin
@@ -219,7 +219,7 @@ export default function Header() {
           {/* RIGHT: Icons (all screens) */}
           <div className="flex items-center gap-4 flex-shrink-0">
             {/* Wishlist */}
-            <Link href="/wishlist" className="text-gray-700 hover:text-red-500 transition-colors" title="Wishlist">
+            <Link href="/wishlist" className="text-gray-theme hover:text-danger-theme transition-colors" title="Wishlist">
               <FontAwesomeIcon icon={faHeart} className="w-5 h-5" />
             </Link>
 
@@ -227,7 +227,7 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                className="text-gray-700 hover:text-blue-600 transition-colors cursor-pointer"
+                className="text-gray-theme hover:text-primary-theme transition-colors cursor-pointer"
                 title={isLoggedIn ? 'Account' : 'Login'}
               >
                 <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
@@ -235,20 +235,20 @@ export default function Header() {
 
               {/* Account Dropdown Menu */}
               {accountMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-light-theme border border-gray-200 rounded-lg shadow-lg z-50">
                   {!isLoggedIn ? (
                     <>
                       <Link
                         href="/auth"
                         onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium border-b border-gray-100 transition-colors"
+                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium border-b border-gray-theme transition-colors"
                       >
                         Sign In
                       </Link>
                       <Link
                         href="/auth"
                         onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium transition-colors"
+                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium transition-colors"
                       >
                         Sign Up
                       </Link>
@@ -258,7 +258,7 @@ export default function Header() {
                       <Link
                         href="/dashboard"
                         onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium border-b border-gray-100 transition-colors"
+                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium border-b border-gray-theme transition-colors"
                       >
                         Dashboard
                       </Link>
@@ -269,7 +269,7 @@ export default function Header() {
                           setAccountMenuOpen(false);
                           router.push('/');
                         }}
-                        className="block w-full text-left px-4 py-3 hover:bg-gray-100 text-gray-900 font-medium transition-colors"
+                        className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-dark-theme font-medium transition-colors"
                       >
                         Logout
                       </button>
@@ -280,11 +280,11 @@ export default function Header() {
             </div>
 
             {/* Cart */}
-            <Link href="/cart" className="relative text-gray-700 hover:text-blue-600 transition-colors" title="Shopping Cart">
+            <Link href="/cart" className="relative text-gray-theme hover:text-primary-theme transition-colors" title="Shopping Cart">
               <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
               {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute -top-2 -right-2 bg-danger-theme text-white-theme text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
                   {totalItems}
                 </span>
               )}
@@ -292,7 +292,7 @@ export default function Header() {
 
             {/* Hamburger (mobile only) */}
             <button
-              className="md:hidden text-gray-700 hover:text-blue-600 transition-colors"
+              className="md:hidden text-gray-theme hover:text-primary-theme transition-colors"
               onClick={() => setMenuOpen(!menuOpen)}
               title="Menu"
             >
@@ -320,7 +320,7 @@ export default function Header() {
             {/* Close Button */}
             <button
               onClick={() => setMenuOpen(false)}
-              className="absolute top-4 right-4 text-gray-700 hover:text-blue-600 transition-colors"
+              className="absolute top-4 right-4 text-gray-theme hover:text-primary-theme transition-colors"
               title="Close menu"
             >
               <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
@@ -343,7 +343,7 @@ export default function Header() {
 
               {/* Mobile Autocomplete Dropdown */}
               {showMobileSuggestions && mobileSearchQuery.trim() && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-light-theme border border-gray-300 rounded-lg shadow-lg z-50">
                   {mobileLoadingSearch ? (
                     <div className="px-4 py-3 text-gray-500 text-sm">Loading...</div>
                   ) : mobileSuggestions.length > 0 ? (
@@ -352,7 +352,7 @@ export default function Header() {
                         <li key={suggestion.id}>
                           <button
                             onClick={() => handleMobileSuggestionSelect(suggestion)}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0 transition-colors"
+                            className="w-full text-left px-4 py-3 hover:bg-light-gray-theme flex items-center gap-3 border-b border-gray-100 last:border-b-0 transition-colors"
                           >
                             {suggestion.image && (
                               <img 
@@ -362,8 +362,8 @@ export default function Header() {
                               />
                             )}
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-900 truncate">{suggestion.name}</div>
-                              <div className="text-xs text-gray-600">₹{suggestion.price.toLocaleString('en-IN')}</div>
+                  <div className="text-sm font-medium text-dark-theme truncate">{suggestion.name}</div>
+                              <div className="text-xs text-light-theme">₹{suggestion.price.toLocaleString('en-IN')}</div>
                             </div>
                           </button>
                         </li>
@@ -433,8 +433,8 @@ export default function Header() {
                   onClick={() => setMenuOpen(false)} 
                   className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
                     pathname === '/admin' || pathname.startsWith('/admin/')
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-900 hover:bg-blue-100 hover:text-blue-700'
+                      ? 'bg-primary-theme text-white-theme'
+                      : 'text-dark-theme hover:bg-light-gray-theme hover:text-primary-theme'
                   }`}
                 >
                   Admin Dashboard

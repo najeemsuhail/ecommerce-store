@@ -1,0 +1,61 @@
+/* Minimal Theme - Clean & Minimal */
+:root {
+  /* Primary Colors */
+  --primary: #000000;
+  --primary-hover: #333333;
+  --primary-dark: #1a1a1a;
+  
+  /* Secondary Colors */
+  --secondary: #666666;
+  --secondary-hover: #444444;
+  
+  /* Status Colors */
+  --success: #22c55e;
+  --warning: #eab308;
+  --danger: #dc2626;
+  --info: #0284c7;
+  
+  /* Neutral Colors */
+  --bg-light: #ffffff;
+  --bg-gray: #f5f5f5;
+  --border-color: #d4d4d8;
+  --text-dark: #000000;
+  --text-light: #52525b;
+  --text-lighter: #a1a1aa;
+  
+  /* Spacing */
+  --spacing-xs: 2px;
+  --spacing-sm: 6px;
+  --spacing-md: 12px;
+  --spacing-lg: 20px;
+  --spacing-xl: 28px;
+  
+  /* Border Radius - No rounded corners */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-full: 0px;
+  
+  /* Typography */
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 17px;
+  --font-size-xl: 19px;
+  --font-size-2xl: 22px;
+  
+  /* Button */
+  --btn-padding: 12px 24px;
+  --btn-font-size: 14px;
+  --btn-border-radius: 0px;
+  
+  /* Forms */
+  --form-padding: 12px 16px;
+  --form-border-radius: 0px;
+  --form-border-width: 2px;
+  
+  /* Shadows */
+  --shadow-sm: none;
+  --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 2px 8px 0 rgba(0, 0, 0, 0.15);
+}
