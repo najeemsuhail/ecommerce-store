@@ -107,7 +107,7 @@ export default function HomePage() {
         isVisible={notification.visible}
         onClose={() => setNotification({ ...notification, visible: false })}
       />
-      <div className="min-h-screen bg-bg-gray">
+      <div className="bg-bg-gray">
         {/* Hero Section */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/10"></div>
@@ -157,7 +157,7 @@ export default function HomePage() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-12 bg-light-theme border-y border-border-color">
+        <section className="py-12 bg-bg-gray border-y border-border-color">
           <div className="max-w-7xl mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -211,7 +211,7 @@ export default function HomePage() {
         )}
 
         {/* Featured Products */}
-        <section className="max-w-7xl mx-auto px-4 py-20 bg-gradient-to-b from-white to-gray-50">
+        <section className="max-w-7xl mx-auto px-4 py-20 bg-bg-gray">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
               <span className="gradient-primary-accent bg-clip-text text-transparent">
