@@ -173,3 +173,19 @@ model WishlistItem {
   @@index([groupId])
   @@index([productId])
 }
+
+model Blog {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?
+  featuredImage String?
+  author      String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([published])
+  @@index([createdAt])
+}

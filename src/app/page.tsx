@@ -10,6 +10,7 @@ import StatsSection from '@/components/StatsSection';
 import CategoriesSection from '@/components/CategoriesSection';
 import FeaturedProductsSection from '@/components/FeaturedProductsSection';
 import FeaturesSection from '@/components/FeaturesSection';
+import LatestBlogPostsSection from '@/components/LatestBlogPostsSection';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -127,6 +128,7 @@ export default function HomePage() {
             description="Most popular products loved by our customers"
           />
         )}
+        <LatestBlogPostsSection />
         <FeaturesSection />
       </div>
     </Layout>

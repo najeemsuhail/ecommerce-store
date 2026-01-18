@@ -169,6 +169,16 @@ export default function Header() {
                 Shop
               </Link>
               <Link 
+                href="/blog" 
+                className={`font-medium transition-colors ${
+                  pathname === '/blog' || pathname.startsWith('/blog/')
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-text-light hover:text-primary'
+                }`}
+              >
+                Blog
+              </Link>
+              <Link 
                 href="/about" 
                 className={`font-medium transition-colors ${
                   pathname === '/about'
@@ -389,6 +399,17 @@ export default function Header() {
                 }`}
               >
                 Shop
+              </Link>
+              <Link 
+                href="/blog" 
+                onClick={() => setMenuOpen(false)} 
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                  pathname === '/blog' || pathname.startsWith('/blog/')
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
+                }`}
+              >
+                Blog
               </Link>
               <Link 
                 href="/about" 
