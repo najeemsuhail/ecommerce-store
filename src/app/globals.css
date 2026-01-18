@@ -181,7 +181,7 @@ body {
 .btn-primary-sm {
   flex: 1;
   background-color: var(--primary);
-  color: var(--text-light);
+  color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   text-align: center;

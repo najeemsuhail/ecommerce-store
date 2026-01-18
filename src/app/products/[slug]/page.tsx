@@ -329,9 +329,9 @@ export default function ProductDetailPage() {
                               ${variant.price}
                             </p>
                             {variant.stock === 0 ? (
-                              <p className="text-danger-theme text-xs mt-1">Out of Stock</p>
+                              <p className="text-red-600 text-xs mt-1 font-semibold">Out of Stock</p>
                             ) : (
-                              <p className="text-success-theme text-xs mt-1">
+                              <p className="text-green-600 text-xs mt-1 font-semibold">
                                 {variant.stock} available
                               </p>
                             )}

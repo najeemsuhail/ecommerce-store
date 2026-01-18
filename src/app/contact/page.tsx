@@ -88,9 +88,14 @@ export default function Contact() {
           <h2 className="text-3xl font-bold text-slate-800 mb-6">Send us a Message</h2>
           
           {submitted && (
-            <div className="bg-success-light border border-success-theme text-success-theme px-4 py-3 rounded mb-6">
-              <p className="font-bold">Success!</p>
-              <p>Thank you for your message. We'll get back to you soon.</p>
+            <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+              </svg>
+              <div>
+                <p className="font-bold">Success!</p>
+                <p>Thank you for your message. We'll get back to you soon.</p>
+              </div>
             </div>
           )}
 

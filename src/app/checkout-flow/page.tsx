@@ -20,6 +20,13 @@ export default function CheckoutFlowPage() {
   const [orderId, setOrderId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
 
+  // Saved addresses
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedShippingAddressIndex, setSelectedShippingAddressIndex] = useState<number | null>(null);
+  const [selectedBillingAddressIndex, setSelectedBillingAddressIndex] = useState<number | null>(null);
+  const [useNewShippingAddress, setUseNewShippingAddress] = useState(true);
+  const [useNewBillingAddress, setUseNewBillingAddress] = useState(false);
+
   // Form data
   const [shippingAddress, setShippingAddress] = useState({
     name: '',
@@ -43,6 +50,80 @@ export default function CheckoutFlowPage() {
   // Check if user is logged in
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const isLoggedIn = !!token;
+
+  // Load saved addresses on component mount
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      const addresses = user.address || [];
+      setSavedAddresses(addresses);
+      
+      // Auto-select the default address if it exists
+      const defaultIndex = addresses.findIndex((addr: any) => addr.isDefault);
+      if (defaultIndex !== -1) {
+        setSelectedShippingAddressIndex(defaultIndex);
+        setUseNewShippingAddress(false);
+      }
+    }
+  }, []);
+
+  // Update form when selected address changes
+  useEffect(() => {
+    if (!useNewShippingAddress && selectedShippingAddressIndex !== null) {
+      const selected = savedAddresses[selectedShippingAddressIndex];
+      setShippingAddress({
+        name: selected.name,
+        phone: selected.phone,
+        address: selected.address,
+        city: selected.city,
+        postalCode: selected.postalCode,
+        country: selected.country,
+      });
+    } else if (useNewShippingAddress) {
+      // Clear form when entering new address
+      setShippingAddress({
+        name: '',
+        phone: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'India',
+      });
+    }
+  }, [useNewShippingAddress, selectedShippingAddressIndex, savedAddresses]);
+
+  // Update billing address form when selected address changes
+  useEffect(() => {
+    if (!billingSameAsShipping && !useNewBillingAddress && selectedBillingAddressIndex !== null) {
+      const selected = savedAddresses[selectedBillingAddressIndex];
+      setBillingAddress({
+        name: selected.name,
+        address: selected.address,
+        city: selected.city,
+        postalCode: selected.postalCode,
+        country: selected.country,
+      });
+    } else if (billingSameAsShipping) {
+      // Clear billing form when billing same as shipping
+      setBillingAddress({
+        name: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'India',
+      });
+    } else if (useNewBillingAddress) {
+      // Clear form when entering new billing address
+      setBillingAddress({
+        name: '',
+        address: '',
+        city: '',
+        postalCode: '',
+        country: 'India',
+      });
+    }
+  }, [useNewBillingAddress, selectedBillingAddressIndex, savedAddresses, billingSameAsShipping]);
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -243,53 +324,137 @@ export default function CheckoutFlowPage() {
               <form onSubmit={handleCheckout} className="space-y-6">
                 {/* Payment Method Selection */}
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-bold mb-4">Payment Method</h2>
+                  <div className="flex items-center gap-2 mb-6">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h10m4 0a1 1 0 100-2 1 1 0 000 2zM7 3h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                    </svg>
+                    <h2 className="text-xl font-bold">Payment Method</h2>
+                  </div>
                   
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-all">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      paymentMethod === 'razorpay'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}>
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="razorpay"
                         checked={paymentMethod === 'razorpay'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'razorpay')}
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 mt-0.5 text-blue-600"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold">Online Payment (Razorpay)</div>
-                        <div className="text-sm text-gray-600">Pay with UPI, Card, Net Banking, Wallet</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" className="h-6" />
+                        <div className="font-semibold text-gray-900">Online Payment</div>
+                        <div className="text-sm text-gray-600">UPI, Card, Net Banking, Wallet</div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" className="h-5 mt-2" />
                       </div>
                     </label>
 
-                    <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-all">
+                    <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                      paymentMethod === 'cod'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                    }`}>
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="cod"
                         checked={paymentMethod === 'cod'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'cod')}
-                        className="w-5 h-5 text-blue-600"
+                        className="w-5 h-5 mt-0.5 text-blue-600"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold">Cash on Delivery</div>
-                        <div className="text-sm text-gray-600">Pay when you receive the product</div>
+                        <div className="font-semibold text-gray-900">Cash on Delivery</div>
+                        <div className="text-sm text-gray-600">Pay on delivery</div>
                         {paymentMethod === 'cod' && (
-                          <div className="text-xs text-warning mt-1">+ ₹{codFee} handling fee</div>
+                          <div className="text-xs text-orange-600 mt-2 font-medium">💰 +₹{codFee} handling fee</div>
                         )}
                       </div>
-                      <div className="text-2xl">💵</div>
                     </label>
                   </div>
                 </div>
 
                 {/* Shipping Information */}
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-bold mb-4">Shipping Information</h2>
+                  <div className="flex items-center gap-2 mb-6">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8c4.627-1.332 6.39-1.332 11 0M5 8v10c0 1.657.895 3 2 3h12c1.105 0 2-1.343 2-3V8M5 8l7-3m7 3l-7-3" />
+                    </svg>
+                    <h2 className="text-xl font-bold">Shipping Address</h2>
+                  </div>
 
-                  <div className="space-y-4">
+                  {/* Saved Addresses Selection */}
+                  {savedAddresses.length > 0 && (
+                    <div className="mb-6 pb-6 border-b">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-semibold text-gray-700">Your saved addresses</h3>
+                        <Link href="/dashboard/addresses" className="text-xs text-blue-600 hover:underline">
+                          Manage
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {savedAddresses.map((addr, index) => (
+                          <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            !useNewShippingAddress && selectedShippingAddressIndex === index
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          }`}>
+                            <input
+                              type="radio"
+                              name="shippingAddressOption"
+                              checked={!useNewShippingAddress && selectedShippingAddressIndex === index}
+                              onChange={() => {
+                                setUseNewShippingAddress(false);
+                                setSelectedShippingAddressIndex(index);
+                              }}
+                              className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="font-semibold text-gray-900">{addr.name}</div>
+                                {addr.isDefault && (
+                                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600">{addr.address}</div>
+                              <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
+                              {addr.phone && <div className="text-xs text-gray-500 mt-1">☎ {addr.phone}</div>}
+                            </div>
+                            {!useNewShippingAddress && selectedShippingAddressIndex === index && (
+                              <div className="absolute top-4 right-4 text-blue-600">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                      
+                      <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
+                        <input
+                          type="radio"
+                          name="shippingAddressOption"
+                          checked={useNewShippingAddress}
+                          onChange={() => setUseNewShippingAddress(true)}
+                          className="w-5 h-5 text-blue-600"
+                        />
+                        <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
+                      </label>
+                    </div>
+                  )}
+
+                  {useNewShippingAddress && (
+                    <div className="mb-6 pb-6 border-b">
+                      <h3 className="font-semibold text-gray-700 mb-4">Enter shipping address</h3>
+                    </div>
+                  )}
+
+                  <div className={`space-y-4 ${!useNewShippingAddress && savedAddresses.length > 0 ? 'hidden' : ''}`}>
                     {/* Shipping Address Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
@@ -373,14 +538,14 @@ export default function CheckoutFlowPage() {
 
                     {/* Billing Address Same as Shipping */}
                     <div className="pt-4 border-t">
-                      <label className="flex items-center gap-2">
+                      <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer">
                         <input
                           type="checkbox"
                           checked={billingSameAsShipping}
                           onChange={(e) => setBillingSameAsShipping(e.target.checked)}
-                          className="w-4 h-4"
+                          className="w-5 h-5 rounded"
                         />
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-gray-700">
                           Billing address same as shipping
                         </span>
                       </label>
@@ -388,8 +553,70 @@ export default function CheckoutFlowPage() {
 
                     {/* Billing Address Form (shown when unchecked) */}
                     {!billingSameAsShipping && (
-                      <div className="pt-4 border-t">
-                        <h3 className="font-semibold mb-4">Billing Address</h3>
+                      <div className="pt-6 border-t">
+                        <div className="flex items-center gap-2 mb-6">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <h3 className="text-lg font-bold">Billing Address</h3>
+                        </div>
+
+                        {/* Saved Addresses Selection for Billing */}
+                        {savedAddresses.length > 0 && (
+                          <div className="mb-6 pb-6 border-b">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Use a saved address</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {savedAddresses.map((addr, index) => (
+                                <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                  !useNewBillingAddress && selectedBillingAddressIndex === index
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                }`}>
+                                  <input
+                                    type="radio"
+                                    name="billingAddressOption"
+                                    checked={!useNewBillingAddress && selectedBillingAddressIndex === index}
+                                    onChange={() => {
+                                      setUseNewBillingAddress(false);
+                                      setSelectedBillingAddressIndex(index);
+                                    }}
+                                    className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-gray-900 text-sm">{addr.name}</div>
+                                    <div className="text-sm text-gray-600">{addr.address}</div>
+                                    <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
+                                  </div>
+                                  {!useNewBillingAddress && selectedBillingAddressIndex === index && (
+                                    <div className="absolute top-4 right-4 text-blue-600">
+                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </label>
+                              ))}
+                            </div>
+                            
+                            <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
+                              <input
+                                type="radio"
+                                name="billingAddressOption"
+                                checked={useNewBillingAddress}
+                                onChange={() => setUseNewBillingAddress(true)}
+                                className="w-5 h-5 text-blue-600"
+                              />
+                              <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
+                            </label>
+                          </div>
+                        )}
+
+                        {(savedAddresses.length === 0 || useNewBillingAddress) && (
+                          <div className="mb-6 pb-6 border-b">
+                            <h4 className="font-semibold text-gray-700 mb-4">Enter billing address</h4>
+                          </div>
+                        )}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-2">
                             <label className="block text-sm font-medium mb-1">
@@ -473,17 +700,27 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 {message && (
-                  <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-                    {message}
+                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span>{message}</span>
                   </div>
                 )}
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-full-primary-lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ₹${total.toFixed(2)}` : `Pay ₹${total.toFixed(2)}`}
+                  {loading && (
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  )}
+                  <span>
+                    {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ₹${total.toFixed(2)}` : `Pay ₹${total.toFixed(2)}`}
+                  </span>
                 </button>
               </form>
             </div>

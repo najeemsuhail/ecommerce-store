@@ -36,18 +36,14 @@ function OrderSuccessContent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-light-theme rounded-lg shadow-lg p-8 w-full max-w-md text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8 text-success-theme"
-                fill="none"
-                stroke="currentColor"
+                className="w-8 h-8 text-white"
+                fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
+                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
                 />
               </svg>
             </div>
@@ -75,7 +71,9 @@ function OrderSuccessContent() {
                 </p>
                 <p>
                   <span className="text-gray-600">Payment:</span>{' '}
-                  <span className={`font-semibold ${isCOD ? 'text-warning' : 'text-success-theme'}`}>
+                  <span className={`font-semibold px-2 py-1 rounded text-sm ${
+                    isCOD ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                  }`}>
                     {isCOD ? 'Cash on Delivery' : 'Paid Online'}
                   </span>
                 </p>
@@ -106,15 +104,14 @@ function OrderSuccessContent() {
           )}
 
           <div className="space-y-3">
-            
-             <Link href="/products"
-              className="w-full btn-full-primary"
+            <Link href="/products"
+              className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
             >
               Continue Shopping
             </Link>
             
-             <Link href="/orders/test"
-              className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 font-medium"
+            <Link href="/dashboard/orders"
+              className="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center border-2 border-blue-600"
             >
               View My Orders
             </Link>

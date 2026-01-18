@@ -489,7 +489,7 @@ export default function AdminOrders() {
                         notes: textarea.value,
                       });
                     }}
-                    className="mt-2 px-4 py-2 bg-success-theme text-white-theme rounded-lg hover:opacity-90"
+                    className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold"
                   >
                     Save Notes
                   </button>

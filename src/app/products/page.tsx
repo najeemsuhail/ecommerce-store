@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useCallback } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useSearchParams } from 'next/navigation';
@@ -232,12 +232,16 @@ function ProductsContent() {
     }
   };
 
+  const handleNotificationClose = useCallback(() => {
+    setNotification({ message: '', visible: false });
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg-gray">
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
-        onClose={() => setNotification({ ...notification, visible: false })}
+        onClose={handleNotificationClose}
       />
       <AddToWishlistModal
         isOpen={wishlistModal.isOpen}

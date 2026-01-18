@@ -117,9 +117,9 @@ export default function OrderDetailPage() {
                 <div key={step.name} className="flex-1 relative">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
                         step.completed
-                          ? 'bg-success-theme text-white-theme'
+                          ? 'bg-green-500 text-white'
                           : 'bg-gray-200 text-gray-500'
                       }`}
                     >
@@ -258,9 +258,9 @@ export default function OrderDetailPage() {
               <p className="text-sm text-gray-700 mb-4">
                 If you have any questions about your order, please contact our customer support.
               </p>
-              <button className="btn-sm-primary">
+              <Link href="/contact" className="btn-primary-sm">
                 Contact Support
-              </button>
+              </Link>
             </div>
           </div>
         </div>

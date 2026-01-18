@@ -24,6 +24,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Link href="/admin/orders" className="text-xs md:text-sm text-gray-theme hover:text-primary-theme px-3 py-2 rounded hover-bg-gray-light transition-colors">
                 Orders
               </Link>
+              <Link href="/admin/customers" className="text-xs md:text-sm text-gray-theme hover:text-primary-theme px-3 py-2 rounded hover-bg-gray-light transition-colors">
+                Customers
+              </Link>
               <Link href="/" className="text-xs md:text-sm text-gray-theme hover:text-primary-theme px-3 py-2 rounded hover-bg-gray-light transition-colors ml-auto md:ml-0">
                 ← Store
               </Link>

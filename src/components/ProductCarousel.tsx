@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import AddToCartNotification from './AddToCartNotification';
 import AddToWishlistModal from './AddToWishlistModal';
@@ -122,12 +122,16 @@ export default function ProductCarousel({
     });
   };
 
+  const handleNotificationClose = useCallback(() => {
+    setNotification({ message: '', visible: false });
+  }, []);
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-20">
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
-        onClose={() => setNotification({ ...notification, visible: false })}
+        onClose={handleNotificationClose}
       />
       <AddToWishlistModal
         isOpen={wishlistModal.isOpen}

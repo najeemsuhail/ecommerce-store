@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
@@ -104,12 +104,16 @@ export default function HomePage() {
     });
   };
 
+  const handleNotificationClose = useCallback(() => {
+    setNotification({ message: '', visible: false });
+  }, []);
+
   return (
     <Layout>
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
-        onClose={() => setNotification({ ...notification, visible: false })}
+        onClose={handleNotificationClose}
       />
       <div className="bg-bg-gray">
         <HeroSection />

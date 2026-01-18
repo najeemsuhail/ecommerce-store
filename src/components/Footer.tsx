@@ -13,7 +13,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center gap-2">
               <Image 
                 src="/images/logo/logo.png" 
-                alt="E-Store Logo" 
+                alt="Onlyinkani Logo" 
                 width={200} 
                 height={80}
                 className="rounded-lg"
@@ -76,7 +76,7 @@ export default function Footer() {
           </div>
 
           {/* Newsletter */}
-          <div>
+          <div suppressHydrationWarning>
             <h3 className="font-bold text-lg mb-6 text-white">Subscribe</h3>
             <p className="text-gray-300 text-sm mb-4">Get exclusive deals and updates delivered to your inbox.</p>
             <div className="flex gap-2">

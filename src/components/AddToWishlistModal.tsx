@@ -134,7 +134,10 @@ export default function AddToWishlistModal({
         {/* Content */}
         <div className="p-6">
           {message && (
-            <div className="mb-4 p-3 bg-success-light text-success-theme rounded-lg text-center font-medium">
+            <div className="mb-4 p-3 bg-green-500 text-white rounded-lg text-center font-semibold flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
+              </svg>
               {message}
             </div>
           )}

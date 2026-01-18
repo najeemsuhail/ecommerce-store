@@ -255,7 +255,7 @@ export function getOrderDeliveredEmail(order: any) {
         </div>
         
         <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-          Need help? Contact us at support@yourstore.com
+          Need help? Contact us at contact@onlyinkani.in
         </p>
       </div>
       
@@ -308,12 +308,12 @@ export function getWelcomeEmail(user: any) {
         </div>
         
         <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-          Need help? Contact us at support@yourstore.com
+          Need help? Contact us at contact@onlyinkani.in
         </p>
       </div>
       
       <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
-        <p>© 2025 E-Store. All rights reserved.</p>
+        <p>© 2026 Onlyinkani.in. All rights reserved.</p>
       </div>
     </body>
     </html>

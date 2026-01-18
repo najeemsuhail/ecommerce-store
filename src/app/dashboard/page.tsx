@@ -80,9 +80,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Pending Orders</p>
-                <p className="text-3xl font-bold text-warning">{stats.pendingOrders}</p>
+                <p className="text-3xl font-bold text-yellow-600">{stats.pendingOrders}</p>
               </div>
-              <div className="w-12 h-12 bg-warning rounded-full flex items-center justify-center opacity-20">
+              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                 <span className="text-2xl">⏳</span>
               </div>
             </div>
@@ -92,9 +92,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Completed</p>
-                <p className="text-3xl font-bold text-success-theme">{stats.completedOrders}</p>
+                <p className="text-3xl font-bold text-green-600">{stats.completedOrders}</p>
               </div>
-              <div className="w-12 h-12 bg-success-light rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <span className="text-2xl">✅</span>
               </div>
             </div>

@@ -233,12 +233,12 @@ export default function AdminProducts() {
                         </span>
                       ) : (
                         <span
-                          className={`text-sm ${
+                          className={`text-sm font-semibold ${
                             product.stock > 10
-                              ? 'text-success-theme'
+                              ? 'text-green-600'
                               : product.stock > 0
-                              ? 'text-warning'
-                              : 'text-danger-theme'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
                           }`}
                         >
                           {product.stock || 0}

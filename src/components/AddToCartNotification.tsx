@@ -14,31 +14,29 @@ export default function AddToCartNotification({
   onClose,
 }: AddToCartNotificationProps) {
   useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(onClose, 3000);
+    if (isVisible && message) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [isVisible, onClose]);
 
-  if (!isVisible) return null;
+  if (!isVisible || !message) return null;
 
   return (
     <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right duration-300">
-      <div className="bg-success-light text-success-theme px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-xs">
+      <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-3 max-w-xs">
         <svg
           className="w-5 h-5 flex-shrink-0"
-          fill="none"
-          stroke="currentColor"
+          fill="currentColor"
           viewBox="0 0 24 24"
         >
           <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
+            d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
           />
         </svg>
-        <span className="font-medium">{message}</span>
+        <span className="font-semibold text-sm">{message}</span>
       </div>
     </div>
   );
