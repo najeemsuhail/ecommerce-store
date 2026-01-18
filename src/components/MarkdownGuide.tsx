@@ -93,7 +93,7 @@ export default function MarkdownGuide({ onClose, compact = false }: MarkdownGuid
           </div>
           <div className="space-y-2">
             <p className="font-mono bg-white p-2 rounded border border-blue-100">* List item</p>
-            <p className="font-mono bg-white p-2 rounded border border-blue-100">> Quote</p>
+            <p className="font-mono bg-white p-2 rounded border border-blue-100">&gt; Quote</p>
             <p className="font-mono bg-white p-2 rounded border border-blue-100">```code```</p>
           </div>
           <div className="text-gray-600 space-y-2">
