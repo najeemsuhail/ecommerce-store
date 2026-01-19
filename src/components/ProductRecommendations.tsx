@@ -86,8 +86,21 @@ export default function ProductRecommendations({
     );
   }
 
-  if (error || products.length === 0) {
-    return null;
+  if (error) {
+    console.error('ProductRecommendations Error:', error);
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <p className="text-gray-500">No products available at this time.</p>
+      </div>
+    );
   }
 
   const getTitle = () => {

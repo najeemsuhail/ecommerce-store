@@ -837,6 +837,7 @@ export default function CheckoutFlowPage() {
               <ProductRecommendations 
                 limit={4}
                 showTitle={false}
+                className="px-0"
                 onAddToCart={handleAddToCartRecommendations}
               />
             </div>
