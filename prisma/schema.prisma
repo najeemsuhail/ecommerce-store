@@ -8,126 +8,99 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  phone     String?
-  address   Json?    // Store multiple addresses as JSON
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  orders    Order[]
-  reviews   Review[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  password       String
+  name           String?
+  phone          String?
+  address        Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orders         Order[]
+  reviews        Review[]
   wishlistGroups WishlistGroup[]
 }
 
 model Product {
-  id            String   @id @default(cuid())
-  name          String
-  description   String   @db.Text
-  price         Float
-  comparePrice  Float?   // Original price for showing discounts
-  
-  // Product type
-  isDigital     Boolean  @default(false)
-  
-  // Inventory
-  stock         Int?
-  sku           String?  @unique
-  trackInventory Boolean @default(true)
-  
-  // Media
-  images        String[] // Array of image URLs
-  
-  // Organization
-  category      String?
-  tags          String[] // ["electronics", "sale", "featured"]
-  brand         String?
-  
-  // Shipping (for physical products)
-  weight        Float?
-  dimensions    Json?    // {"length": 10, "width": 20, "height": 5, "unit": "cm"}
-  
-  // ALL product details in one flexible field
-  specifications Json?   // Store ANY key-value pairs
-  
-  // SEO
-  slug          String   @unique
-  metaTitle     String?
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  comparePrice    Float?
+  isDigital       Boolean          @default(false)
+  stock           Int?
+  sku             String?          @unique
+  trackInventory  Boolean          @default(true)
+  images          String[]
+  category        String?
+  tags            String[]
+  brand           String?
+  weight          Float?
+  dimensions      Json?
+  specifications  Json?
+  slug            String           @unique
+  metaTitle       String?
   metaDescription String?
-  
-  // Status
-  isActive      Boolean  @default(true)
-  isFeatured    Boolean  @default(false)
-  
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  // Relations
-  variants    ProductVariant[]
-  orderItems    OrderItem[]
-  reviews       Review[]
+  isActive        Boolean          @default(true)
+  isFeatured      Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  orderItems      OrderItem[]
+  variants        ProductVariant[]
+  reviews         Review[]
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  userId        String?
-  guestEmail    String?
-  guestName     String?
-  status        String      @default("pending") // pending, processing, shipped, delivered, cancelled
-  total         Float
-  shippingCost  Float       @default(0)
-  shippingAddress Json?     // Store shipping details
-  // Billing Address
-  billingAddress  Json?     // {name, address, city, postalCode, country}
-  billingSameAsShipping Boolean @default(true)
-  paymentStatus String      @default("pending") // pending, paid, failed, refunded
-  paymentMethod String?
-  paymentId     String?     // Stripe payment ID
-  trackingNumber String?
-  notes         String?     @db.Text
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  user          User?       @relation(fields: [userId], references: [id])
-  items         OrderItem[]
+  id                    String      @id @default(cuid())
+  userId                String?
+  guestEmail            String?
+  guestName             String?
+  status                String      @default("pending")
+  total                 Float
+  shippingCost          Float       @default(0)
+  shippingAddress       Json?
+  paymentStatus         String      @default("pending")
+  paymentId             String?
+  trackingNumber        String?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  billingAddress        Json?
+  billingSameAsShipping Boolean     @default(true)
+  paymentMethod         String?
+  user                  User?       @relation(fields: [userId], references: [id])
+  items                 OrderItem[]
 }
 
 model ProductVariant {
-  id          String   @id @default(cuid())
-  productId   String
-  name        String   // e.g., "Small - Red", "Large - Blue"
-  sku         String?  @unique
-  price       Float    // Can override product price
-  stock       Int      @default(0)
-  
-  // Variant attributes
-  size        String?
-  color       String?
-  material    String?
-  
-  // Other variant-specific fields
-  image       String?
-  weight      Float?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  orderItems  OrderItem[]
-  
+  id         String      @id @default(cuid())
+  productId  String
+  name       String
+  sku        String?     @unique
+  price      Float
+  stock      Int         @default(0)
+  size       String?
+  color      String?
+  material   String?
+  image      String?
+  weight     Float?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   @@index([productId])
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String          @id @default(cuid())
   orderId   String
   productId String
-  variantId String?
   quantity  Int
-  price     Float   // Price at time of purchase
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
+  price     Float
+  variantId String?
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product         @relation(fields: [productId], references: [id])
   variant   ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@index([orderId])
@@ -139,53 +112,51 @@ model Review {
   id         String   @id @default(cuid())
   productId  String
   userId     String?
-  rating     Int      // 1-5
-  comment    String?  @db.Text
-  isVerified Boolean  @default(false) // Verified purchase
+  rating     Int
+  comment    String?
+  isVerified Boolean  @default(false)
   createdAt  DateTime @default(now())
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user       User?    @relation(fields: [userId], references: [id])
 }
 
 model WishlistGroup {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   userId    String
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     WishlistItem[]
-  
+
   @@unique([userId, name])
   @@index([userId])
 }
 
 model WishlistItem {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   groupId   String
   productId String
-  createdAt DateTime @default(now())
-  
+  createdAt DateTime      @default(now())
   group     WishlistGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  
+
   @@unique([groupId, productId])
   @@index([groupId])
   @@index([productId])
 }
 
 model Blog {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String   @db.Text
-  excerpt     String?
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  content       String
+  excerpt       String?
   featuredImage String?
-  author      String?
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  author        String?
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
   @@index([published])
   @@index([createdAt])
 }
