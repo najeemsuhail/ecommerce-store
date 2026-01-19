@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import ProductRecommendations from '@/components/ProductRecommendations';
+import AddToCartNotification from '@/components/AddToCartNotification';
 
 export default function CartPage() {
   const {
@@ -14,11 +17,17 @@ export default function CartPage() {
     totalPrice,
     totalItems,
     clearCart,
+    addItem,
   } = useCart();
+
+  const [notification, setNotification] = useState({
+    isVisible: false,
+    message: '',
+  });
 
   const router = useRouter();
 
-  const shippingCost = items.some((item) => !item.isDigital) ? 15.0 : 0;
+  const shippingCost = items.some((item) => !item.isDigital) ? 50.0 : 0;
   const total = totalPrice + shippingCost;
 
   const handleCheckout = () => {
@@ -27,6 +36,23 @@ export default function CartPage() {
       return;
     }
     router.push('/checkout-flow');
+  };
+
+  const handleAddToCart = (product: any) => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      slug: product.slug,
+      image: product.images?.[0],
+      isDigital: product.isDigital || false,
+    });
+    
+    setNotification({
+      isVisible: true,
+      message: `${product.name} added to cart!`,
+    });
   };
 
   if (items.length === 0) {
@@ -55,6 +81,12 @@ export default function CartPage() {
 
   return (
     <Layout>
+      <AddToCartNotification
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification({ ...notification, isVisible: false })}
+      />
+
       <div className="min-h-screen bg-bg-gray py-4 md:py-8">
         <div className="max-w-6xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3">
@@ -102,7 +134,7 @@ export default function CartPage() {
                       </p>
                     )}
                     <p className="text-text-light text-sm mb-3 md:mb-2">
-                      ${item.price.toFixed(2)}
+                      ₹{item.price.toFixed(2)}
                       {item.isDigital && (
                         <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">
                           Digital
@@ -159,7 +191,7 @@ export default function CartPage() {
                   <div className="text-right flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start">
                     <span className="text-gray-600 text-xs md:hidden">Total:</span>
                     <p className="font-semibold text-base md:text-lg">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -176,19 +208,19 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600 text-sm md:text-base">
                     <span>Subtotal ({totalItems} items)</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>₹{totalPrice.toFixed(2)}</span>
                   </div>
 
                   {shippingCost > 0 && (
                     <div className="flex justify-between text-gray-600 text-sm md:text-base">
                       <span>Shipping</span>
-                      <span>${shippingCost.toFixed(2)}</span>
+                      <span>₹{shippingCost.toFixed(2)}</span>
                     </div>
                   )}
 
                   <div className="border-t pt-3 flex justify-between font-bold text-base md:text-lg">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -207,6 +239,16 @@ export default function CartPage() {
                 </Link>
               </div>
             </div>
+          </div>
+
+          {/* Product Recommendations */}
+          <div className="mt-12 md:mt-16">
+            <ProductRecommendations 
+              limit={4}
+              showTitle={true}
+              title="Customers Also Bought"
+              onAddToCart={handleAddToCart}
+            />
           </div>
         </div>
       </div>

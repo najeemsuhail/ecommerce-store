@@ -5,6 +5,8 @@ import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
+import ProductRecommendations from '@/components/ProductRecommendations';
+import AddToCartNotification from '@/components/AddToCartNotification';
 
 declare global {
   interface Window {
@@ -14,11 +16,12 @@ declare global {
 
 export default function CheckoutFlowPage() {
   const router = useRouter();
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, addItem } = useCart();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [orderId, setOrderId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
+  const [notification, setNotification] = useState({ isVisible: false, message: '' });
 
   // Saved addresses
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -46,6 +49,22 @@ export default function CheckoutFlowPage() {
   });
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+
+  const handleAddToCartRecommendations = (product: any) => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.images?.[0],
+      slug: product.slug,
+      isDigital: product.isDigital || false,
+    });
+    setNotification({
+      isVisible: true,
+      message: `${product.name} added to cart!`,
+    });
+  };
 
   // Check if user is logged in
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -311,6 +330,12 @@ export default function CheckoutFlowPage() {
 
   return (
     <Layout>
+      <AddToCartNotification
+        message={notification.message}
+        isVisible={notification.isVisible}
+        onClose={() => setNotification({ isVisible: false, message: '' })}
+      />
+
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
@@ -535,168 +560,174 @@ export default function CheckoutFlowPage() {
                         />
                       </div>
                     </div>
+                  </div>
 
-                    {/* Billing Address Same as Shipping */}
-                    <div className="pt-4 border-t">
-                      <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={billingSameAsShipping}
-                          onChange={(e) => setBillingSameAsShipping(e.target.checked)}
-                          className="w-5 h-5 rounded"
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          Billing address same as shipping
-                        </span>
-                      </label>
-                    </div>
+                  {/* Billing Address Same as Shipping - OUTSIDE hidden shipping form */}
+                  <div className="pt-4 border-t">
+                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={billingSameAsShipping}
+                        onChange={(e) => {
+                          setBillingSameAsShipping(e.target.checked);
+                          if (e.target.checked) {
+                            setUseNewBillingAddress(false);
+                            setSelectedBillingAddressIndex(null);
+                          }
+                        }}
+                        className="w-5 h-5 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        Billing address same as shipping
+                      </span>
+                    </label>
+                  </div>
 
-                    {/* Billing Address Form (shown when unchecked) */}
-                    {!billingSameAsShipping && (
-                      <div className="pt-6 border-t">
-                        <div className="flex items-center gap-2 mb-6">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <h3 className="text-lg font-bold">Billing Address</h3>
+                  {/* Billing Address Form (shown when unchecked) - OUTSIDE hidden shipping form */}
+                  {!billingSameAsShipping && (
+                    <div className="pt-6 border-t">
+                      <div className="flex items-center gap-2 mb-6">
+                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="text-lg font-bold">Billing Address</h3>
+                      </div>
+
+                      {/* Saved Addresses Selection for Billing */}
+                      {isLoggedIn && savedAddresses.length > 0 && (
+                        <div className="mb-6 pb-6 border-b">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">Use a saved address</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {savedAddresses.map((addr, index) => (
+                              <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                                !useNewBillingAddress && selectedBillingAddressIndex === index
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              }`}>
+                                <input
+                                  type="radio"
+                                  name="billingAddressOption"
+                                  checked={!useNewBillingAddress && selectedBillingAddressIndex === index}
+                                  onChange={() => {
+                                    setUseNewBillingAddress(false);
+                                    setSelectedBillingAddressIndex(index);
+                                  }}
+                                  className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0 cursor-pointer"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold text-gray-900 text-sm">{addr.name}</div>
+                                  <div className="text-sm text-gray-600">{addr.address}</div>
+                                  <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
+                                </div>
+                                {!useNewBillingAddress && selectedBillingAddressIndex === index && (
+                                  <div className="absolute top-4 right-4 text-blue-600">
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </label>
+                            ))}
+                          </div>
+                          
+                          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
+                            <input
+                              type="radio"
+                              name="billingAddressOption"
+                              checked={useNewBillingAddress}
+                              onChange={() => setUseNewBillingAddress(true)}
+                              className="w-5 h-5 text-blue-600 cursor-pointer"
+                            />
+                            <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
+                          </label>
+                        </div>
+                      )}
+
+                      {(savedAddresses.length === 0 || useNewBillingAddress) && (
+                        <div className="mb-6 pb-6 border-b">
+                          <h4 className="font-semibold text-gray-700 mb-4">Enter billing address</h4>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-1">
+                            Full Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={billingAddress.name}
+                            onChange={(e) =>
+                              setBillingAddress({ ...billingAddress, name: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
 
-                        {/* Saved Addresses Selection for Billing */}
-                        {savedAddresses.length > 0 && (
-                          <div className="mb-6 pb-6 border-b">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-3">Use a saved address</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {savedAddresses.map((addr, index) => (
-                                <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                                  !useNewBillingAddress && selectedBillingAddressIndex === index
-                                    ? 'border-blue-500 bg-blue-50'
-                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                                }`}>
-                                  <input
-                                    type="radio"
-                                    name="billingAddressOption"
-                                    checked={!useNewBillingAddress && selectedBillingAddressIndex === index}
-                                    onChange={() => {
-                                      setUseNewBillingAddress(false);
-                                      setSelectedBillingAddressIndex(index);
-                                    }}
-                                    className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-gray-900 text-sm">{addr.name}</div>
-                                    <div className="text-sm text-gray-600">{addr.address}</div>
-                                    <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
-                                  </div>
-                                  {!useNewBillingAddress && selectedBillingAddressIndex === index && (
-                                    <div className="absolute top-4 right-4 text-blue-600">
-                                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                      </svg>
-                                    </div>
-                                  )}
-                                </label>
-                              ))}
-                            </div>
-                            
-                            <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
-                              <input
-                                type="radio"
-                                name="billingAddressOption"
-                                checked={useNewBillingAddress}
-                                onChange={() => setUseNewBillingAddress(true)}
-                                className="w-5 h-5 text-blue-600"
-                              />
-                              <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
-                            </label>
-                          </div>
-                        )}
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-1">
+                            Address *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={billingAddress.address}
+                            onChange={(e) =>
+                              setBillingAddress({ ...billingAddress, address: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
 
-                        {(savedAddresses.length === 0 || useNewBillingAddress) && (
-                          <div className="mb-6 pb-6 border-b">
-                            <h4 className="font-semibold text-gray-700 mb-4">Enter billing address</h4>
-                          </div>
-                        )}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">City *</label>
+                          <input
+                            type="text"
+                            required
+                            value={billingAddress.city}
+                            onChange={(e) =>
+                              setBillingAddress({ ...billingAddress, city: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">
-                              Full Name *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={billingAddress.name}
-                              onChange={(e) =>
-                                setBillingAddress({ ...billingAddress, name: e.target.value })
-                              }
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            PIN Code *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={billingAddress.postalCode}
+                            onChange={(e) =>
+                              setBillingAddress({
+                                ...billingAddress,
+                                postalCode: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="400001"
+                          />
+                        </div>
 
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">
-                              Address *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={billingAddress.address}
-                              onChange={(e) =>
-                                setBillingAddress({ ...billingAddress, address: e.target.value })
-                              }
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium mb-1">City *</label>
-                            <input
-                              type="text"
-                              required
-                              value={billingAddress.city}
-                              onChange={(e) =>
-                                setBillingAddress({ ...billingAddress, city: e.target.value })
-                              }
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium mb-1">
-                              PIN Code *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={billingAddress.postalCode}
-                              onChange={(e) =>
-                                setBillingAddress({
-                                  ...billingAddress,
-                                  postalCode: e.target.value,
-                                })
-                              }
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder="400001"
-                            />
-                          </div>
-
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">
-                              Country
-                            </label>
-                            <input
-                              type="text"
-                              value={billingAddress.country}
-                              onChange={(e) =>
-                                setBillingAddress({ ...billingAddress, country: e.target.value })
-                              }
-                              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                          </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-1">
+                            Country
+                          </label>
+                          <input
+                            type="text"
+                            value={billingAddress.country}
+                            onChange={(e) =>
+                              setBillingAddress({ ...billingAddress, country: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {message && (
@@ -795,6 +826,19 @@ export default function CheckoutFlowPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Product Recommendations - Full Width */}
+          <div className="mt-12 -mx-4 md:-mx-8 bg-gradient-to-b from-white to-gray-50 px-4 md:px-8 py-12 md:py-16">
+            <div className="max-w-6xl mx-auto">
+              <h3 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Add Items to Your Order</h3>
+              <p className="text-text-light mb-8">Enhance your order with these recommended products</p>
+              <ProductRecommendations 
+                limit={4}
+                showTitle={false}
+                onAddToCart={handleAddToCartRecommendations}
+              />
             </div>
           </div>
         </div>

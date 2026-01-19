@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
+import ProductRecommendations from '@/components/ProductRecommendations';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -115,6 +116,14 @@ function OrderSuccessContent() {
             >
               View My Orders
             </Link>
+          </div>
+
+          <div className="mt-12">
+            <ProductRecommendations 
+              limit={4}
+              title="Recommended For You"
+              showTitle={true}
+            />
           </div>
         </div>
       </div>

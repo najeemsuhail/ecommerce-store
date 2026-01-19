@@ -11,6 +11,7 @@ import CategoriesSection from '@/components/CategoriesSection';
 import FeaturedProductsSection from '@/components/FeaturedProductsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import LatestBlogPostsSection from '@/components/LatestBlogPostsSection';
+import ProductRecommendations from '@/components/ProductRecommendations';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -109,6 +110,22 @@ export default function HomePage() {
     setNotification({ message: '', visible: false });
   }, []);
 
+  const handleAddToCartRecommendations = (product: any) => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.images?.[0],
+      slug: product.slug,
+      isDigital: product.isDigital,
+    });
+    setNotification({
+      message: `${product.name} added to cart!`,
+      visible: true,
+    });
+  };
+
   return (
     <Layout>
       <AddToCartNotification
@@ -129,6 +146,16 @@ export default function HomePage() {
           />
         )}
         <LatestBlogPostsSection />
+        <section className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-50">
+          <div className="max-w-7xl mx-auto px-4">
+            <ProductRecommendations 
+              limit={8}
+              title="Trending Now"
+              showTitle={true}
+              onAddToCart={handleAddToCartRecommendations}
+            />
+          </div>
+        </section>
         <FeaturesSection />
       </div>
     </Layout>

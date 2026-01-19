@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import ProductRecommendations from '@/components/ProductRecommendations';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -448,6 +449,31 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
+
+        {/* Product Recommendations */}
+        {product && (
+          <div className="mt-16 mb-8">
+            <ProductRecommendations 
+              productId={product.id}
+              limit={4}
+              title="Similar Products"
+              showTitle={true}
+              onAddToCart={(product) => {
+                addItem({
+                  productId: product.id,
+                  name: product.name,
+                  price: product.price,
+                  quantity: 1,
+                  image: product.images?.[0],
+                  slug: product.slug,
+                  isDigital: product.isDigital || false,
+                });
+                setNotificationMessage(`${product.name} added to cart!`);
+                setShowNotification(true);
+              }}
+            />
+          </div>
+        )}
         
         {/* Notifications */}
         <AddToCartNotification 
