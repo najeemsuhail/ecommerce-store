@@ -109,14 +109,16 @@ export default function AddProductPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Product created successfully!');
-        router.push('/admin/products');
+        setMessage('✓ Product created successfully! Redirecting...');
+        setTimeout(() => {
+          router.push('/admin/products');
+        }, 1500);
       } else {
-        setMessage(`Error: ${data.error}`);
+        setMessage(`✗ Error: ${data.error}`);
       }
     } catch (error) {
       console.error('Form submission error:', error);
-      setMessage('Failed to create product. Check console for details.');
+      setMessage('✗ Failed to create product. Check console for details.');
     } finally {
       setLoading(false);
     }
@@ -155,12 +157,13 @@ export default function AddProductPage() {
 
       if (data.success) {
         updateImage(index, data.url);
-        setMessage(`Image uploaded successfully: ${file.name}`);
+        setMessage(`✓ Image uploaded successfully: ${file.name}`);
+        setTimeout(() => setMessage(''), 3000);
       } else {
-        setMessage(`Upload failed: ${data.error}`);
+        setMessage(`✗ Upload failed: ${data.error}`);
       }
     } catch (error) {
-      setMessage('Failed to upload image');
+      setMessage('✗ Failed to upload image');
       console.error(error);
     } finally {
       setUploadingIndex(null);

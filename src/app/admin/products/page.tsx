@@ -11,6 +11,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -80,13 +81,14 @@ export default function AdminProducts() {
 
       const data = await response.json();
       if (data.success) {
-        alert('Product deleted successfully');
+        setMessage('✓ Product deleted successfully');
+        setTimeout(() => setMessage(''), 3000);
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setMessage(`✗ Error: ${data.error}`);
       }
     } catch (error) {
-      alert('Failed to delete product');
+      setMessage('✗ Failed to delete product');
     }
   };
 
@@ -107,10 +109,12 @@ export default function AdminProducts() {
 
       const data = await response.json();
       if (data.success) {
+        setMessage(`✓ Product ${!product.isActive ? 'activated' : 'deactivated'}`);
+        setTimeout(() => setMessage(''), 2500);
         fetchProducts();
       }
     } catch (error) {
-      alert('Failed to update product');
+      setMessage('✗ Failed to update product');
     }
   };
 
@@ -148,6 +152,17 @@ export default function AdminProducts() {
    <AdminLayout>  
       <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Message Alert */}
+        {message && (
+          <div className={`p-4 rounded-lg mb-6 ${
+            message.includes('✗')
+              ? 'bg-red-50 text-red-700 border border-red-200'
+              : 'bg-green-50 text-green-700 border border-green-200'
+          }`}>
+            {message}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Products Management</h1>

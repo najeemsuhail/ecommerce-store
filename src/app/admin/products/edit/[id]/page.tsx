@@ -133,13 +133,15 @@ export default function EditProductPage() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Product updated successfully!');
-        router.push('/admin/products');
+        setMessage('✓ Product updated successfully! Redirecting...');
+        setTimeout(() => {
+          router.push('/admin/products');
+        }, 1500);
       } else {
-        setMessage(`Error: ${data.error}`);
+        setMessage(`✗ Error: ${data.error}`);
       }
     } catch (error) {
-      setMessage('Failed to update product');
+      setMessage('✗ Failed to update product');
     } finally {
       setSaving(false);
     }
@@ -615,7 +617,11 @@ export default function EditProductPage() {
             </div>
 
             {message && (
-              <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+              <div className={`p-4 rounded-lg ${
+                message.includes('✗') || message.includes('Error') || message.includes('Failed')
+                  ? 'bg-red-50 text-red-700 border border-red-200'
+                  : 'bg-green-50 text-green-700 border border-green-200'
+              }`}>
                 {message}
               </div>
             )}
