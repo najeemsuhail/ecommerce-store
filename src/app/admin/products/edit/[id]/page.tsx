@@ -23,6 +23,7 @@ export default function EditProductPage() {
     sku: '',
     trackInventory: true,
     images: [''],
+    videoUrl: '',
     category: '',
     tags: '',
     brand: '',
@@ -60,6 +61,7 @@ export default function EditProductPage() {
           sku: prod.sku || '',
           trackInventory: prod.trackInventory,
           images: prod.images.length > 0 ? prod.images : [''],
+          videoUrl: prod.videoUrl || '',
           category: prod.category || '',
           tags: prod.tags.join(', '),
           brand: prod.brand || '',
@@ -106,6 +108,7 @@ export default function EditProductPage() {
         sku: formData.sku || null,
         trackInventory: formData.trackInventory,
         images: formData.images.filter((img) => img.trim() !== ''),
+        videoUrl: formData.videoUrl || null,
         category: formData.category || null,
         tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()) : [],
         brand: formData.brand || null,
@@ -158,6 +161,30 @@ export default function EditProductPage() {
   const removeImage = (index: number) => {
     const newImages = formData.images.filter((_, i) => i !== index);
     setFormData({ ...formData, images: newImages });
+  };
+
+  const handleFileUpload = async (index: number, file: File) => {
+    try {
+      const formDataForUpload = new FormData();
+      formDataForUpload.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataForUpload,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        updateImage(index, data.url);
+        setMessage(`Image uploaded successfully: ${file.name}`);
+      } else {
+        setMessage(`Upload failed: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('Failed to upload image');
+      console.error(error);
+    }
   };
 
   if (loading) {
@@ -329,20 +356,92 @@ export default function EditProductPage() {
               <h2 className="text-xl font-semibold border-b pb-2">Product Images</h2>
 
               {formData.images.map((image, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="url"
-                    value={image}
-                    onChange={(e) => updateImage(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                <div key={index} className="space-y-2 p-4 border rounded-lg bg-gray-50">
+                  {/* Image Preview */}
+                  {image && (
+                    <div className="mb-3">
+                      <img
+                        src={image}
+                        alt={`Product image ${index + 1}`}
+                        className="h-40 w-40 object-cover rounded-lg border"
+                      />
+                      <p className="text-xs text-gray-500 mt-2">
+                        <strong>Image {index + 1}:</strong> {image.substring(0, 50)}...
+                      </p>
+                    </div>
+                  )}
+
+                  {/* File Upload or Manual URL Input */}
+                  {!image ? (
+                    <div className="space-y-3">
+                      {/* File Upload */}
+                      <label className="block cursor-pointer">
+                        <div className="flex items-center justify-center gap-2 px-4 py-4 border-2 border-dashed border-blue-400 rounded-lg bg-blue-50 hover:bg-blue-100 transition">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3v-6" />
+                          </svg>
+                          <div className="text-center">
+                            <span className="text-sm font-semibold text-blue-600 block">Click to upload image</span>
+                            <span className="text-xs text-blue-500">or drag and drop</span>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(index, file);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {/* Divider */}
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 border-t border-gray-300"></div>
+                        <span className="text-xs text-gray-500 font-medium">OR</span>
+                        <div className="flex-1 border-t border-gray-300"></div>
+                      </div>
+
+                      {/* Manual URL Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Paste image URL
+                        </label>
+                        <input
+                          type="url"
+                          value={image}
+                          onChange={(e) => updateImage(index, e.target.value)}
+                          className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="https://example.com/image.jpg"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => updateImage(index, '')}
+                        className="w-full px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm"
+                      >
+                        Change Image
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Remove Button */}
                   {formData.images.length > 1 && (
                     <button
-                      type="button"onClick={() => removeImage(index)}
-                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="w-full px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition flex items-center justify-center gap-2 text-sm"
                     >
-                      Remove
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Remove Image
                     </button>
                   )}
                 </div>
@@ -355,6 +454,47 @@ export default function EditProductPage() {
               >
                 + Add Another Image
               </button>
+            </div>
+
+            {/* Product Video */}
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold border-b pb-2">Product Video</h2>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  YouTube Video URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={formData.videoUrl}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  Supports full URL (youtube.com/watch?v=...), short URL (youtu.be/...), or just the video ID
+                </p>
+
+                {/* Video Preview */}
+                {formData.videoUrl && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                    <p className="text-sm font-medium mb-2">Video Preview:</p>
+                    <div className="bg-black rounded w-full" style={{ paddingBottom: '56.25%', position: 'relative' }}>
+                      <iframe
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        src={`https://www.youtube.com/embed/${
+                          formData.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)?.[1] ||
+                          formData.videoUrl.match(/^([a-zA-Z0-9_-]{11})$/)?.[1] ||
+                          ''
+                        }`}
+                        title="Video preview"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Organization */}

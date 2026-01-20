@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 
@@ -151,23 +152,18 @@ export default function ProductDetailPage() {
                   onMouseMove={showImageZoom ? handleImageZoom : undefined}
                 >
                   {product.images?.[selectedImage] ? (
-                    <>
-                      <img
-                        src={product.images[selectedImage]}
-                        alt={product.name}
-                        className={`w-full h-full object-contain transition-transform duration-200 ${
-                          showImageZoom ? 'scale-150' : 'scale-100'
-                        }`}
-                        style={
-                          showImageZoom
-                            ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` }
-                            : undefined
-                        }
-                      />
-                      <div className="absolute top-4 right-4 bg-black/50 text-white-theme px-3 py-1 rounded-full text-sm">
-                        {selectedImage + 1} / {product.images.length}
-                      </div>
-                    </>
+                    <img
+                      src={product.images[selectedImage]}
+                      alt={product.name}
+                      className={`w-full h-full object-contain transition-transform duration-200 ${
+                        showImageZoom ? 'scale-150' : 'scale-100'
+                      }`}
+                      style={
+                        showImageZoom
+                          ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` }
+                          : undefined
+                      }
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       No Image
@@ -215,6 +211,16 @@ export default function ProductDetailPage() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Product Video */}
+              {product.videoUrl && (
+                <div className="mt-8">
+                  <ProductVideo 
+                    videoUrl={product.videoUrl} 
+                    productName={product.name}
+                  />
                 </div>
               )}
             </div>
@@ -452,26 +458,29 @@ export default function ProductDetailPage() {
 
         {/* Product Recommendations */}
         {product && (
-          <div className="mt-16 mb-8">
-            <ProductRecommendations 
-              productId={product.id}
-              limit={4}
-              title="Similar Products"
-              showTitle={true}
-              onAddToCart={(product) => {
-                addItem({
-                  productId: product.id,
-                  name: product.name,
-                  price: product.price,
-                  quantity: 1,
-                  image: product.images?.[0],
-                  slug: product.slug,
-                  isDigital: product.isDigital || false,
-                });
-                setNotificationMessage(`${product.name} added to cart!`);
-                setShowNotification(true);
-              }}
-            />
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto px-4">
+              <ProductRecommendations 
+                productId={product.id}
+                limit={4}
+                title="Similar Products You May Like"
+                showTitle={true}
+                className="mb-8"
+                onAddToCart={(product) => {
+                  addItem({
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    image: product.images?.[0],
+                    slug: product.slug,
+                    isDigital: product.isDigital || false,
+                  });
+                  setNotificationMessage(`${product.name} added to cart!`);
+                  setShowNotification(true);
+                }}
+              />
+            </div>
           </div>
         )}
         

@@ -32,6 +32,7 @@ model Product {
   sku             String?          @unique
   trackInventory  Boolean          @default(true)
   images          String[]
+  videoUrl        String?
   category        String?
   tags            String[]
   brand           String?

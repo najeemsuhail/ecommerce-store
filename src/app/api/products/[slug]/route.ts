@@ -106,6 +106,7 @@ export async function PUT(
         sku: body.sku,
         trackInventory: body.trackInventory,
         images: body.images,
+        videoUrl: body.videoUrl,
         category: body.category,
         tags: body.tags,
         brand: body.brand,
