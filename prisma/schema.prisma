@@ -21,6 +21,55 @@ model User {
   wishlistGroups WishlistGroup[]
 }
 
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  parentId  String?
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Category[] @relation("CategoryHierarchy")
+  products  ProductCategory[]
+  attributes Attribute[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+model Attribute {
+  id          String   @id @default(cuid())
+  categoryId  String
+  name        String
+  slug        String
+  type        String   @default("text") // text, number, select, multiselect, color, size
+  required    Boolean  @default(false)
+  filterable  Boolean  @default(true)
+  searchable  Boolean  @default(false)
+  options     String[] // For select/multiselect types: ["Small", "Medium", "Large"]
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  values      ProductAttributeValue[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+model ProductAttributeValue {
+  id          String   @id @default(cuid())
+  productId   String
+  attributeId String
+  value       String   // Can store text, number, color code, etc.
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([productId, attributeId])
+  @@index([productId])
+  @@index([attributeId])
+}
+
 model Product {
   id              String           @id @default(cuid())
   name            String
@@ -33,7 +82,6 @@ model Product {
   trackInventory  Boolean          @default(true)
   images          String[]
   videoUrl        String?
-  category        String?
   tags            String[]
   brand           String?
   weight          Float?
@@ -49,6 +97,8 @@ model Product {
   orderItems      OrderItem[]
   variants        ProductVariant[]
   reviews         Review[]
+  categories      ProductCategory[]
+  attributes      ProductAttributeValue[]
 }
 
 model Order {
@@ -144,6 +194,19 @@ model WishlistItem {
   @@unique([groupId, productId])
   @@index([groupId])
   @@index([productId])
+}
+
+model ProductCategory {
+  id         String   @id @default(cuid())
+  productId  String
+  categoryId String
+  createdAt  DateTime @default(now())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, categoryId])
+  @@index([productId])
+  @@index([categoryId])
 }
 
 model Blog {

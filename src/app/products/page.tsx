@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import FacetFilter from '@/components/FacetFilter';
+import AttributeFilter from '@/components/AttributeFilter';
 
 interface FacetFilters {
   brands: string[];
@@ -19,6 +20,7 @@ interface FacetFilters {
   };
   isDigital?: boolean;
   isFeatured?: boolean;
+  attributes?: { [key: string]: string[] };
 }
 
 interface FacetData {
@@ -43,6 +45,7 @@ function ProductsContent() {
     brands: [],
     categories: [],
     priceRange: { min: 0, max: 100000 },
+    attributes: {},
   });
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
@@ -104,8 +107,12 @@ function ProductsContent() {
           if (p.brand) {
             brands.set(p.brand, (brands.get(p.brand) || 0) + 1);
           }
-          if (p.category) {
-            categories.set(p.category, (categories.get(p.category) || 0) + 1);
+          // Collect categories from the many-to-many relationship
+          if (p.categories && Array.isArray(p.categories)) {
+            p.categories.forEach((cat: any) => {
+              const categoryName = cat.category?.name || cat.categoryId;
+              categories.set(categoryName, (categories.get(categoryName) || 0) + 1);
+            });
           }
           if (p.price) {
             minPrice = Math.min(minPrice, p.price);
@@ -151,6 +158,14 @@ function ProductsContent() {
       if (facetFilters.categories.length > 0) {
         facetFilters.categories.forEach((category) => {
           url += `category=${encodeURIComponent(category)}&`;
+        });
+      }
+      
+      if (facetFilters.attributes && Object.keys(facetFilters.attributes).length > 0) {
+        Object.entries(facetFilters.attributes).forEach(([attrId, values]) => {
+          values.forEach((value) => {
+            url += `attribute=${encodeURIComponent(attrId)}&value=${encodeURIComponent(value)}&`;
+          });
         });
       }
       
@@ -291,6 +306,18 @@ function ProductsContent() {
               selectedFilters={facetFilters}
               onFilterChange={setFacetFilters}
             />
+            <div className="mt-6">
+              <AttributeFilter
+                categoryIds={facetFilters.categories}
+                selectedFilters={facetFilters.attributes || {}}
+                onFilterChange={(attributes) => {
+                  setFacetFilters((prev) => ({
+                    ...prev,
+                    attributes,
+                  }));
+                }}
+              />
+            </div>
           </div>
 
           {/* Mobile Filter Modal */}
@@ -322,6 +349,18 @@ function ProductsContent() {
                       setFacetFilters(filters);
                     }}
                   />
+                  <div className="mt-6">
+                    <AttributeFilter
+                      categoryIds={facetFilters.categories}
+                      selectedFilters={facetFilters.attributes || {}}
+                      onFilterChange={(attributes) => {
+                        setFacetFilters((prev) => ({
+                          ...prev,
+                          attributes,
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="sticky bottom-0 bg-light-theme border-t p-4 space-y-2">
                   <button
@@ -338,6 +377,7 @@ function ProductsContent() {
                         priceRange: { min: 0, max: facets.priceRange.max },
                         isDigital: undefined,
                         isFeatured: undefined,
+                        attributes: {},
                       });
                     }}
                     className="w-full bg-bg-200 text-text-900 py-3 rounded-lg font-semibold hover:bg-bg-300 transition-colors"

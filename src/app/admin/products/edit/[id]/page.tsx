@@ -5,6 +5,13 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+}
+
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
@@ -12,6 +19,8 @@ export default function EditProductPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [product, setProduct] = useState<any>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,7 +33,7 @@ export default function EditProductPage() {
     trackInventory: true,
     images: [''],
     videoUrl: '',
-    category: '',
+    categoryIds: [] as string[],
     tags: '',
     brand: '',
     weight: '',
@@ -38,7 +47,21 @@ export default function EditProductPage() {
 
   useEffect(() => {
     fetchProduct();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const data = await res.json();
+      setCategories(data);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const fetchProduct = async () => {
     const token = localStorage.getItem('token');
@@ -62,7 +85,7 @@ export default function EditProductPage() {
           trackInventory: prod.trackInventory,
           images: prod.images.length > 0 ? prod.images : [''],
           videoUrl: prod.videoUrl || '',
-          category: prod.category || '',
+          categoryIds: prod.categories?.map((c: any) => c.categoryId) || [],
           tags: prod.tags.join(', '),
           brand: prod.brand || '',
           weight: prod.weight?.toString() || '',
@@ -109,7 +132,7 @@ export default function EditProductPage() {
         trackInventory: formData.trackInventory,
         images: formData.images.filter((img) => img.trim() !== ''),
         videoUrl: formData.videoUrl || null,
-        category: formData.category || null,
+        categoryIds: formData.categoryIds,
         tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()) : [],
         brand: formData.brand || null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
@@ -503,30 +526,58 @@ export default function EditProductPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold border-b pb-2">Organization</h2>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Category
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Categories (select multiple)
+                </label>
+                {categoriesLoading ? (
+                  <p className="text-gray-500">Loading categories...</p>
+                ) : categories.length === 0 ? (
+                  <p className="text-gray-500">
+                    No categories found.{' '}
+                    <Link href="/admin/categories" className="text-blue-600 hover:underline">
+                      Create one first
+                    </Link>
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                    {categories.map((cat) => (
+                      <label key={cat.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={formData.categoryIds.includes(cat.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                categoryIds: [...formData.categoryIds, cat.id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                categoryIds: formData.categoryIds.filter((id) => id !== cat.id)
+                              });
+                            }
+                          }}
+                          className="w-4 h-4 rounded"
+                        />
+                        <span className="text-sm">{cat.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Brand
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Brand
+                </label>
+                <input
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
               <div>

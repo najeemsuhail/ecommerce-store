@@ -15,6 +15,12 @@ export async function GET(
         variants: {
           orderBy: { createdAt: 'asc' },
         },
+        categories: {
+          include: { category: true },
+        },
+        attributes: {
+          include: { attribute: true },
+        },
         reviews: {
           include: {
             user: {
@@ -107,7 +113,6 @@ export async function PUT(
         trackInventory: body.trackInventory,
         images: body.images,
         videoUrl: body.videoUrl,
-        category: body.category,
         tags: body.tags,
         brand: body.brand,
         weight: body.weight ? parseFloat(body.weight) : null,
@@ -118,7 +123,16 @@ export async function PUT(
         metaDescription: body.metaDescription,
         isFeatured: body.isFeatured,
         isActive: body.isActive,
+        categories: body.categoryIds ? {
+          deleteMany: {},
+          create: body.categoryIds.map((categoryId: string) => ({
+            categoryId
+          }))
+        } : undefined
       },
+      include: {
+        categories: true
+      }
     });
 
     return NextResponse.json({

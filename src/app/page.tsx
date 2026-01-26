@@ -61,13 +61,14 @@ export default function HomePage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch('/api/admin/categories');
       const data = await response.json();
-      if (data.success) {
-        const uniqueCategories = Array.from(
-          new Set(data.products.map((p: any) => p.category).filter(Boolean))
-        ) as string[];
-        setCategories(uniqueCategories.slice(0, 6));
+      if (Array.isArray(data)) {
+        // Get top-level categories (no parent) for home page display
+        const topLevelCategories = data
+          .filter((cat: any) => !cat.parentId)
+          .slice(0, 6);
+        setCategories(topLevelCategories.map((cat: any) => cat.name));
       }
     } catch (error) {
       console.error('Failed to fetch categories');

@@ -14,6 +14,21 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const isFeatured = searchParams.get('isFeatured');
     const sort = searchParams.get('sort') || 'newest';
+    
+    // Get attribute filters - they come as pairs: attribute=attrId&value=val&attribute=attrId&value=val
+    const attributeFilters = new Map<string, string[]>();
+    const attributeParams = searchParams.getAll('attribute');
+    const valueParams = searchParams.getAll('value');
+    
+    // Pair them up
+    for (let i = 0; i < attributeParams.length; i++) {
+      const attrId = attributeParams[i];
+      const value = valueParams[i];
+      if (!attributeFilters.has(attrId)) {
+        attributeFilters.set(attrId, []);
+      }
+      attributeFilters.get(attrId)!.push(value);
+    }
 
     // Build filter object
     const where: any = {
@@ -29,9 +44,33 @@ export async function GET(request: NextRequest) {
 
     // Handle multiple categories
     if (categories.length > 0) {
-      where.category = {
-        in: categories,
+      where.categories = {
+        some: {
+          category: {
+            name: {
+              in: categories,
+            }
+          }
+        }
       };
+    }
+
+    // Handle attribute filters
+    if (attributeFilters.size > 0) {
+      const attributeConditions = Array.from(attributeFilters.entries()).map(
+        ([attrId, values]) => ({
+          attributes: {
+            some: {
+              attributeId: attrId,
+              value: {
+                in: values,
+              },
+            },
+          },
+        })
+      );
+      
+      where.AND = attributeConditions;
     }
 
     // Handle multiple brands
@@ -90,6 +129,17 @@ export async function GET(request: NextRequest) {
             rating: true,
           },
         },
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        attributes: {
+          include: {
+            attribute: true,
+          },
+        },
+        variants: true,
       },
     });
 
@@ -143,7 +193,7 @@ export async function POST(request: NextRequest) {
       trackInventory,
       images,
       videoUrl,
-      category,
+      categoryIds,
       tags,
       brand,
       weight,
@@ -187,7 +237,6 @@ export async function POST(request: NextRequest) {
         trackInventory: trackInventory !== false,
         images: images || [],
         videoUrl: videoUrl || null,
-        category,
         tags: tags || [],
         brand,
         weight: weight ? parseFloat(weight) : null,
@@ -198,7 +247,15 @@ export async function POST(request: NextRequest) {
         metaDescription,
         isFeatured: isFeatured || false,
         isActive: true,
+        categories: {
+          create: (categoryIds || []).map((categoryId: string) => ({
+            categoryId
+          }))
+        }
       },
+      include: {
+        categories: true
+      }
     });
 
     return NextResponse.json({

@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
           { name: { contains: query, mode: 'insensitive' } },
           { description: { contains: query, mode: 'insensitive' } },
           { brand: { contains: query, mode: 'insensitive' } },
-          { category: { contains: query, mode: 'insensitive' } },
         ],
       },
       select: {
@@ -32,7 +31,6 @@ export async function GET(request: NextRequest) {
         price: true,
         images: true,
         brand: true,
-        category: true,
       },
       take: limit,
     });
@@ -45,7 +43,6 @@ export async function GET(request: NextRequest) {
       price: product.price,
       image: product.images && product.images.length > 0 ? product.images[0] : null,
       brand: product.brand,
-      category: product.category,
     }));
 
     return NextResponse.json({

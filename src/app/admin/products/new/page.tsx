@@ -1,17 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import ProductAttributeInput from '@/components/ProductAttributeInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faCloudArrowUp } from '@fortawesome/free-solid-svg-icons';
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+}
 
 export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [attributes, setAttributes] = useState<{ [key: string]: string }>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,7 +35,7 @@ export default function AddProductPage() {
     trackInventory: true,
     images: [''],
     videoUrl: '',
-    category: '',
+    categoryIds: [] as string[],
     tags: '',
     brand: '',
     weight: '',
@@ -34,6 +45,23 @@ export default function AddProductPage() {
     isFeatured: false,
     specifications: '{}',
   });
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/admin/categories');
+      if (!res.ok) throw new Error('Failed to fetch categories');
+      const data = await res.json();
+      setCategories(data);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,7 +114,7 @@ export default function AddProductPage() {
         trackInventory: formData.trackInventory,
         images: formData.images.filter((img) => img.trim() !== ''),
         videoUrl: formData.videoUrl || null,
-        category: formData.category || null,
+        categoryIds: formData.categoryIds,
         tags: formData.tags ? formData.tags.split(',').map((t) => t.trim()) : [],
         brand: formData.brand || null,
         weight: formData.weight ? parseFloat(formData.weight) : null,
@@ -109,6 +137,23 @@ export default function AddProductPage() {
       const data = await response.json();
 
       if (data.success) {
+        // Save product attributes if any
+        if (Object.keys(attributes).length > 0) {
+          for (const [attributeId, value] of Object.entries(attributes)) {
+            if (value) {
+              await fetch('/api/admin/product-attributes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  productId: data.product.id,
+                  attributeId,
+                  value
+                })
+              });
+            }
+          }
+        }
+
         setMessage('✓ Product created successfully! Redirecting...');
         setTimeout(() => {
           router.push('/admin/products');
@@ -524,32 +569,59 @@ export default function AddProductPage() {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold border-b pb-2">Organization</h2>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Category
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Electronics"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Categories (select multiple)
+                  </label>
+                  {categoriesLoading ? (
+                    <p className="text-gray-500">Loading categories...</p>
+                  ) : categories.length === 0 ? (
+                    <p className="text-gray-500">
+                      No categories found.{' '}
+                      <Link href="/admin/categories" className="text-blue-600 hover:underline">
+                        Create one first
+                      </Link>
+                    </p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                      {categories.map((cat) => (
+                        <label key={cat.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                          <input
+                            type="checkbox"
+                            checked={formData.categoryIds.includes(cat.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData({
+                                  ...formData,
+                                  categoryIds: [...formData.categoryIds, cat.id]
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  categoryIds: formData.categoryIds.filter((id) => id !== cat.id)
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded"
+                          />
+                          <span className="text-sm">{cat.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Brand
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="TechSound"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Brand
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.brand}
+                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="TechSound"
+                  />
                 </div>
 
                 <div>
@@ -578,6 +650,17 @@ export default function AddProductPage() {
                   </label>
                 </div>
               </div>
+
+              {/* Product Attributes */}
+              {formData.categoryIds.length > 0 && (
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <ProductAttributeInput
+                    categoryIds={formData.categoryIds}
+                    initialValues={attributes}
+                    onAttributesChange={setAttributes}
+                  />
+                </div>
+              )}
 
               {/* Specifications */}
               <div className="space-y-4">

@@ -13,6 +13,11 @@ export async function GET(request: NextRequest) {
       // Get recommendations based on a product (same category/tags, excluding current product)
       const product = await prisma.product.findUnique({
         where: { id: productId },
+        include: {
+          categories: {
+            select: { categoryId: true }
+          }
+        }
       });
 
       if (!product) {
@@ -22,13 +27,23 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      const categoryIds = product.categories.map(cat => cat.categoryId);
+
       // Find similar products by category and tags
       const recommendations = await prisma.product.findMany({
         where: {
           isActive: true,
           id: { not: productId },
           OR: [
-            { category: product.category },
+            ...(categoryIds.length > 0 ? [{
+              categories: {
+                some: {
+                  categoryId: {
+                    in: categoryIds
+                  }
+                }
+              }
+            }] : []),
             {
               tags: {
                 hasSome: product.tags,
@@ -73,7 +88,13 @@ export async function GET(request: NextRequest) {
       const recommendations = await prisma.product.findMany({
         where: {
           isActive: true,
-          category,
+          categories: {
+            some: {
+              category: {
+                name: category
+              }
+            }
+          }
         },
         take: limit,
         include: {
@@ -114,7 +135,13 @@ export async function GET(request: NextRequest) {
         include: {
           items: {
             include: {
-              product: true,
+              product: {
+                include: {
+                  categories: {
+                    select: { categoryId: true }
+                  }
+                }
+              },
             },
           },
         },
@@ -160,9 +187,9 @@ export async function GET(request: NextRequest) {
       userOrders.forEach((order) => {
         order.items.forEach((item) => {
           purchasedIds.add(item.product.id);
-          if (item.product.category) {
-            purchasedCategories.add(item.product.category);
-          }
+          item.product.categories?.forEach((cat) => {
+            purchasedCategories.add(cat.categoryId);
+          });
           if (item.product.tags) {
             item.product.tags.forEach((tag) => purchasedTags.add(tag));
           }
@@ -175,7 +202,15 @@ export async function GET(request: NextRequest) {
           isActive: true,
           id: { notIn: Array.from(purchasedIds) },
           OR: [
-            { category: { in: Array.from(purchasedCategories) } },
+            ...(purchasedCategories.size > 0 ? [{
+              categories: {
+                some: {
+                  categoryId: {
+                    in: Array.from(purchasedCategories)
+                  }
+                }
+              }
+            }] : []),
             {
               tags: {
                 hasSome: Array.from(purchasedTags),
