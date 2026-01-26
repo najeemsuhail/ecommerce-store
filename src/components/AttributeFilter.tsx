@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 
 interface Attribute {
@@ -25,30 +25,60 @@ export default function AttributeFilter({
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedAttrs, setExpandedAttrs] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
+    console.log('AttributeFilter: categoryIds changed', categoryIds);
     fetchAttributes();
   }, [categoryIds]);
 
-  const fetchAttributes = async () => {
+  const fetchAttributes = useCallback(async () => {
     try {
       setLoading(true);
+      setError('');
       const allAttributes: Attribute[] = [];
 
       if (categoryIds.length > 0) {
+        console.log('Fetching attributes for categories:', categoryIds);
         // Fetch attributes for selected categories
         for (const categoryId of categoryIds) {
-          const res = await fetch(`/api/admin/attributes?categoryId=${categoryId}`);
-          if (!res.ok) continue;
-          const data = await res.json();
-          allAttributes.push(...data.filter((a: any) => a.filterable));
+          try {
+            const url = `/api/admin/attributes?categoryId=${categoryId}`;
+            console.log('Fetching:', url);
+            const res = await fetch(url);
+            if (!res.ok) {
+              console.warn(`Failed to fetch attributes for category ${categoryId}: ${res.status}`);
+              continue;
+            }
+            const data = await res.json();
+            console.log(`Got ${data.length || 0} attributes for category ${categoryId}:`, data);
+            if (Array.isArray(data)) {
+              allAttributes.push(...data.filter((a: any) => a.filterable));
+            }
+          } catch (err) {
+            console.warn(`Error fetching attributes for category ${categoryId}:`, err);
+          }
         }
       } else {
         // Fetch all filterable attributes for all categories
-        const res = await fetch(`/api/admin/attributes`);
-        if (res.ok) {
-          const data = await res.json();
-          allAttributes.push(...data.filter((a: any) => a.filterable));
+        console.log('Fetching all attributes (no category filter)');
+        try {
+          const url = `/api/admin/attributes`;
+          console.log('Fetching:', url);
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            console.log(`Got ${data.length || 0} all attributes:`, data);
+            if (Array.isArray(data)) {
+              allAttributes.push(...data.filter((a: any) => a.filterable));
+            }
+          } else {
+            console.warn(`Failed to fetch all attributes: ${res.status}`);
+            setError(`API error: ${res.status}`);
+          }
+        } catch (err) {
+          console.warn('Error fetching all attributes:', err);
+          setError(String(err));
         }
       }
 
@@ -57,14 +87,23 @@ export default function AttributeFilter({
         new Map(allAttributes.map(a => [a.id, a])).values()
       );
 
+      console.log('Final unique attributes after dedup:', uniqueAttrs);
       setAttributes(uniqueAttrs);
       setExpandedAttrs(new Set(uniqueAttrs.map(a => a.id)));
+      if (uniqueAttrs.length > 0) {
+        setError('');
+      }
     } catch (err) {
       console.error('Failed to load attributes:', err);
+      setError(`Exception: ${String(err)}`);
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryIds]);
+
+  useEffect(() => {
+    fetchAttributes();
+  }, [fetchAttributes]);
 
   const toggleExpand = (attrId: string) => {
     const newExpanded = new Set(expandedAttrs);
@@ -96,8 +135,33 @@ export default function AttributeFilter({
     onFilterChange(newFilters);
   };
 
-  if (loading || attributes.length === 0) {
-    return null;
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-6 bg-gray-200 rounded animate-pulse w-32"></div>
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (attributes.length === 0) {
+    if (error) {
+      return (
+        <div className="space-y-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+          <p>Error loading attributes: {error}</p>
+        </div>
+      );
+    }
+    // Show a placeholder when no attributes are found - helps with debugging
+    return (
+      <div className="space-y-4 p-3 bg-gray-50 border border-gray-200 rounded text-gray-500 text-sm">
+        <p className="font-semibold">Attributes</p>
+        <p className="text-xs">No attributes available for selected categories</p>
+      </div>
+    );
   }
 
   return (

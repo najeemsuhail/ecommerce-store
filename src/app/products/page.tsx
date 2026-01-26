@@ -9,11 +9,11 @@ import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import FacetFilter from '@/components/FacetFilter';
-import AttributeFilter from '@/components/AttributeFilter';
 
 interface FacetFilters {
   brands: string[];
   categories: string[];
+  categoryIds: string[];
   priceRange: {
     min: number;
     max: number;
@@ -25,7 +25,7 @@ interface FacetFilters {
 
 interface FacetData {
   brands: { name: string; count: number }[];
-  categories: { name: string; count: number }[];
+  categories: { name: string; id: string; count: number }[];
   priceRange: { min: number; max: number };
 }
 
@@ -44,6 +44,7 @@ function ProductsContent() {
   const [facetFilters, setFacetFilters] = useState<FacetFilters>({
     brands: [],
     categories: [],
+    categoryIds: [],
     priceRange: { min: 0, max: 100000 },
     attributes: {},
   });
@@ -99,7 +100,7 @@ function ProductsContent() {
         
         // Extract facets from all products
         const brands = new Map<string, number>();
-        const categories = new Map<string, number>();
+        const categories = new Map<string, { id: string; count: number }>();
         let minPrice = Number.MAX_VALUE;
         let maxPrice = 0;
 
@@ -111,7 +112,12 @@ function ProductsContent() {
           if (p.categories && Array.isArray(p.categories)) {
             p.categories.forEach((cat: any) => {
               const categoryName = cat.category?.name || cat.categoryId;
-              categories.set(categoryName, (categories.get(categoryName) || 0) + 1);
+              const categoryId = cat.category?.id || cat.categoryId;
+              if (!categories.has(categoryName)) {
+                categories.set(categoryName, { id: categoryId, count: 0 });
+              }
+              const catData = categories.get(categoryName)!;
+              catData.count += 1;
             });
           }
           if (p.price) {
@@ -125,7 +131,7 @@ function ProductsContent() {
             .map(([name, count]) => ({ name, count }))
             .sort((a, b) => a.name.localeCompare(b.name)),
           categories: Array.from(categories.entries())
-            .map(([name, count]) => ({ name, count }))
+            .map(([name, { id, count }]) => ({ name, id, count }))
             .sort((a, b) => b.count - a.count),
           priceRange: { min: minPrice === Number.MAX_VALUE ? 0 : minPrice, max: maxPrice },
         });
@@ -306,18 +312,6 @@ function ProductsContent() {
               selectedFilters={facetFilters}
               onFilterChange={setFacetFilters}
             />
-            <div className="mt-6">
-              <AttributeFilter
-                categoryIds={facetFilters.categories}
-                selectedFilters={facetFilters.attributes || {}}
-                onFilterChange={(attributes) => {
-                  setFacetFilters((prev) => ({
-                    ...prev,
-                    attributes,
-                  }));
-                }}
-              />
-            </div>
           </div>
 
           {/* Mobile Filter Modal */}
@@ -349,18 +343,6 @@ function ProductsContent() {
                       setFacetFilters(filters);
                     }}
                   />
-                  <div className="mt-6">
-                    <AttributeFilter
-                      categoryIds={facetFilters.categories}
-                      selectedFilters={facetFilters.attributes || {}}
-                      onFilterChange={(attributes) => {
-                        setFacetFilters((prev) => ({
-                          ...prev,
-                          attributes,
-                        }));
-                      }}
-                    />
-                  </div>
                 </div>
                 <div className="sticky bottom-0 bg-light-theme border-t p-4 space-y-2">
                   <button
@@ -374,6 +356,7 @@ function ProductsContent() {
                       setFacetFilters({
                         brands: [],
                         categories: [],
+                        categoryIds: [],
                         priceRange: { min: 0, max: facets.priceRange.max },
                         isDigital: undefined,
                         isFeatured: undefined,
@@ -476,9 +459,11 @@ function ProductsContent() {
                     setFacetFilters({
                       brands: [],
                       categories: [],
+                      categoryIds: [],
                       priceRange: { min: 0, max: facets.priceRange.max },
                       isDigital: undefined,
                       isFeatured: undefined,
+                      attributes: {},
                     })
                   }
                   className="text-sm text-text-600 hover:text-text-900 font-semibold ml-2"
@@ -532,7 +517,9 @@ function ProductsContent() {
                     setFacetFilters({
                       brands: [],
                       categories: [],
+                      categoryIds: [],
                       priceRange: { min: 0, max: facets.priceRange.max },
+                      attributes: {},
                     })
                   }
                   className="text-primary-theme hover:underline"

@@ -1,23 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp, faX } from '@fortawesome/free-solid-svg-icons';
+
+interface Attribute {
+  id: string;
+  name: string;
+  type: string;
+  options: string[];
+  filterable: boolean;
+}
 
 interface FacetFilters {
   brands: string[];
   categories: string[];
+  categoryIds: string[];
   priceRange: {
     min: number;
     max: number;
   };
   isDigital?: boolean;
   isFeatured?: boolean;
+  attributes?: { [key: string]: string[] };
 }
 
 interface FacetData {
   brands: { name: string; count: number }[];
-  categories: { name: string; count: number }[];
+  categories: { name: string; id: string; count: number }[];
   priceRange: { min: number; max: number };
 }
 
@@ -33,11 +43,15 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     categories: true,
     price: true,
     type: true,
+    attributes: true,
   });
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [attributesLoading, setAttributesLoading] = useState(true);
+  const [expandedAttrs, setExpandedAttrs] = useState<Set<string>>(new Set());
 
   const [priceInput, setPriceInput] = useState({
-    min: selectedFilters.priceRange.min,
-    max: selectedFilters.priceRange.max,
+    min: selectedFilters.priceRange?.min ?? 0,
+    max: selectedFilters.priceRange?.max ?? 10000,
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -47,18 +61,80 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     }));
   };
 
+  const fetchAttributes = useCallback(async () => {
+    try {
+      setAttributesLoading(true);
+      const allAttributes: Attribute[] = [];
+
+      if (selectedFilters.categoryIds.length > 0) {
+        // Fetch attributes for selected categories
+        for (const categoryId of selectedFilters.categoryIds) {
+          try {
+            const url = `/api/admin/attributes?categoryId=${categoryId}`;
+            const res = await fetch(url);
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              allAttributes.push(...data.filter((a: any) => a.filterable));
+            }
+          } catch (err) {
+            console.warn(`Error fetching attributes for category ${categoryId}:`, err);
+          }
+        }
+      } else {
+        // Fetch all filterable attributes for all categories
+        try {
+          const res = await fetch(`/api/admin/attributes`);
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              allAttributes.push(...data.filter((a: any) => a.filterable));
+            }
+          }
+        } catch (err) {
+          console.warn('Error fetching all attributes:', err);
+        }
+      }
+
+      // Remove duplicates
+      const uniqueAttrs = Array.from(
+        new Map(allAttributes.map(a => [a.id, a])).values()
+      );
+
+      setAttributes(uniqueAttrs);
+      setExpandedAttrs(new Set(uniqueAttrs.map(a => a.id)));
+    } catch (err) {
+      console.error('Failed to load attributes:', err);
+    } finally {
+      setAttributesLoading(false);
+    }
+  }, [selectedFilters.categoryIds]);
+
+  useEffect(() => {
+    fetchAttributes();
+  }, [fetchAttributes]);
+
   const handleBrandChange = (brand: string) => {
     const newBrands = selectedFilters.brands.includes(brand)
       ? selectedFilters.brands.filter((b) => b !== brand)
       : [...selectedFilters.brands, brand];
-    onFilterChange({ ...selectedFilters, brands: newBrands });
+    onFilterChange({ ...selectedFilters, brands: newBrands, categoryIds: selectedFilters.categoryIds });
   };
 
-  const handleCategoryChange = (category: string) => {
+  const handleCategoryChange = (category: string, categoryId: string) => {
     const newCategories = selectedFilters.categories.includes(category)
       ? selectedFilters.categories.filter((c) => c !== category)
       : [...selectedFilters.categories, category];
-    onFilterChange({ ...selectedFilters, categories: newCategories });
+    
+    const newCategoryIds = selectedFilters.categoryIds.includes(categoryId)
+      ? selectedFilters.categoryIds.filter((c) => c !== categoryId)
+      : [...selectedFilters.categoryIds, categoryId];
+    
+    onFilterChange({ 
+      ...selectedFilters, 
+      categories: newCategories,
+      categoryIds: newCategoryIds,
+    });
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'min' | 'max') => {
@@ -74,18 +150,21 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         min: Math.min(priceInput.min, priceInput.max),
         max: Math.max(priceInput.min, priceInput.max),
       },
+      categoryIds: selectedFilters.categoryIds,
     });
   };
 
   const handleDigitalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
       ...selectedFilters,
+      categoryIds: selectedFilters.categoryIds,
       isDigital: e.target.checked ? true : undefined,
     });
   };
 
   const handleFeaturedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
+      categoryIds: selectedFilters.categoryIds,
       ...selectedFilters,
       isFeatured: e.target.checked ? true : undefined,
     });
@@ -110,6 +189,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
               onFilterChange({
                 brands: [],
                 categories: [],
+                categoryIds: [],
                 priceRange: { min: 0, max: facets.priceRange.max },
                 isDigital: undefined,
                 isFeatured: undefined,
@@ -119,66 +199,6 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
           >
             Clear All
           </button>
-        )}
-      </div>
-
-      {/* Categories */}
-      <div className="mb-6 border-b pb-6">
-        <button
-          onClick={() => toggleSection('categories')}
-          className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-        >
-          <span>Categories</span>
-          <FontAwesomeIcon
-            icon={expandedSections.categories ? faChevronUp : faChevronDown}
-            className="w-4 h-4"
-          />
-        </button>
-        {expandedSections.categories && (
-          <div className="mt-4 space-y-3">
-            {facets.categories.map((category) => (
-              <label key={category.name} className="flex items-center gap-3 cursor-pointer hover:text-primary-theme">
-                <input
-                  type="checkbox"
-                  checked={selectedFilters.categories.includes(category.name)}
-                  onChange={() => handleCategoryChange(category.name)}
-                  className="w-4 h-4 rounded border-gray-300"
-                />
-                <span className="text-gray-700">{category.name}</span>
-                <span className="text-gray-500 text-sm">({category.count})</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Brands */}
-      <div className="mb-6 border-b pb-6">
-        <button
-          onClick={() => toggleSection('brands')}
-          className="w-full flex items-center justify-between font-semibold text-gray-theme hover:text-primary-theme transition-colors"
-        >
-          <span>Brands</span>
-          <FontAwesomeIcon
-            icon={expandedSections.brands ? faChevronUp : faChevronDown}
-            className="w-4 h-4"
-          />
-        </button>
-        {expandedSections.brands && (
-          <div className="mt-4 space-y-3">
-            {facets.brands.map((brand) => (
-              <label key={brand.name} className="flex items-center gap-3 cursor-pointer hover:text-primary-theme">
-                <input
-                  type="checkbox"
-                  checked={selectedFilters.brands.includes(brand.name)}
-                  onChange={() => handleBrandChange(brand.name)}
-                  className="w-4 h-4 rounded border-gray-300"
-                />
-                <span className="text-gray-700">{brand.name}</span>
-                <span className="text-gray-500 text-sm">({brand.count})</span>
-              </label>
-            ))}
-          </div>
         )}
       </div>
 
@@ -216,7 +236,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                   onChange={(e) => handlePriceChange(e, 'max')}
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`₹${facets.priceRange.max}`}
+                  placeholder={`₹${facets?.priceRange?.max ?? 50000}`}
                 />
               </div>
             </div>
@@ -230,41 +250,131 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         )}
       </div>
 
-      {/* Product Type */}
+      {/* Categories */}
       <div className="mb-6 border-b pb-6">
         <button
-          onClick={() => toggleSection('type')}
-          className="w-full flex items-center justify-between font-semibold text-gray-theme hover:text-primary-theme transition-colors"
+          onClick={() => toggleSection('categories')}
+          className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
         >
-          <span>Product Type</span>
+          <span>Categories</span>
           <FontAwesomeIcon
-            icon={expandedSections.type ? faChevronUp : faChevronDown}
+            icon={expandedSections.categories ? faChevronUp : faChevronDown}
             className="w-4 h-4"
           />
         </button>
-        {expandedSections.type && (
+        {expandedSections.categories && (
           <div className="mt-4 space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
-              <input
-                type="checkbox"
-                checked={selectedFilters.isDigital === true}
-                onChange={handleDigitalChange}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span className="text-gray-700">Digital Products</span>
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer hover:text-blue-600">
-              <input
-                type="checkbox"
-                checked={selectedFilters.isFeatured === true}
-                onChange={handleFeaturedChange}
-                className="w-4 h-4 rounded border-gray-300"
-              />
-              <span className="text-gray-700">Featured Only</span>
-            </label>
+            {facets?.categories && Array.isArray(facets.categories) ? (
+              facets.categories.map((category) => (
+                <label key={category.id} className="flex items-center gap-3 cursor-pointer hover:text-primary-theme">
+                <input
+                  type="checkbox"
+                  checked={selectedFilters.categories.includes(category.name)}
+                  onChange={() => handleCategoryChange(category.name, category.id)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <span className="text-gray-700">{category.name}</span>
+                <span className="text-gray-500 text-sm">({category.count})</span>
+              </label>
+            ))
+            ) : null}
           </div>
         )}
       </div>
+
+      {/* Attributes */}
+      {attributes.length > 0 && (
+        <div className="mb-6 border-b pb-6">
+          <button
+            onClick={() => toggleSection('attributes')}
+            className="w-full flex items-center justify-between font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+          >
+            <span>Attributes</span>
+            <FontAwesomeIcon
+              icon={expandedSections.attributes ? faChevronUp : faChevronDown}
+              className="w-4 h-4"
+            />
+          </button>
+          {expandedSections.attributes && (
+            <div className="mt-4 space-y-4">
+              {attributes.map((attr) => (
+                <div key={attr.id}>
+                  <p className="text-sm font-medium text-gray-700 mb-2">{attr.name}</p>
+                  <div className="space-y-2">
+                    {attr.type === 'select' || attr.type === 'size' ? (
+                      attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt) || false}
+                            onChange={(e) => {
+                              const newFilters = { ...selectedFilters.attributes || {} };
+                              if (!newFilters[attr.id]) {
+                                newFilters[attr.id] = [];
+                              }
+                              if (e.target.checked) {
+                                newFilters[attr.id].push(opt);
+                              } else {
+                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt);
+                              }
+                              if (newFilters[attr.id].length === 0) {
+                                delete newFilters[attr.id];
+                              }
+                              onFilterChange({
+                                ...selectedFilters,
+                                attributes: newFilters,
+                                categoryIds: selectedFilters.categoryIds,
+                              });
+                            }}
+                            className="w-4 h-4 rounded"
+                          />
+                          <span className="text-sm text-gray-700">{opt}</span>
+                        </label>
+                      )) : null
+                    ) : attr.type === 'color' ? (
+                      attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
+                        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt) || false}
+                            onChange={(e) => {
+                              const newFilters = { ...selectedFilters.attributes || {} };
+                              if (!newFilters[attr.id]) {
+                                newFilters[attr.id] = [];
+                              }
+                              if (e.target.checked) {
+                                newFilters[attr.id].push(opt);
+                              } else {
+                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt);
+                              }
+                              if (newFilters[attr.id].length === 0) {
+                                delete newFilters[attr.id];
+                              }
+                              onFilterChange({
+                                ...selectedFilters,
+                                attributes: newFilters,
+                                categoryIds: selectedFilters.categoryIds,
+                              });
+                            }}
+                            className="w-4 h-4 rounded"
+                          />
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-4 h-4 rounded border border-gray-300"
+                              style={{ backgroundColor: opt }}
+                            />
+                            <span className="text-sm text-gray-700">{opt}</span>
+                          </div>
+                        </label>
+                      )) : null
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Active Filters Display */}
       {hasActiveFilters && (

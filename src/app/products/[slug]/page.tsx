@@ -236,6 +236,14 @@ export default function ProductDetailPage() {
                   <p className="text-gray-600 mb-4">Brand: {product.brand}</p>
                 )}
 
+                {/* Description */}
+                {product.description && product.description.trim().length > 0 && (
+                  <div className="mb-6 pb-6 border-b">
+                    <h3 className="font-semibold text-lg mb-2">Description</h3>
+                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-4xl font-bold text-primary-theme">
                     ${selectedVariant ? selectedVariant.price : product.price}
@@ -296,7 +304,8 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Specifications */}
-                {product.specifications && (
+                {/* Specifications */}
+                {product.specifications && Object.keys(product.specifications).length > 0 && (
                   <div className="mb-6">
                     <h3 className="font-semibold text-lg mb-2">Specifications</h3>
                     <div className="bg-gray-50 rounded p-4 space-y-2">
@@ -310,6 +319,21 @@ export default function ProductDetailPage() {
                           </div>
                         )
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Product Attributes */}
+                {product.attributes && product.attributes.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-lg mb-2">Product Attributes</h3>
+                    <div className="bg-gray-50 rounded p-4 space-y-2">
+                      {product.attributes.map((attr: any) => (
+                        <div key={attr.id} className="flex justify-between">
+                          <span className="text-gray-600">{attr.attribute?.name || attr.attributeId}:</span>
+                          <span className="font-semibold">{attr.value}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
