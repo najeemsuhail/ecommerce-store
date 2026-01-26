@@ -139,7 +139,7 @@ export default function Header() {
   };
 
   return (
-    <nav className="bg-light-theme/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <nav className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex justify-between items-center gap-4">
 

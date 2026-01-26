@@ -27,12 +27,6 @@ export default function AttributeFilter({
   const [expandedAttrs, setExpandedAttrs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (categoryIds.length === 0) {
-      setAttributes([]);
-      setLoading(false);
-      return;
-    }
-
     fetchAttributes();
   }, [categoryIds]);
 
@@ -41,11 +35,21 @@ export default function AttributeFilter({
       setLoading(true);
       const allAttributes: Attribute[] = [];
 
-      for (const categoryId of categoryIds) {
-        const res = await fetch(`/api/admin/attributes?categoryId=${categoryId}`);
-        if (!res.ok) continue;
-        const data = await res.json();
-        allAttributes.push(...data.filter((a: any) => a.filterable));
+      if (categoryIds.length > 0) {
+        // Fetch attributes for selected categories
+        for (const categoryId of categoryIds) {
+          const res = await fetch(`/api/admin/attributes?categoryId=${categoryId}`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          allAttributes.push(...data.filter((a: any) => a.filterable));
+        }
+      } else {
+        // Fetch all filterable attributes for all categories
+        const res = await fetch(`/api/admin/attributes`);
+        if (res.ok) {
+          const data = await res.json();
+          allAttributes.push(...data.filter((a: any) => a.filterable));
+        }
       }
 
       // Remove duplicates and filter for filterable only

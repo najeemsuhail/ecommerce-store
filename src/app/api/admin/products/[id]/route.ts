@@ -24,6 +24,12 @@ export async function GET(
         variants: true,
         reviews: true,
         orderItems: true,
+        categories: {
+          include: { category: true }
+        },
+        attributes: {
+          include: { attribute: true }
+        }
       },
     });
 

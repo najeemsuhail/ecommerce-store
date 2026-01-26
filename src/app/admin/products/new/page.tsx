@@ -566,26 +566,41 @@ export default function AddProductPage() {
               </div>
 
               {/* Organization */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <h2 className="text-xl font-semibold border-b pb-2">Organization</h2>
 
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Categories (select multiple)
-                  </label>
-                  {categoriesLoading ? (
-                    <p className="text-gray-500">Loading categories...</p>
-                  ) : categories.length === 0 ? (
-                    <p className="text-gray-500">
-                      No categories found.{' '}
-                      <Link href="/admin/categories" className="text-blue-600 hover:underline">
-                        Create one first
+                {/* Categories Section */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900 mb-1">
+                        📁 Categories (select multiple)
+                      </label>
+                      <p className="text-xs text-gray-600">Choose categories for this product. Each category can have specific attributes.</p>
+                    </div>
+                    {categories.length === 0 && (
+                      <Link 
+                        href="/admin/categories" 
+                        className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors whitespace-nowrap"
+                      >
+                        + Add Category
                       </Link>
-                    </p>
+                    )}
+                  </div>
+                  
+                  {categoriesLoading ? (
+                    <p className="text-gray-600 py-4">Loading categories...</p>
+                  ) : categories.length === 0 ? (
+                    <div className="bg-white p-4 rounded border-2 border-dashed border-blue-300 text-center">
+                      <p className="text-gray-600 mb-2">No categories found</p>
+                      <Link href="/admin/categories" className="text-blue-600 hover:underline font-medium">
+                        Create your first category →
+                      </Link>
+                    </div>
                   ) : (
-                    <div className="space-y-2 max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {categories.map((cat) => (
-                        <label key={cat.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+                        <label key={cat.id} className="flex items-center gap-3 cursor-pointer p-3 bg-white rounded hover:bg-gray-50 border border-gray-200 transition-colors">
                           <input
                             type="checkbox"
                             checked={formData.categoryIds.includes(cat.id)}
@@ -602,15 +617,44 @@ export default function AddProductPage() {
                                 });
                               }
                             }}
-                            className="w-4 h-4 rounded"
+                            className="w-5 h-5 rounded accent-blue-600"
                           />
-                          <span className="text-sm">{cat.name}</span>
+                          <span className="text-sm font-medium text-gray-700">{cat.name}</span>
                         </label>
                       ))}
                     </div>
                   )}
                 </div>
 
+                {/* Product Attributes Section */}
+                {formData.categoryIds.length > 0 && (
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <label className="block text-sm font-bold text-gray-900 mb-1">
+                          🎯 Product Attributes
+                        </label>
+                        <p className="text-xs text-gray-600">These are specific to the selected categories above.</p>
+                      </div>
+                      <Link 
+                        href="/admin/attributes" 
+                        className="text-xs bg-purple-600 text-white px-2 py-1 rounded hover:bg-purple-700 transition-colors whitespace-nowrap"
+                      >
+                        + Manage Attributes
+                      </Link>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded border border-purple-200">
+                      <ProductAttributeInput
+                        categoryIds={formData.categoryIds}
+                        initialValues={attributes}
+                        onAttributesChange={setAttributes}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Brand */}
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Brand
@@ -624,6 +668,7 @@ export default function AddProductPage() {
                   />
                 </div>
 
+                {/* Tags */}
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     Tags (comma-separated)
@@ -637,6 +682,7 @@ export default function AddProductPage() {
                   />
                 </div>
 
+                {/* Featured */}
                 <div className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -646,21 +692,10 @@ export default function AddProductPage() {
                     className="w-4 h-4"
                   />
                   <label htmlFor="isFeatured" className="text-sm font-medium">
-                    Featured Product
+                    ⭐ Featured Product
                   </label>
                 </div>
               </div>
-
-              {/* Product Attributes */}
-              {formData.categoryIds.length > 0 && (
-                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                  <ProductAttributeInput
-                    categoryIds={formData.categoryIds}
-                    initialValues={attributes}
-                    onAttributesChange={setAttributes}
-                  />
-                </div>
-              )}
 
               {/* Specifications */}
               <div className="space-y-4">

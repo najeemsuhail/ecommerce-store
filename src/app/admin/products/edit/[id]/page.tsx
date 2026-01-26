@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import ProductAttributeInput from '@/components/ProductAttributeInput';
 
 interface Category {
   id: string;
@@ -21,6 +22,7 @@ export default function EditProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [attributes, setAttributes] = useState<{ [key: string]: string }>({});
 
   const [formData, setFormData] = useState({
     name: '',
@@ -74,6 +76,14 @@ export default function EditProductPage() {
       if (data.success && data.product) {
         const prod = data.product;
         setProduct(prod);
+        
+        // Map categories and attributes from the response
+        const categoryIds = prod.categories?.map((c: any) => c.category?.id || c.categoryId) || [];
+        const attributeValues = prod.attributes?.reduce((acc: any, av: any) => {
+          acc[av.attributeId] = av.value;
+          return acc;
+        }, {}) || {};
+        
         setFormData({
           name: prod.name,
           description: prod.description,
@@ -85,7 +95,7 @@ export default function EditProductPage() {
           trackInventory: prod.trackInventory,
           images: prod.images.length > 0 ? prod.images : [''],
           videoUrl: prod.videoUrl || '',
-          categoryIds: prod.categories?.map((c: any) => c.categoryId) || [],
+          categoryIds: categoryIds,
           tags: prod.tags.join(', '),
           brand: prod.brand || '',
           weight: prod.weight?.toString() || '',
@@ -96,6 +106,7 @@ export default function EditProductPage() {
           isActive: prod.isActive,
           specifications: prod.specifications ? JSON.stringify(prod.specifications, null, 2) : '{}',
         });
+        setAttributes(attributeValues);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -156,6 +167,23 @@ export default function EditProductPage() {
       const data = await response.json();
 
       if (data.success) {
+        // Save product attributes if any
+        if (Object.keys(attributes).length > 0) {
+          for (const [attributeId, value] of Object.entries(attributes)) {
+            if (value) {
+              await fetch('/api/admin/product-attributes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  productId: product.id,
+                  attributeId,
+                  value
+                })
+              });
+            }
+          }
+        }
+        
         setMessage('✓ Product updated successfully! Redirecting...');
         setTimeout(() => {
           router.push('/admin/products');
@@ -577,6 +605,26 @@ export default function EditProductPage() {
                   value={formData.brand}
                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Product Attributes Section */}
+              <div className="mt-6 pt-6 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium">
+                    🎯 Product Attributes
+                  </label>
+                  <Link 
+                    href="/admin/attributes" 
+                    className="text-xs text-blue-600 hover:underline"
+                  >
+                    + Manage Attributes
+                  </Link>
+                </div>
+                <ProductAttributeInput
+                  categoryIds={formData.categoryIds}
+                  initialValues={attributes}
+                  onAttributesChange={setAttributes}
                 />
               </div>
 

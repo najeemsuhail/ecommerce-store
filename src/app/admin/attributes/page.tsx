@@ -38,13 +38,10 @@ export default function AttributesPage() {
 
   useEffect(() => {
     fetchCategories();
-    fetchAttributes();
   }, []);
 
   useEffect(() => {
-    if (selectedCategory) {
-      fetchAttributes();
-    }
+    fetchAttributes();
   }, [selectedCategory]);
 
   const fetchCategories = async () => {
