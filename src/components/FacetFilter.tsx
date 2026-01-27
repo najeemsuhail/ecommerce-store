@@ -150,21 +150,18 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         min: Math.min(priceInput.min, priceInput.max),
         max: Math.max(priceInput.min, priceInput.max),
       },
-      categoryIds: selectedFilters.categoryIds,
     });
   };
 
   const handleDigitalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
       ...selectedFilters,
-      categoryIds: selectedFilters.categoryIds,
       isDigital: e.target.checked ? true : undefined,
     });
   };
 
   const handleFeaturedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
-      categoryIds: selectedFilters.categoryIds,
       ...selectedFilters,
       isFeatured: e.target.checked ? true : undefined,
     });
@@ -323,7 +320,6 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                               onFilterChange({
                                 ...selectedFilters,
                                 attributes: newFilters,
-                                categoryIds: selectedFilters.categoryIds,
                               });
                             }}
                             className="w-4 h-4 rounded"
@@ -353,7 +349,6 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                               onFilterChange({
                                 ...selectedFilters,
                                 attributes: newFilters,
-                                categoryIds: selectedFilters.categoryIds,
                               });
                             }}
                             className="w-4 h-4 rounded"
