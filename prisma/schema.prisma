@@ -92,6 +92,8 @@ model Product {
   metaDescription String?
   isActive        Boolean          @default(true)
   isFeatured      Boolean          @default(false)
+  externalId      String?           @unique
+  source          String?          @default("ui")
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   orderItems      OrderItem[]
@@ -99,6 +101,7 @@ model Product {
   reviews         Review[]
   categories      ProductCategory[]
   attributes      ProductAttributeValue[]
+  
 }
 
 model Order {

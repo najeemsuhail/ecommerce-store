@@ -14,6 +14,8 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const isFeatured = searchParams.get('isFeatured');
     const sort = searchParams.get('sort') || 'newest';
+    const skip = parseInt(searchParams.get('skip') || '0');
+    const limit = parseInt(searchParams.get('limit') || '12');
     
     // Get attribute filters - they come as pairs: attribute=attrId&value=val&attribute=attrId&value=val
     const attributeFilters = new Map<string, string[]>();
@@ -123,6 +125,8 @@ export async function GET(request: NextRequest) {
     const products = await prisma.product.findMany({
       where,
       orderBy,
+      skip,
+      take: limit,
       include: {
         reviews: {
           select: {
@@ -142,6 +146,9 @@ export async function GET(request: NextRequest) {
         variants: true,
       },
     });
+
+    // Get total count for pagination
+    const totalCount = await prisma.product.count({ where });
 
     // Calculate average rating for each product
     const productsWithRating = products.map((product: any) => {
@@ -168,6 +175,7 @@ export async function GET(request: NextRequest) {
       success: true,
       products: productsWithRating,
       count: productsWithRating.length,
+      total: totalCount,
     });
   } catch (error) {
     console.error('Error fetching products:', error);

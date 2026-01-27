@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
+    const skip = parseInt(searchParams.get('skip') || '0');
+    const limit = parseInt(searchParams.get('limit') || '10');
 
     const where: any = {};
     if (search) {
@@ -27,6 +29,8 @@ export async function GET(request: NextRequest) {
     const products = await prisma.product.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
       include: {
         _count: {
           select: { orderItems: true, reviews: true },
@@ -34,10 +38,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Get total count for pagination
+    const totalCount = await prisma.product.count({ where });
+
     return NextResponse.json({
       success: true,
       products,
       count: products.length,
+      total: totalCount,
     });
   } catch (error) {
     console.error('Error fetching products:', error);

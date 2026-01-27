@@ -109,9 +109,77 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Loading product...</p>
-      </div>
+      <Layout>
+        <div className="min-h-screen bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 py-8 animate-pulse">
+            {/* Breadcrumb Skeleton */}
+            <div className="mb-6 h-4 w-48 bg-gray-300 rounded"></div>
+
+            {/* Product Grid Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Images Gallery Skeleton */}
+              <div>
+                {/* Main Image Skeleton */}
+                <div className="bg-gray-300 rounded-lg shadow-lg p-4 mb-4 h-96"></div>
+                
+                {/* Thumbnails Skeleton */}
+                <div className="flex gap-3">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-16 h-16 bg-gray-300 rounded"></div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Product Info Skeleton */}
+              <div className="space-y-6">
+                {/* Title Skeleton */}
+                <div className="space-y-2">
+                  <div className="h-8 w-3/4 bg-gray-300 rounded"></div>
+                  <div className="h-6 w-1/2 bg-gray-300 rounded"></div>
+                </div>
+
+                {/* Price Skeleton */}
+                <div className="h-10 w-32 bg-gray-300 rounded"></div>
+
+                {/* Rating Skeleton */}
+                <div className="h-6 w-48 bg-gray-300 rounded"></div>
+
+                {/* Stock Status Skeleton */}
+                <div className="h-6 w-40 bg-gray-300 rounded"></div>
+
+                {/* Description Skeleton */}
+                <div className="space-y-2">
+                  <div className="h-4 w-full bg-gray-300 rounded"></div>
+                  <div className="h-4 w-full bg-gray-300 rounded"></div>
+                  <div className="h-4 w-2/3 bg-gray-300 rounded"></div>
+                </div>
+
+                {/* Variants Skeleton */}
+                <div className="space-y-2">
+                  <div className="h-6 w-32 bg-gray-300 rounded"></div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="h-20 bg-gray-300 rounded"></div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantity and Button Skeleton */}
+                <div className="space-y-3">
+                  <div className="flex gap-4 items-center">
+                    <div className="h-10 w-32 bg-gray-300 rounded"></div>
+                    <div className="h-10 w-12 bg-gray-300 rounded"></div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1 h-14 bg-gray-300 rounded"></div>
+                    <div className="h-14 w-14 bg-gray-300 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -235,14 +303,7 @@ export default function ProductDetailPage() {
                 {product.brand && (
                   <p className="text-gray-600 mb-4">Brand: {product.brand}</p>
                 )}
-
-                {/* Description */}
-                {product.description && product.description.trim().length > 0 && (
-                  <div className="mb-6 pb-6 border-b">
-                    <h3 className="font-semibold text-lg mb-2">Description</h3>
-                    <p className="text-gray-700 leading-relaxed">{product.description}</p>
-                  </div>
-                )}
+   
 
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-4xl font-bold text-primary-theme">
@@ -298,9 +359,10 @@ export default function ProductDetailPage() {
                 {/* Description */}
                 <div className="mb-6">
                   <h3 className="font-semibold text-lg mb-2">Description</h3>
-                  <p className="text-gray-700 whitespace-pre-line">
-                    {product.description}
-                  </p>
+                  <div 
+                    className="text-gray-700 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
                 </div>
 
                 {/* Specifications */}
@@ -339,7 +401,7 @@ export default function ProductDetailPage() {
                 )}
 
                 {/* Variants */}
-                {product.variants && product.variants.length > 0 && (
+                {product.variants && product.variants.length > 1 && (
                   <div className="mb-6">
                     <h3 className="font-semibold text-lg mb-3">Variants</h3>
                     <div className="grid grid-cols-2 gap-3">

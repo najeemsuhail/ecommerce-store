@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense, useCallback } from 'react';
+import { useEffect, useState, Suspense, useCallback, useRef } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useSearchParams } from 'next/navigation';
@@ -35,12 +35,18 @@ function ProductsContent() {
   const [products, setProducts] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const itemsPerLoad = 12;
+  const [displayedCount, setDisplayedCount] = useState(itemsPerLoad);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [facets, setFacets] = useState<FacetData>({
     brands: [],
     categories: [],
     priceRange: { min: 0, max: 100000 },
   });
+
   const [facetFilters, setFacetFilters] = useState<FacetFilters>({
     brands: [],
     categories: [],
@@ -70,6 +76,8 @@ function ProductsContent() {
   });
   const { addItem } = useCart();
   const { isInWishlist, groups, createGroup, addItemToGroup, removeItemFromGroup } = useWishlist();
+  const isFetching = useRef(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -83,13 +91,36 @@ function ProductsContent() {
 
   // Fetch all products once for facets
   useEffect(() => {
-    fetchAllProducts();
+    if (!isFetching.current) {
+      isFetching.current = true;
+      fetchAllProducts();
+    }
   }, []);
 
   // Fetch filtered products when filters change
   useEffect(() => {
+    setDisplayedCount(itemsPerLoad); // Reset to initial load
+    setProducts([]); // Clear products
     fetchProducts();
   }, [facetFilters, sortBy]);
+  
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && displayedCount < totalProducts) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, displayedCount, totalProducts]);
 
   const fetchAllProducts = async () => {
     try {
@@ -193,16 +224,36 @@ function ProductsContent() {
 
       // Add sort parameter
       url += `sort=${sortBy}&`;
+      
+      // Fetch with large limit to get all filtered products
+      url += `skip=0&limit=10000`;
 
       const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
+        setTotalProducts(data.total || data.products.length);
+        setHasMore(data.products.length > itemsPerLoad);
       }
     } catch (error) {
       console.error('Failed to fetch products');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try {
+      // Add a small delay to show loading state and create smooth experience
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const newCount = displayedCount + itemsPerLoad;
+      setDisplayedCount(newCount);
+      setHasMore(newCount < totalProducts);
+    } catch (error) {
+      console.error('Failed to load more products');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -499,9 +550,37 @@ function ProductsContent() {
 
             {/* Loading */}
             {loading && (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                <p className="text-xl mt-4">Loading products...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-pulse">
+                {[...Array(12)].map((_, i) => (
+                  <div key={i} className="bg-light-theme rounded-lg shadow overflow-hidden">
+                    {/* Image Skeleton */}
+                    <div className="h-48 bg-gray-300 rounded-t-lg"></div>
+                    
+                    {/* Content Skeleton */}
+                    <div className="p-4 space-y-3">
+                      {/* Title */}
+                      <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                      
+                      {/* Description */}
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-300 rounded w-full"></div>
+                        <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+                      </div>
+                      
+                      {/* Price and Stock */}
+                      <div className="flex justify-between items-center pt-2">
+                        <div className="h-6 w-24 bg-gray-300 rounded"></div>
+                        <div className="h-6 w-20 bg-gray-300 rounded"></div>
+                      </div>
+                      
+                      {/* Rating */}
+                      <div className="h-4 w-32 bg-gray-300 rounded"></div>
+                      
+                      {/* Button */}
+                      <div className="h-10 bg-gray-300 rounded mt-3"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -532,11 +611,14 @@ function ProductsContent() {
             {/* Products Grid */}
             {!loading && products.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product) => (
+                {products.slice(0, displayedCount).map((product, index) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
-                    className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group"
+                    className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group animate-fadeIn"
+                    style={{
+                      animationDelay: `${(index % itemsPerLoad) * 50}ms`,
+                    }}
                   >
                     {/* Product Image */}
                     <div className="relative h-48 bg-bg-200 overflow-hidden">
@@ -569,7 +651,7 @@ function ProductsContent() {
                         {product.name}
                       </h3>
                       <p className="text-text-600 text-sm mb-3 line-clamp-2">
-                        {product.description}
+                        {product.description.replace(/<[^>]*>/g, '').substring(0, 100)}...
                       </p>
 
                       <div className="flex items-center justify-between mb-3">
@@ -623,6 +705,30 @@ function ProductsContent() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {/* Infinite Scroll Trigger */}
+            {displayedCount < totalProducts && (
+              <div ref={observerTarget} className="mt-12 py-8 text-center">
+                <div className="flex flex-col items-center gap-3">
+                  {loadingMore && (
+                    <>
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-theme"></div>
+                      <p className="text-text-600">Loading more products...</p>
+                    </>
+                  )}
+                  {!loadingMore && (
+                    <p className="text-text-400 text-sm">Scroll to load more</p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Results Info */}
+            {!loading && totalProducts > 0 && (
+              <div className="mt-6 text-center text-text-600 text-sm">
+                Showing {Math.min(displayedCount, products.length)} of {totalProducts} products
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -20,12 +20,18 @@ export default function CartPage() {
     addItem,
   } = useCart();
 
+  const [isLoading, setIsLoading] = useState(true);
   const [notification, setNotification] = useState({
     isVisible: false,
     message: '',
   });
 
   const router = useRouter();
+
+  // Simulate loading on mount
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
 
   const shippingCost = items.some((item) => !item.isDigital) ? 50.0 : 0;
   const total = totalPrice + shippingCost;
@@ -54,6 +60,70 @@ export default function CartPage() {
       message: `${product.name} added to cart!`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-bg-gray py-4 md:py-8">
+          <div className="max-w-6xl mx-auto px-3 md:px-4">
+            {/* Header Skeleton */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3 animate-pulse">
+              <div className="h-8 md:h-10 bg-bg-200 rounded w-1/3"></div>
+              <div className="h-6 bg-bg-200 rounded w-20"></div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+              {/* Cart Items Skeleton */}
+              <div className="lg:col-span-2 space-y-3 md:space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-light-theme rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4 animate-pulse"
+                  >
+                    {/* Product Image Skeleton */}
+                    <div className="w-full md:w-24 md:h-24 h-40 bg-bg-200 rounded flex-shrink-0"></div>
+
+                    {/* Product Info Skeleton */}
+                    <div className="flex-1">
+                      <div className="h-6 bg-bg-200 rounded w-3/4 mb-3"></div>
+                      <div className="h-4 bg-bg-200 rounded w-1/2 mb-2"></div>
+                      <div className="h-4 bg-bg-200 rounded w-1/3 mb-4"></div>
+
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+                        <div className="h-10 bg-bg-200 rounded w-32"></div>
+                        <div className="h-4 bg-bg-200 rounded w-16"></div>
+                      </div>
+                    </div>
+
+                    {/* Item Total Skeleton */}
+                    <div className="text-right">
+                      <div className="h-6 bg-bg-200 rounded w-24 ml-auto"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Order Summary Skeleton */}
+              <div className="lg:col-span-1">
+                <div className="bg-light-theme rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8 animate-pulse">
+                  <div className="h-6 md:h-7 bg-bg-200 rounded w-1/2 mb-4"></div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="h-4 bg-bg-200 rounded"></div>
+                    <div className="h-4 bg-bg-200 rounded"></div>
+                    <div className="h-4 bg-bg-200 rounded w-2/3"></div>
+                  </div>
+
+                  <div className="h-12 bg-bg-200 rounded mb-3"></div>
+                  <div className="h-4 bg-bg-200 rounded"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (items.length === 0) {
     return (

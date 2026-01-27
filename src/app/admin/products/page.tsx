@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import ProductImporter from '@/components/ProductImporter';
 
 export default function AdminProducts() {
   const router = useRouter();
@@ -12,6 +13,24 @@ export default function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [showImporter, setShowImporter] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const productsPerPage = 10;
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    scrollToTop();
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -23,7 +42,7 @@ export default function AdminProducts() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [searchTerm]);
+  }, [searchTerm, currentPage]);
 
   const fetchProducts = async () => {
     const token = localStorage.getItem('token');
@@ -34,7 +53,15 @@ export default function AdminProducts() {
 
     try {
       let url = '/api/admin/products';
-      if (searchTerm) url += `?search=${encodeURIComponent(searchTerm)}`;
+      const params = new URLSearchParams();
+      
+      if (searchTerm) params.append('search', searchTerm);
+      params.append('skip', String((currentPage - 1) * productsPerPage));
+      params.append('limit', String(productsPerPage));
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -55,6 +82,7 @@ export default function AdminProducts() {
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
+        setTotalProducts(data.total || data.products.length);
         setAuthError(null);
       } else {
         setAuthError('Failed to load products.');
@@ -89,6 +117,65 @@ export default function AdminProducts() {
       }
     } catch (error) {
       setMessage('✗ Failed to delete product');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) {
+      setMessage('✗ Please select products to delete');
+      return;
+    }
+
+    const count = selectedProducts.size;
+    if (!confirm(`Delete ${count} product(s)? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/admin/products/bulk-delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productIds: Array.from(selectedProducts),
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setMessage(`✓ ${data.message}`);
+        setSelectedProducts(new Set());
+        setTimeout(() => setMessage(''), 3000);
+        fetchProducts();
+      } else {
+        setMessage(`✗ Error: ${data.error}`);
+      }
+    } catch (error) {
+      setMessage('✗ Failed to delete products');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const toggleProduct = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProducts.size === products.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(products.map((p) => p.id)));
     }
   };
 
@@ -194,13 +281,13 @@ export default function AdminProducts() {
               <div className="text-lg mb-1">🎯</div>
               <div className="text-xs font-medium text-gray-700">Manage Attributes</div>
             </Link>
-            <Link
-              href="/admin/products/new"
-              className="p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors text-center"
+            <button
+              onClick={() => setShowImporter(!showImporter)}
+              className="p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors text-center"
             >
-              <div className="text-lg mb-1">➕</div>
-              <div className="text-xs font-medium text-gray-700">Add Product</div>
-            </Link>
+              <div className="text-lg mb-1">📥</div>
+              <div className="text-xs font-medium text-gray-700">Import Products</div>
+            </button>
             <Link
               href="/"
               className="p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors text-center"
@@ -210,6 +297,13 @@ export default function AdminProducts() {
             </Link>
           </div>
         </div>
+
+        {/* Product Importer */}
+        {showImporter && (
+          <div className="mb-8">
+            <ProductImporter />
+          </div>
+        )}
 
         {/* Search */}
         <div className="mb-6">
@@ -224,6 +318,30 @@ export default function AdminProducts() {
             <p className="text-sm text-gray-600 mt-2">No products found matching "{searchTerm}"</p>
           )}
         </div>
+
+        {/* Bulk Actions Bar */}
+        {selectedProducts.size > 0 && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={selectedProducts.size === products.length && products.length > 0}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 rounded cursor-pointer"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                {selectedProducts.size} product(s) selected
+              </span>
+            </div>
+            <button
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium text-sm transition-colors"
+            >
+              {isDeleting ? 'Deleting...' : '🗑️ Delete Selected'}
+            </button>
+          </div>
+        )}
 
         {/* Products Table */}
         {products.length === 0 ? (
@@ -245,6 +363,14 @@ export default function AdminProducts() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedProducts.size === products.length && products.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 rounded cursor-pointer"
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Product
                     </th>
@@ -267,7 +393,15 @@ export default function AdminProducts() {
                 </thead>
                 <tbody className="divide-y">
                   {products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
+                    <tr key={product.id} className={`hover:bg-gray-50 ${selectedProducts.has(product.id) ? 'bg-blue-50' : ''}`}>
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.has(product.id)}
+                          onChange={() => toggleProduct(product.id)}
+                          className="w-4 h-4 rounded cursor-pointer"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gray-200 rounded flex-shrink-0">
@@ -416,6 +550,68 @@ export default function AdminProducts() {
                 </div>
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalProducts > productsPerPage && (
+              <div className="mt-8 flex justify-center items-center gap-2 px-4 pb-4">
+                <button
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  ← Previous
+                </button>
+                
+                <div className="flex gap-1">
+                  {[...Array(Math.ceil(totalProducts / productsPerPage))].map((_, i) => {
+                    const pageNum = i + 1;
+                    const maxPagesToShow = 5;
+                    const halfWindow = Math.floor(maxPagesToShow / 2);
+                    
+                    const showPage = 
+                      pageNum === 1 || 
+                      pageNum === Math.ceil(totalProducts / productsPerPage) ||
+                      (pageNum >= currentPage - halfWindow && pageNum <= currentPage + halfWindow);
+                    
+                    if (!showPage && i !== 0 && i !== Math.ceil(totalProducts / productsPerPage) - 1) {
+                      if (i === 1 || i === Math.ceil(totalProducts / productsPerPage) - 2) {
+                        return <span key={`ellipsis-${i}`} className="px-2">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className={`px-3 py-2 rounded-lg transition-colors font-medium ${
+                          currentPage === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'border border-gray-300 hover:bg-gray-100'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => handlePageChange(Math.min(Math.ceil(totalProducts / productsPerPage), currentPage + 1))}
+                  disabled={currentPage === Math.ceil(totalProducts / productsPerPage)}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+            
+            {/* Results Info */}
+            {totalProducts > 0 && (
+              <div className="text-center text-gray-600 text-sm py-4">
+                Showing {(currentPage - 1) * productsPerPage + 1} to {Math.min(currentPage * productsPerPage, totalProducts)} of {totalProducts} products
+              </div>
+            )}
           </div>
         )}
       </div>
