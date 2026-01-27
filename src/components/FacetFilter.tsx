@@ -390,20 +390,26 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                 </button>
               </div>
             ))}
-            {selectedFilters.categories.map((category) => (
-              <div
-                key={category}
-                className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm"
-              >
-                <span>Category: {category}</span>
-                <button
-                  onClick={() => handleCategoryChange(category)}
-                  className="hover:text-blue-900 ml-2"
+            {selectedFilters.categories.map((category) => {
+              // Find the category ID from facets
+              const categoryObj = facets?.categories?.find((c) => c.name === category);
+              const categoryId = categoryObj?.id || '';
+              
+              return (
+                <div
+                  key={category}
+                  className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm"
                 >
-                  <FontAwesomeIcon icon={faX} className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  <span>Category: {category}</span>
+                  <button
+                    onClick={() => handleCategoryChange(category, categoryId)}
+                    className="hover:text-blue-900 ml-2"
+                  >
+                    <FontAwesomeIcon icon={faX} className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
             {(selectedFilters.priceRange.min > 0 || selectedFilters.priceRange.max < facets.priceRange.max) && (
               <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>
