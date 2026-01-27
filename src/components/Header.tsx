@@ -257,13 +257,7 @@ export default function Header() {
                       >
                         Sign In
                       </Link>
-                      <Link
-                        href="/auth"
-                        onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium transition-colors"
-                      >
-                        Sign Up
-                      </Link>
+
                     </>
                   ) : (
                     <>
