@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import { formatPrice } from '@/lib/currency';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -109,7 +110,7 @@ export default function OrdersPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg">₹{order.total}</p>
+                      <p className="font-bold text-lg">{formatPrice(order.total)}</p>
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${
                           order.status === 'pending'
@@ -144,7 +145,7 @@ export default function OrdersPage() {
                         <div className="flex-1">
                           <p className="font-semibold text-sm">{item.product.name}</p>
                           <p className="text-xs text-gray-600">
-                            Qty: {item.quantity} × ₹{item.price}
+                            Qty: {item.quantity} × {formatPrice(item.price)}
                           </p>
                         </div>
                       </div>

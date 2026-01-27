@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp, faX } from '@fortawesome/free-solid-svg-icons';
+import { formatPrice } from '@/lib/currency';
 
 interface Attribute {
   id: string;
@@ -222,7 +223,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                   onChange={(e) => handlePriceChange(e, 'min')}
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="₹0"
+                  placeholder="0"
                 />
               </div>
               <div className="flex-1">
@@ -233,7 +234,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                   onChange={(e) => handlePriceChange(e, 'max')}
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`₹${facets?.priceRange?.max ?? 50000}`}
+                  placeholder={`${facets?.priceRange?.max ?? 50000}`}
                 />
               </div>
             </div>
@@ -413,7 +414,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             {(selectedFilters.priceRange.min > 0 || selectedFilters.priceRange.max < facets.priceRange.max) && (
               <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>
-                  Price: ₹{selectedFilters.priceRange.min} - ₹{selectedFilters.priceRange.max}
+                  Price: {formatPrice(selectedFilters.priceRange.min)} - {formatPrice(selectedFilters.priceRange.max)}
                 </span>
                 <button
                   onClick={() =>

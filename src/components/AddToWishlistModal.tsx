@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { formatPrice } from '@/lib/currency';
 
 interface AddToWishlistModalProps {
   isOpen: boolean;
@@ -153,7 +154,7 @@ export default function AddToWishlistModal({
             )}
             <div className="flex-1">
               <p className="font-medium text-dark-theme">{productName}</p>
-              <p className="text-primary-theme font-bold">₹{productPrice}</p>
+              <p className="text-primary-theme font-bold">{formatPrice(productPrice)}</p>
             </div>
           </div>
 

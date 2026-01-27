@@ -1,3 +1,5 @@
+import { CURRENCY_CONFIG } from '@/lib/currency';
+
 export default function FeaturesSection() {
   const features = [
     {
@@ -7,7 +9,7 @@ export default function FeaturesSection() {
         </svg>
       ),
       title: 'Free Shipping',
-      description: 'On orders over ₹500',
+      description: `On orders over ${CURRENCY_CONFIG.symbol}500`,
     },
     {
       icon: (

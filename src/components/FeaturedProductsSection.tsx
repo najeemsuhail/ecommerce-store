@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { formatPrice } from '@/lib/currency';
 
 interface Product {
   id: string;
@@ -75,11 +76,11 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <span className="text-2xl font-bold text-primary-theme">
-                    ₹{product.price}
+                    {formatPrice(product.price)}
                   </span>
                   {product.comparePrice && (
                     <span className="text-sm text-text-lighter line-through ml-2">
-                      ₹{product.comparePrice}
+                      {formatPrice(product.comparePrice)}
                     </span>
                   )}
                 </div>

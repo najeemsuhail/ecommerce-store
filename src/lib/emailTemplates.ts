@@ -1,8 +1,12 @@
+import { formatPrice, formatPriceRange } from './currency';
+
 export function getOrderConfirmationEmail(order: any) {
   const itemsList = order.items
     .map(
-      (item: any) =>
-        `<tr>
+      (item: any) => {
+        const priceFormatted = formatPrice(item.price).replace('₹', ''); // Remove symbol for email context
+        const totalFormatted = formatPrice(item.quantity * item.price).replace('₹', '');
+        return `<tr>
           <td style="padding: 10px; border-bottom: 1px solid #eee;">
             ${item.product.name}
           </td>
@@ -10,12 +14,13 @@ export function getOrderConfirmationEmail(order: any) {
             ${item.quantity}
           </td>
           <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
-            ₹${item.price.toFixed(2)}
+            ₹${priceFormatted}
           </td>
           <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
-            ₹${(item.quantity * item.price).toFixed(2)}
+            ₹${totalFormatted}
           </td>
-        </tr>`
+        </tr>`;
+      }
     )
     .join('');
 
@@ -71,15 +76,15 @@ export function getOrderConfirmationEmail(order: any) {
           <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
               <span>Subtotal:</span>
-              <span>₹${(order.total - order.shippingCost).toFixed(2)}</span>
+              <span>${formatPrice(order.total - order.shippingCost)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
               <span>Shipping:</span>
-              <span>₹${order.shippingCost.toFixed(2)}</span>
+              <span>${formatPrice(order.shippingCost)}</span>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #667eea;">
               <span>Total:</span>
-              <span>₹${order.total.toFixed(2)}</span>
+              <span>${formatPrice(order.total)}</span>
             </div>
           </div>
         </div>

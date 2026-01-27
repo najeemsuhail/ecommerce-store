@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { CURRENCY_CONFIG } from '@/lib/currency';
 
 export default function Footer() {
   return (
@@ -25,9 +26,7 @@ export default function Footer() {
             <div className="flex gap-3 pt-4">
               {[
                 { icon: 'facebook', url: '#' },
-                { icon: 'twitter', url: '#' },
-                { icon: 'instagram', url: '#' },
-                { icon: 'linkedin', url: '#' }
+                { icon: 'instagram', url: '#' }
               ].map((social) => (
                 <a
                   key={social.icon}
@@ -96,7 +95,7 @@ export default function Footer() {
         <div className="border-t border-slate-800 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[
-              { icon: '🚚', title: 'Free Shipping', desc: 'On orders over ₹500' },
+              { icon: '🚚', title: 'Free Shipping', desc: `On orders over ${CURRENCY_CONFIG.symbol}500` },
               { icon: '🛡️', title: 'Secure Payment', desc: '100% encrypted' },
               { icon: '↩️', title: 'Easy Returns', desc: '30-day guarantee' }
             ].map((item, idx) => (

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import { formatPrice } from '@/lib/currency';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -69,7 +70,7 @@ function OrderSuccessContent() {
                   </p>
                   <p>
                     <span className="text-gray-600">Total:</span>{' '}
-                    <span className="font-semibold">₹{order.total}</span>
+                    <span className="font-semibold">{formatPrice(order.total)}</span>
                   </p>
                   <p>
                     <span className="text-gray-600">Payment:</span>{' '}
@@ -98,7 +99,7 @@ function OrderSuccessContent() {
                   <div className="text-left text-sm">
                     <p className="font-semibold text-orange-900 mb-1">Cash on Delivery</p>
                     <p className="text-orange-700">
-                      Please keep ₹{order?.total || '0'} ready for payment when the delivery person arrives.
+                      Please keep {formatPrice(order?.total || 0)} ready for payment when the delivery person arrives.
                     </p>
                   </div>
                 </div>

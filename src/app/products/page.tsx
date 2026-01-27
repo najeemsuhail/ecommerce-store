@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import FacetFilter from '@/components/FacetFilter';
+import { formatPrice } from '@/lib/currency';
 
 interface FacetFilters {
   brands: string[];
@@ -473,7 +474,7 @@ function ProductsContent() {
                     }
                     className="inline-flex items-center gap-1 bg-primary  px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
-                    Price: ₹{facetFilters.priceRange.min} - ₹{facetFilters.priceRange.max}
+                    Price: {formatPrice(facetFilters.priceRange.min)} - {formatPrice(facetFilters.priceRange.max)}
                     <span>✕</span>
                   </button>
                 )}
@@ -657,11 +658,11 @@ function ProductsContent() {
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <span className="text-2xl font-bold text-primary-theme">
-                            ₹{product.price}
+                            {formatPrice(product.price)}
                           </span>
                           {product.comparePrice && (
                             <span className="text-sm text-text-500 line-through ml-2">
-                              ₹{product.comparePrice}
+                              {formatPrice(product.comparePrice)}
                             </span>
                           )}
                         </div>

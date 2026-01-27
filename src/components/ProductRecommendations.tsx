@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { formatPrice } from '@/lib/currency';
 
 interface Product {
   id: string;
@@ -185,11 +186,11 @@ export default function ProductRecommendations({
               {/* Price */}
               <div className="flex items-center gap-2 my-3">
                 <span className="text-xl font-bold text-blue-600">
-                  ₹{product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </span>
                 {product.comparePrice && (
-                  <span className="text-sm text-gray-500 line-through">
-                    ₹{product.comparePrice.toFixed(2)}
+                  <span className="text-text-500 line-through text-sm">
+                    {formatPrice(product.comparePrice)}
                   </span>
                 )}
               </div>

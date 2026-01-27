@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { formatPrice } from '@/lib/currency';
 
 export default function WishlistPage() {
   const { groups, createGroup, deleteGroup, renameGroup, removeItemFromGroup } = useWishlist();
@@ -228,7 +229,7 @@ export default function WishlistPage() {
                             )}
                             <p className="text-blue-600 font-bold">
                               {item.price !== undefined && item.price !== null 
-                                ? `₹${item.price}` 
+                                ? formatPrice(item.price) 
                                 : 'Price not available'}
                             </p>
                           </div>

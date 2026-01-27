@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import { formatPrice } from '@/lib/currency';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -171,11 +172,11 @@ export default function OrderDetailPage() {
                     Quantity: {item.quantity}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Price: ₹{item.price} × {item.quantity}
+                    Price: {formatPrice(item.price)} × {item.quantity}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-bold">{formatPrice(item.price * item.quantity)}</p>
                 </div>
               </div>
             ))}
@@ -185,17 +186,17 @@ export default function OrderDetailPage() {
           <div className="mt-6 pt-6 border-t space-y-2">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal:</span>
-              <span>₹{(order.total - order.shippingCost).toFixed(2)}</span>
+              <span>{formatPrice(order.total - order.shippingCost)}</span>
             </div>
             {order.shippingCost > 0 && (
               <div className="flex justify-between text-gray-600">
                 <span>Shipping:</span>
-                <span>₹{order.shippingCost.toFixed(2)}</span>
+                <span>{formatPrice(order.shippingCost)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-lg pt-2">
               <span>Total:</span>
-              <span>₹{order.total.toFixed(2)}</span>
+              <span>{formatPrice(order.total)}</span>
             </div>
           </div>
         </div>

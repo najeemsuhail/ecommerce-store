@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
+import { formatPrice } from '@/lib/currency';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -194,7 +195,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-600">
-                      {order.items.length} item{order.items.length !== 1 ? 's' : ''} • ₹{order.total}
+                      {order.items.length} item{order.items.length !== 1 ? 's' : ''} • {formatPrice(order.total)}
                     </p>
                     <Link
                       href={`/dashboard/orders/${order.id}`}

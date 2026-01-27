@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { formatPrice } from '@/lib/currency';
 
 interface Suggestion {
   id: string;
@@ -196,7 +197,7 @@ export default function SearchAutocomplete() {
 
                       {/* Price */}
                       <div className="flex-shrink-0 font-semibold text-text-dark text-sm">
-                        ₹{suggestion.price.toFixed(2)}
+                        {formatPrice(suggestion.price)}
                       </div>
                     </button>
                   ))}

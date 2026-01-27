@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import { formatPrice } from '@/lib/currency';
 
 export default function CartPage() {
   const {
@@ -204,7 +205,7 @@ export default function CartPage() {
                       </p>
                     )}
                     <p className="text-text-light text-sm mb-3 md:mb-2">
-                      ₹{item.price.toFixed(2)}
+                      {formatPrice(item.price)}
                       {item.isDigital && (
                         <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">
                           Digital
@@ -261,7 +262,7 @@ export default function CartPage() {
                   <div className="text-right flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start">
                     <span className="text-gray-600 text-xs md:hidden">Total:</span>
                     <p className="font-semibold text-base md:text-lg">
-                      ₹{(item.price * item.quantity).toFixed(2)}
+                      {formatPrice(item.price * item.quantity)}
                     </p>
                   </div>
                 </div>
@@ -278,19 +279,19 @@ export default function CartPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-gray-600 text-sm md:text-base">
                     <span>Subtotal ({totalItems} items)</span>
-                    <span>₹{totalPrice.toFixed(2)}</span>
+                    <span>{formatPrice(totalPrice)}</span>
                   </div>
 
                   {shippingCost > 0 && (
                     <div className="flex justify-between text-gray-600 text-sm md:text-base">
                       <span>Shipping</span>
-                      <span>₹{shippingCost.toFixed(2)}</span>
+                      <span>{formatPrice(shippingCost)}</span>
                     </div>
                   )}
 
                   <div className="border-t pt-3 flex justify-between font-bold text-base md:text-lg">
                     <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
 

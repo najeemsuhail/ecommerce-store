@@ -6,6 +6,7 @@ import AddToCartNotification from './AddToCartNotification';
 import AddToWishlistModal from './AddToWishlistModal';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { formatPrice } from '@/lib/currency';
 
 interface Product {
   id: string;
@@ -237,11 +238,11 @@ export default function ProductCarousel({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-2xl font-bold text-primary-theme">
-                      ₹{product.price}
+                      {formatPrice(product.price)}
                     </span>
                     {product.comparePrice && (
                       <span className="text-sm text-text-lighter line-through ml-2">
-                        ₹{product.comparePrice}
+                        {formatPrice(product.comparePrice)}
                       </span>
                     )}
                   </div>

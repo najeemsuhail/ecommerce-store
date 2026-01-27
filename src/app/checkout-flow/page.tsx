@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import { formatPrice } from '@/lib/currency';
 
 declare global {
   interface Window {
@@ -394,7 +395,7 @@ export default function CheckoutFlowPage() {
                         <div className="font-semibold text-gray-900">Cash on Delivery</div>
                         <div className="text-sm text-gray-600">Pay on delivery</div>
                         {paymentMethod === 'cod' && (
-                          <div className="text-xs text-orange-600 mt-2 font-medium">💰 +₹{codFee} handling fee</div>
+                          <div className="text-xs text-orange-600 mt-2 font-medium">💰 +{formatPrice(codFee)} handling fee</div>
                         )}
                       </div>
                     </label>
@@ -750,7 +751,7 @@ export default function CheckoutFlowPage() {
                     </svg>
                   )}
                   <span>
-                    {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ₹${total.toFixed(2)}` : `Pay ₹${total.toFixed(2)}`}
+                    {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ${formatPrice(total)}` : `Pay ${formatPrice(total)}`}
                   </span>
                 </button>
               </form>
@@ -779,11 +780,11 @@ export default function CheckoutFlowPage() {
                           <p className="text-xs text-gray-500">{item.variantName}</p>
                         )}
                         <p className="text-sm text-gray-600">
-                          Qty: {item.quantity} × ₹{item.price}
+                          Qty: {item.quantity} × {formatPrice(item.price)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
                       </div>
                     </div>
                   ))}
@@ -792,26 +793,26 @@ export default function CheckoutFlowPage() {
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
-                    <span>₹{totalPrice.toFixed(2)}</span>
+                    <span>{formatPrice(totalPrice)}</span>
                   </div>
 
                   {shippingCost > 0 && (
                     <div className="flex justify-between text-gray-600">
                       <span>Shipping</span>
-                      <span>₹{shippingCost.toFixed(2)}</span>
+                      <span>{formatPrice(shippingCost)}</span>
                     </div>
                   )}
 
                   {codFee > 0 && (
                     <div className="flex justify-between text-warning">
                       <span>COD Handling Fee</span>
-                      <span>₹{codFee.toFixed(2)}</span>
+                      <span>{formatPrice(codFee)}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between font-bold text-lg pt-2 border-t">
                     <span>Total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
 

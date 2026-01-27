@@ -8,6 +8,7 @@ import SearchAutocomplete from './SearchAutocomplete';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { formatPrice } from '@/lib/currency';
 
 interface MobileSuggestion {
   id: string;
@@ -369,7 +370,7 @@ export default function Header() {
                             )}
                             <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-dark-theme truncate">{suggestion.name}</div>
-                              <div className="text-xs text-light-theme">₹{suggestion.price.toLocaleString('en-IN')}</div>
+                              <div className="text-xs text-light-theme">{formatPrice(suggestion.price)}</div>
                             </div>
                           </button>
                         </li>

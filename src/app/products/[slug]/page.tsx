@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import { formatPrice } from '@/lib/currency';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -471,7 +472,7 @@ export default function ProductDetailPage() {
                         onClick={handleAddToCart}
                         className="btn-primary-lg"
                       >
-                        Add to Cart - ₹{((selectedVariant ? selectedVariant.price : product.price) * quantity).toFixed(2)}
+                        Add to Cart - {formatPrice((selectedVariant ? selectedVariant.price : product.price) * quantity)}
                       </button>
                       
                       <button
