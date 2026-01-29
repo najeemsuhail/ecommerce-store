@@ -61,13 +61,14 @@ export default function WishlistPage() {
       quantity: 1,
       image: item.image,
       slug: item.slug,
+      isDigital: false,
     });
     setNotification({
       message: `${item.name} moved to cart!`,
       visible: true,
     });
     // Remove from wishlist after moving to cart
-    await removeItemFromGroup(groupId, item.productId);
+    removeItemFromGroup(groupId, item.productId);
     setTimeout(() => {
       setNotification({ message: '', visible: false });
     }, 3000);
