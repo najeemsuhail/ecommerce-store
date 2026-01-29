@@ -22,10 +22,12 @@ export default function RecentlyViewedSection() {
   const handleAddToCart = (product: any) => {
     addItem({
       productId: product.id,
+      name: product.name,
+      price: product.price,
       quantity: 1,
-      productName: product.name,
-      productPrice: product.price,
-      productImage: product.images?.[0] || '/images/products/default.png',
+      image: product.images?.[0] || '/images/products/default.png',
+      slug: product.slug,
+      isDigital: product.isDigital || false,
     });
     setNotification({
       message: `${product.name} added to cart!`,
@@ -33,6 +35,8 @@ export default function RecentlyViewedSection() {
     });
     setTimeout(() => {
       setNotification({ message: '', visible: false });
+    }, 3000);
+  };
     }, 3000);
   };
 
@@ -93,9 +97,11 @@ export default function RecentlyViewedSection() {
       </div>
 
       {/* Notification */}
-      {notification.visible && (
-        <AddToCartNotification message={notification.message} />
-      )}
+      <AddToCartNotification 
+        message={notification.message}
+        isVisible={notification.visible}
+        onClose={() => setNotification({ message: '', visible: false })}
+      />
     </section>
   );
 }
