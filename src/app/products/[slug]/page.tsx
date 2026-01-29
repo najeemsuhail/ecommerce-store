@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addItem, totalItems } = useCart();
   const { isInWishlist } = useWishlist();
+  const { addToRecentlyViewed } = useRecentlyViewed();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -42,6 +44,15 @@ export default function ProductDetailPage() {
       const data = await response.json();
       if (data.success) {
         setProduct(data.product);
+        // Track this product as viewed
+        addToRecentlyViewed({
+          id: data.product.id,
+          name: data.product.name,
+          slug: data.product.slug,
+          images: data.product.images || [],
+          price: data.product.price,
+          viewedAt: Date.now(),
+        });
         // Set first variant as default if variants exist
         if (data.product.variants && data.product.variants.length > 0) {
           setSelectedVariant(data.product.variants[0]);

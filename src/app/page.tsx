@@ -5,13 +5,14 @@ import { useCart } from '@/contexts/CartContext';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import ProductCarousel from '@/components/ProductCarousel';
-import HeroSection from '@/components/HeroSection';
+import HeroCarousel from '@/components/HeroCarousel';
 import StatsSection from '@/components/StatsSection';
-import CategoriesSection from '@/components/CategoriesSection';
+import CategoryCarousel from '@/components/CategoryCarousel';
 import FeaturedProductsSection from '@/components/FeaturedProductsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import LatestBlogPostsSection from '@/components/LatestBlogPostsSection';
 import ProductRecommendations from '@/components/ProductRecommendations';
+import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -135,9 +136,10 @@ export default function HomePage() {
         onClose={handleNotificationClose}
       />
       <div className="bg-bg-gray">
-        <HeroSection />
+        <HeroCarousel />
         <StatsSection stats={stats} />
-        <CategoriesSection categories={categories} />
+        <CategoryCarousel categories={categories} />
+        <RecentlyViewedSection />
         <FeaturedProductsSection products={featuredProducts} onQuickAdd={handleQuickAdd} />
         {bestSellers.length > 0 && (
           <ProductCarousel

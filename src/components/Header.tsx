@@ -149,11 +149,12 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image 
-                src="/images/logo/logo.png" 
+                src="/images/logo/brand-logo.png?t=1" 
                 alt="OnlyInKani Logo" 
                 width={200} 
                 height={80}
                 className="rounded-lg"
+                unoptimized
               />
             </Link>
 
@@ -187,18 +188,9 @@ export default function Header() {
                     : 'text-text-light hover:text-primary'
                 }`}
               >
-                About Us
+                About
               </Link>
-              <Link 
-                href="/contact" 
-                className={`font-medium transition-colors ${
-                  pathname === '/contact'
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-text-light hover:text-primary'
-                }`}
-              >
-                Contact Us
-              </Link>
+              
               {isLoggedIn && (
                 <Link 
                   href="/dashboard" 

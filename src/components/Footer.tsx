@@ -13,11 +13,12 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="inline-flex items-center gap-2">
               <Image 
-                src="/images/logo/logo.png" 
+                src="/images/logo/brand-logo.png?t=1" 
                 alt="Onlyinkani Logo" 
                 width={200} 
                 height={80}
                 className="rounded-lg"
+                unoptimized
               />
             </Link>
             <p className="text-gray-300 text-sm leading-relaxed">

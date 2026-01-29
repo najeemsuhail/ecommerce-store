@@ -7,6 +7,7 @@ import "./globals.css";
 // '@/styles/themes/modern.css'   -> Vibrant & Bold
 import { CartProvider } from "@/contexts/CartContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,9 @@ export default function RootLayout({
       >
         <CartProvider>
           <WishlistProvider>
-            {children}
+            <RecentlyViewedProvider>
+              {children}
+            </RecentlyViewedProvider>
           </WishlistProvider>
         </CartProvider>
       </body>

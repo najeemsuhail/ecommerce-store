@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Simple admin footer */}
       <footer className="bg-light-theme border-t py-4">
         <div className="max-w-7xl mx-auto px-4 text-center text-gray-600 text-xs md:text-sm">
-          <p>© 2025 E-Store Admin Panel</p>
+          <p>© 2026 Onlyinkani.in Admin Panel</p>
         </div>
       </footer>
     </div>

@@ -36,6 +36,6 @@ const pngData = Buffer.from([
   0x42, 0x60, 0x82
 ]);
 
-const logoPath = path.join(__dirname, 'public', 'images', 'logo.png');
+const logoPath = path.join(__dirname, 'public', 'images', 'brand-logo.png');
 fs.writeFileSync(logoPath, pngData);
 console.log('Logo PNG created at:', logoPath);

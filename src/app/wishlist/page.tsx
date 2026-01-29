@@ -4,15 +4,22 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/currency';
+import AddToCartNotification from '@/components/AddToCartNotification';
 
 export default function WishlistPage() {
   const { groups, createGroup, deleteGroup, renameGroup, removeItemFromGroup } = useWishlist();
+  const { addItem } = useCart();
   const [newGroupName, setNewGroupName] = useState('');
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const [renameText, setRenameText] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
+    message: '',
+    visible: false,
+  });
 
   // Check if user is logged in
   useEffect(() => {
@@ -44,6 +51,26 @@ export default function WishlistPage() {
   const handleRenameGroup = (groupId: string, currentName: string) => {
     setRenamingGroupId(groupId);
     setRenameText(currentName);
+  };
+
+  const handleMoveToCart = async (groupId: string, item: any) => {
+    addItem({
+      productId: item.productId,
+      name: item.name || 'Product',
+      price: item.price || 0,
+      quantity: 1,
+      image: item.image,
+      slug: item.slug,
+    });
+    setNotification({
+      message: `${item.name} moved to cart!`,
+      visible: true,
+    });
+    // Remove from wishlist after moving to cart
+    await removeItemFromGroup(groupId, item.productId);
+    setTimeout(() => {
+      setNotification({ message: '', visible: false });
+    }, 3000);
   };
 
   const handleSaveRename = (groupId: string) => {
@@ -102,6 +129,10 @@ export default function WishlistPage() {
 
   return (
     <Layout>
+      <AddToCartNotification
+        message={notification.message}
+        isVisible={notification.visible}
+      />
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
@@ -234,14 +265,26 @@ export default function WishlistPage() {
                             </p>
                           </div>
 
-                          {/* Remove Button */}
-                          <button
-                            onClick={() => removeItemFromGroup(group.id, item.productId)}
-                            className="text-red-500 hover:text-red-700 font-bold p-1"
-                            title="Remove from collection"
-                          >
-                            ✕
-                          </button>
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 items-center">
+                            {/* Move to Cart Button */}
+                            <button
+                              onClick={() => handleMoveToCart(group.id, item)}
+                              title="Move to cart"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                            >
+                              Move
+                            </button>
+
+                            {/* Remove Button */}
+                            <button
+                              onClick={() => removeItemFromGroup(group.id, item.productId)}
+                              className="text-red-500 hover:text-red-700 font-bold p-1"
+                              title="Remove from collection"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
