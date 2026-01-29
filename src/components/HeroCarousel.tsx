@@ -182,7 +182,7 @@ export default function HeroCarousel() {
         <div className="h-auto md:h-96 min-h-80"></div>
 
         {/* Indicators/Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-3">
+        <div className="hidden md:absolute md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:z-20 md:flex gap-3">
           {heroSlides.map((_, index) => (
             <button
               key={index}
