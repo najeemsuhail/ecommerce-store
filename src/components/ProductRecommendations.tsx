@@ -199,25 +199,11 @@ export default function ProductRecommendations({
               <div className="flex gap-2 pt-3 border-t border-gray-200">
                 <Link
                   href={`/products/${product.slug}`}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
                   onClick={() => onProductClick?.(product)}
                 >
                   View
                 </Link>
-                <button
-                  onClick={() => onAddToCart?.(product)}
-                  className="flex-1 border border-blue-600 text-blue-600 hover:bg-blue-50 py-2 px-3 rounded font-medium text-sm transition-colors"
-                  title="Add to cart"
-                >
-                  <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
