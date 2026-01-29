@@ -358,16 +358,18 @@ function ProductsContent() {
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
-          <div className="hidden lg:block lg:col-span-1">
-            <FacetFilter
-              facets={facets}
-              selectedFilters={facetFilters}
-              onFilterChange={setFacetFilters}
-            />
-          </div>
+          {products.length > 0 && (
+            <div className="hidden lg:block lg:col-span-1">
+              <FacetFilter
+                facets={facets}
+                selectedFilters={facetFilters}
+                onFilterChange={setFacetFilters}
+              />
+            </div>
+          )}
 
           {/* Mobile Filter Modal */}
-          {mobileFilterOpen && (
+          {mobileFilterOpen && products.length > 0 && (
             <>
               {/* Backdrop */}
               <div
