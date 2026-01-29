@@ -92,10 +92,7 @@ function ProductsContent() {
 
   // Fetch all products once for facets
   useEffect(() => {
-    if (!isFetching.current) {
-      isFetching.current = true;
-      fetchAllProducts();
-    }
+    fetchAllProducts();
   }, []);
 
   // Fetch filtered products when filters change
@@ -326,11 +323,7 @@ function ProductsContent() {
         productSlug={wishlistModal.productSlug}
       />
       <div className="max-w-7xl mx-auto px-4 py-4 lg:py-8">
-        {/* Header */}
-        <div className="mb-4 lg:mb-8">
-          <h1 className="text-2xl lg:text-3xl font-bold mb-2 lg:mb-4">All Products</h1>
-        </div>
-
+    
         {/* Mobile Filter and Sort Bar */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-light-theme border-t border-border-300 p-4 flex z-40">
           <button

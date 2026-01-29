@@ -124,7 +124,7 @@ export default function HeroCarousel() {
             </div>
 
             {/* Content */}
-            <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 min-h-fit pb-16">
+            <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 min-h-fit pb-32 md:pb-16">
               <div className="text-center space-y-6">
                 {/* Badge */}
                 {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 group">
