@@ -37,8 +37,6 @@ export default function RecentlyViewedSection() {
       setNotification({ message: '', visible: false });
     }, 3000);
   };
-    }, 3000);
-  };
 
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8">
