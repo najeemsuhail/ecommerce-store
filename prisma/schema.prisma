@@ -19,6 +19,7 @@ model User {
   orders         Order[]
   reviews        Review[]
   wishlistGroups WishlistGroup[]
+  couponUsages   CouponUsage[]
 }
 
 model Category {
@@ -111,6 +112,9 @@ model Order {
   guestName             String?
   status                String      @default("pending")
   total                 Float
+  subtotal              Float       @default(0)
+  discountAmount        Float       @default(0)
+  appliedCouponCode     String?
   shippingCost          Float       @default(0)
   shippingAddress       Json?
   paymentStatus         String      @default("pending")
@@ -226,4 +230,43 @@ model Blog {
 
   @@index([published])
   @@index([createdAt])
+}
+
+model Coupon {
+  id                  String          @id @default(cuid())
+  code                String          @unique
+  description         String?
+  discountType        String          @default("percentage") // "percentage" or "fixed"
+  discountValue       Float
+  maxDiscount         Float?          // Max discount for percentage coupons
+  minOrderValue       Float           @default(0)
+  maxUses             Int?            // Total max uses
+  maxUsesPerCustomer  Int             @default(1)
+  expiryDate          DateTime?
+  isActive            Boolean         @default(true)
+  applicableProducts  String[]        // Product IDs (empty = all products)
+  applicableCategories String[]       // Category IDs (empty = all categories)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  usages              CouponUsage[]
+
+  @@index([code])
+  @@index([expiryDate])
+  @@index([isActive])
+}
+
+model CouponUsage {
+  id        String   @id @default(cuid())
+  couponId  String
+  userId    String?
+  guestEmail String?
+  orderId   String?
+  discount  Float
+  createdAt DateTime @default(now())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([couponId])
+  @@index([userId])
+  @@index([orderId])
 }
