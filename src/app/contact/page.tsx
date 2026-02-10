@@ -37,9 +37,9 @@ export default function Contact() {
       {/* Hero Section */}
       <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-4 text-white">Contact Us</h1>
+          <h1 className="text-5xl font-bold mb-4 text-white">📞 Contact Us</h1>
           <p className="text-xl text-white-theme">
-            We'd love to hear from you. Get in touch with our team anytime.
+            We're here to help! If you have any questions about our products, orders, shipping, or returns, feel free to reach out to us anytime.
           </p>
         </div>
       </div>
@@ -49,43 +49,37 @@ export default function Contact() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {/* Contact Info Cards */}
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl text-indigo-600 mb-4">📍</div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Address</h3>
-            <p className="text-slate-600">
-              123 Commerce Street<br />
-              New York, NY 10001<br />
-              United States
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl text-indigo-600 mb-4">📧</div>
+            <div className="text-4xl text-indigo-600 mb-4">�</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Email</h3>
             <p className="text-slate-600">
-              <a href="mailto:support@ecomstore.com" className="text-indigo-600 hover:underline">
-                support@ecomstore.com
-              </a>
-              <br />
-              <a href="mailto:info@ecomstore.com" className="text-indigo-600 hover:underline">
-                info@ecomstore.com
+              <a href="mailto:support@onlyinkani.in" className="text-indigo-600 hover:underline">
+                support@onlyinkani.in
               </a>
             </p>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl text-indigo-600 mb-4">📞</div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Phone</h3>
+            <div className="text-4xl text-indigo-600 mb-4">📍</div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Location</h3>
             <p className="text-slate-600">
-              +1 (555) 123-4567<br />
-              +1 (555) 987-6543<br />
-              Mon - Fri, 9AM - 6PM EST
+              Goa, India
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="text-4xl text-indigo-600 mb-4">⏰</div>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Support Hours</h3>
+            <p className="text-slate-600">
+              Monday to Saturday<br />
+              9:00 AM to 6:00 PM
             </p>
           </div>
         </div>
 
         {/* Form Section */}
         <div className="bg-light-theme rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold text-slate-800 mb-6">Send us a Message</h2>
+          <h2 className="text-3xl font-bold text-slate-800 mb-2">Send us a Message</h2>
+          <p className="text-slate-600 mb-6">We aim to respond to all queries within 24 hours.</p>
           
           {submitted && (
             <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
@@ -173,42 +167,13 @@ export default function Contact() {
           </form>
         </div>
 
-        {/* FAQ Section */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <details className="bg-white rounded-lg shadow-md p-6 cursor-pointer">
-              <summary className="font-bold text-slate-800 text-lg">What are your shipping times?</summary>
-              <p className="text-slate-600 mt-4">
-                We offer standard shipping (5-7 business days) and express shipping (2-3 business days). 
-                Shipping times are calculated from the date your order is confirmed.
-              </p>
-            </details>
-
-            <details className="bg-white rounded-lg shadow-md p-6 cursor-pointer">
-              <summary className="font-bold text-slate-800 text-lg">What is your return policy?</summary>
-              <p className="text-slate-600 mt-4">
-                We accept returns within 30 days of purchase. Items must be in original condition with 
-                all packaging and accessories. Refunds are processed within 5-7 business days.
-              </p>
-            </details>
-
-            <details className="bg-white rounded-lg shadow-md p-6 cursor-pointer">
-              <summary className="font-bold text-slate-800 text-lg">Do you offer international shipping?</summary>
-              <p className="text-slate-600 mt-4">
-                Yes, we ship to over 100 countries worldwide. International shipping costs and times 
-                vary by location. You'll see the exact cost at checkout.
-              </p>
-            </details>
-
-            <details className="bg-white rounded-lg shadow-md p-6 cursor-pointer">
-              <summary className="font-bold text-slate-800 text-lg">How can I track my order?</summary>
-              <p className="text-slate-600 mt-4">
-                Once your order ships, you'll receive a tracking number via email. You can use this 
-                number to monitor your package's journey to your door.
-              </p>
-            </details>
-          </div>
+        {/* Support Message */}
+        <div className="mt-16 bg-white rounded-lg shadow-lg p-8 text-center">
+          <h2 className="text-3xl font-bold text-slate-800 mb-4">Thank You for Choosing Onlyinkani.in</h2>
+          <p className="text-lg text-slate-700 leading-relaxed">
+            Your satisfaction is our priority. Whether you have questions about products, orders, shipping, or returns, 
+            our friendly team is here to help. We aim to respond to all queries within 24 hours.
+          </p>
         </div>
       </div>
       </div>

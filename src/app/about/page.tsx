@@ -8,9 +8,9 @@ export default function About() {
       {/* Hero Section */}
       <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-4 text-white">About Our Store</h1>
+          <h1 className="text-5xl font-bold mb-4 text-white">About Onlyinkani.in</h1>
           <p className="text-xl text-white-theme">
-            Your trusted destination for quality products and exceptional customer service
+            Your trusted online store for everyday home essentials
           </p>
         </div>
       </div>
@@ -21,77 +21,82 @@ export default function About() {
         <section className="mb-16">
           <h2 className="text-4xl font-bold text-slate-800 mb-6">Our Story</h2>
           <p className="text-lg text-slate-700 leading-relaxed mb-4">
-            Founded in 2020, our e-commerce store has been dedicated to providing customers with high-quality products 
-            at competitive prices. What started as a small online shop has grown into a thriving business serving thousands 
-            of customers worldwide.
+            We started Onlyinkani with a simple goal — to make quality household products affordable, easy to order, 
+            and fast to deliver across India.
+          </p>
+          <p className="text-lg text-slate-700 leading-relaxed mb-4">
+            Based in Goa, we understand the common challenges people face while shopping for daily home needs: high prices, 
+            limited options, and slow deliveries. That's why we focus on carefully selected essentials that are practical, 
+            reliable, and fairly priced.
           </p>
           <p className="text-lg text-slate-700 leading-relaxed">
-            We believe in building long-lasting relationships with our customers by offering exceptional products, 
-            reliable service, and genuine support. Every product in our store is carefully selected to meet our 
-            high standards of quality and value.
+            From kitchen items to household must-haves, every product we offer is chosen with quality and usefulness in mind.
           </p>
         </section>
 
-        {/* Our Mission */}
+        {/* Our Promise */}
         <section className="mb-16 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-slate-800 mb-4">Our Mission</h2>
-          <p className="text-lg text-slate-700 leading-relaxed">
-            To make quality shopping accessible to everyone by offering a curated selection of products, 
-            fast shipping, and customer support that goes above and beyond expectations. We're committed to 
-            sustainability, ethical sourcing, and continuous innovation in the e-commerce space.
-          </p>
-        </section>
-
-        {/* Why Choose Us */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-slate-800 mb-8">Why Choose Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-bold text-indigo-600 mb-3">Quality Products</h3>
-              <p className="text-slate-600">
-                Every item is carefully selected and tested to ensure it meets our strict quality standards.
-              </p>
+          <h2 className="text-3xl font-bold text-slate-800 mb-6">Our Promise</h2>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-green-600 font-bold text-xl">✔</span>
+              <p className="text-lg text-slate-700">Affordable pricing</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-bold text-indigo-600 mb-3">Fast Shipping</h3>
-              <p className="text-slate-600">
-                We offer quick delivery options to get your orders to you as fast as possible.
-              </p>
+            <div className="flex items-start gap-3">
+              <span className="text-green-600 font-bold text-xl">✔</span>
+              <p className="text-lg text-slate-700">Trusted quality</p>
             </div>
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-bold text-indigo-600 mb-3">24/7 Support</h3>
-              <p className="text-slate-600">
-                Our dedicated customer service team is always ready to help with any questions or concerns.
-              </p>
+            <div className="flex items-start gap-3">
+              <span className="text-green-600 font-bold text-xl">✔</span>
+              <p className="text-lg text-slate-700">Fast delivery</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-green-600 font-bold text-xl">✔</span>
+              <p className="text-lg text-slate-700">Friendly customer support</p>
             </div>
           </div>
         </section>
 
-        {/* Team Section */}
-        <section className="mb-16 bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-slate-800 mb-6">Our Team</h2>
+        {/* Values Section */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-slate-800 mb-8">Why Onlyinkani</h2>
           <p className="text-lg text-slate-700 leading-relaxed mb-6">
-            We're a passionate team of e-commerce professionals, designers, and developers working together 
-            to create the best shopping experience possible. Our diverse backgrounds and expertise allow us to 
-            understand and serve our customers better.
+            We are proud to be starting small and growing with honesty, customer trust, and long-term value. 
+            Our commitment is to make everyday living simpler by providing carefully curated household essentials 
+            at prices that won't break the bank.
           </p>
           <p className="text-lg text-slate-700 leading-relaxed">
-            From product curation to customer support, every team member is committed to excellence and 
-            helping you find exactly what you're looking for.
+            Thank you for choosing Onlyinkani.in — we're honored to be part of your daily life and committed 
+            to serving you with integrity and care.
           </p>
+        </section>
+
+        {/* Contact Section */}
+        <section className="mb-16 bg-white rounded-lg shadow-lg p-8">
+          <h2 className="text-3xl font-bold text-slate-800 mb-6">Get in Touch</h2>
+          <p className="text-lg text-slate-700 leading-relaxed mb-6">
+            Have questions or feedback? We'd love to hear from you! Our friendly customer support team is here to help 
+            and ensure you have the best shopping experience possible.
+          </p>
+          <Link
+            href="/contact"
+            className="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition"
+          >
+            Contact Us
+          </Link>
         </section>
 
         {/* CTA Section */}
         <section className="gradient-primary-accent rounded-lg text-white-theme p-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Shop?</h2>
+          <h2 className="text-3xl font-bold mb-4">Start Shopping Today</h2>
           <p className="text-lg text-indigo-100 mb-6">
-            Explore our wide selection of quality products today.
+            Discover affordable, quality household essentials delivered fast across India.
           </p>
           <Link
             href="/products"
             className="inline-block bg-light-theme text-primary-theme px-8 py-3 rounded-lg font-bold hover:bg-light-gray-theme transition"
           >
-            Browse Products
+            Browse Our Products
           </Link>
         </section>
       </div>
