@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createCoupon } from '@/lib/coupon-utils';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // GET all coupons (admin)
 export async function GET(request: NextRequest) {
