@@ -86,6 +86,8 @@ export async function POST(request: NextRequest) {
       guestEmail,
       guestName,
       notes,
+      couponCode,
+      discount,
     } = body;
 
     // Get user if authenticated
@@ -224,7 +226,8 @@ export async function POST(request: NextRequest) {
     const hasPhysicalProducts = products.some((p) => !p.isDigital);
     const shippingCost = hasPhysicalProducts ? 15.0 : 0; // Flat $15 shipping
 
-    const total = subtotal + shippingCost;
+    const discountAmount = discount || 0;
+    const total = subtotal + shippingCost - discountAmount;
 
     // Create order
     const order = await prisma.order.create({
@@ -233,6 +236,9 @@ export async function POST(request: NextRequest) {
         guestEmail: guestEmail || null,
         guestName: guestName || null,
         status: 'pending',
+        subtotal,
+        discountAmount,
+        appliedCouponCode: couponCode || null,
         total,
         shippingCost,
         shippingAddress,
@@ -254,6 +260,24 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Track coupon usage if a coupon was applied
+    if (body.couponId && couponCode) {
+      try {
+        await prisma.couponUsage.create({
+          data: {
+            couponId: body.couponId,
+            orderId: order.id,
+            userId: decoded?.userId || null,
+            guestEmail: guestEmail || null,
+            discount: discountAmount,
+          },
+        });
+      } catch (error) {
+        console.error('Error tracking coupon usage:', error);
+        // Continue even if tracking fails - the order is already created
+      }
+    }
 
     // Reduce stock for physical products
     for (const item of items) {

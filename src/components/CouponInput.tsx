@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertCircle, CheckCircle, Loader } from 'lucide-react';
 
 interface CouponInputProps {
   orderTotal: number;
@@ -91,7 +90,7 @@ export default function CouponInput({
       <div className="space-y-4 rounded-lg border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600" />
+            <span className="text-2xl">✅</span>
             <div>
               <p className="font-medium text-green-900">Coupon Applied</p>
               <p className="text-sm text-green-700">{appliedCode}</p>
@@ -125,10 +124,7 @@ export default function CouponInput({
           className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
-            <>
-              <Loader className="inline h-4 w-4 animate-spin" />
-              <span className="ml-2">Applying...</span>
-            </>
+            <span>⏳ Applying...</span>
           ) : (
             'Apply Coupon'
           )}
@@ -143,11 +139,9 @@ export default function CouponInput({
               : 'bg-red-50 text-red-700'
           }`}
         >
-          <AlertCircle
-            className={`h-4 w-4 flex-shrink-0 ${
-              messageType === 'success' ? 'text-green-600' : 'text-red-600'
-            }`}
-          />
+          <span className="text-lg flex-shrink-0">
+            {messageType === 'success' ? '✅' : '⚠️'}
+          </span>
           <p>{message}</p>
         </div>
       )}

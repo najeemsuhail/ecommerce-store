@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import CouponInput from '@/components/CouponInput';
 import { formatPrice } from '@/lib/currency';
 
 declare global {
@@ -50,6 +51,17 @@ export default function CheckoutFlowPage() {
   });
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
+
+  // Coupon states
+  const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] = useState('');
+  const [appliedCouponId, setAppliedCouponId] = useState('');
+
+  const handleCouponApplied = (discount: number, code: string, couponId: string) => {
+    setAppliedDiscount(discount);
+    setAppliedCouponCode(code);
+    setAppliedCouponId(couponId);
+  };
 
   const handleAddToCartRecommendations = (product: any) => {
     addItem({
@@ -169,7 +181,8 @@ export default function CheckoutFlowPage() {
   const hasPhysicalProducts = items.some((item) => !item.isDigital);
   const shippingCost = hasPhysicalProducts ? 50.0 : 0;
   const codFee = paymentMethod === 'cod' ? 20.0 : 0; // COD handling fee
-  const total = totalPrice + shippingCost + codFee;
+  const subtotal = totalPrice + shippingCost + codFee;
+  const total = Math.max(0, subtotal - appliedDiscount);
 
   // Load Razorpay script
   useEffect(() => {
@@ -217,6 +230,9 @@ export default function CheckoutFlowPage() {
         billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
         billingSameAsShipping,
         paymentMethod,
+        couponCode: appliedCouponCode,
+        couponId: appliedCouponId,
+        discount: appliedDiscount,
       };
 
       console.log('Sending order data:', orderData);
@@ -348,6 +364,20 @@ export default function CheckoutFlowPage() {
             {/* Main Content */}
             <div className="lg:col-span-2">
               <form onSubmit={handleCheckout} className="space-y-6">
+                {/* Coupon Section */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">🎟️</span>
+                    <h2 className="text-xl font-bold">Apply Coupon Code</h2>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">Have a coupon code? Apply it here to get a discount on your order.</p>
+                  <CouponInput 
+                    orderTotal={subtotal}
+                    onCouponApplied={handleCouponApplied}
+                    appliedCode={appliedCouponCode}
+                  />
+                </div>
+
                 {/* Payment Method Selection */}
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="flex items-center gap-2 mb-6">
@@ -807,6 +837,13 @@ export default function CheckoutFlowPage() {
                     <div className="flex justify-between text-warning">
                       <span>COD Handling Fee</span>
                       <span>{formatPrice(codFee)}</span>
+                    </div>
+                  )}
+
+                  {appliedDiscount > 0 && (
+                    <div className="flex justify-between text-green-600 font-semibold">
+                      <span>Coupon Discount ({appliedCouponCode})</span>
+                      <span>-{formatPrice(appliedDiscount)}</span>
                     </div>
                   )}
 
