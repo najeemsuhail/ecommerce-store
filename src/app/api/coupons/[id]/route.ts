@@ -4,11 +4,12 @@ import prisma from '@/lib/prisma';
 // GET single coupon
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const coupon = await prisma.coupon.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         _count: {
           select: { usages: true },
@@ -33,14 +34,15 @@ export async function GET(
 // PUT update coupon
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // In production, verify admin authentication
     const body = await request.json();
 
     const coupon = await prisma.coupon.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         code: body.code?.toUpperCase().trim(),
         description: body.description,
@@ -73,12 +75,13 @@ export async function PUT(
 // DELETE coupon
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     // In production, verify admin authentication
     await prisma.coupon.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Coupon deleted' });
