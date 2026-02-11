@@ -165,10 +165,9 @@ export default function Contact() {
               />
             </div>
 
-            <ddisabled={isSubmitting}
-              className="w-full btn-gradient-primary-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Sending...' : 'Send Message'}
+            <div>
+              <label htmlFor="subject" className="block text-sm font-semibold text-slate-700 mb-2">
+                Subject *
               </label>
               <input
                 type="text"
