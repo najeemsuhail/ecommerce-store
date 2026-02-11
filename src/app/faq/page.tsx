@@ -31,7 +31,7 @@ export default function FAQ() {
     },
     {
       question: "How can I contact customer support?",
-      answer: "You can email us anytime at support@onlyinkani.in and we'll get back to you within 24 hours. You can also reach out through our contact form."
+      answer: "You can email us anytime at contact@onlyinkani.in and we'll get back to you within 24 hours. You can also reach out through our contact form."
     }
   ];
 
@@ -89,7 +89,7 @@ export default function FAQ() {
                 Contact Us
               </Link>
               <a
-                href="mailto:support@onlyinkani.in"
+                href="mailto:contact@onlyinkani.in"
                 className="inline-block bg-light-theme text-primary-theme px-8 py-3 rounded-lg font-bold hover:bg-light-gray-theme transition"
               >
                 Email Support

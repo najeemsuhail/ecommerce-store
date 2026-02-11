@@ -49,11 +49,11 @@ export default function Contact() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {/* Contact Info Cards */}
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="text-4xl text-indigo-600 mb-4">�</div>
+            <div className="text-4xl text-indigo-600 mb-4">📧</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Email</h3>
             <p className="text-slate-600">
-              <a href="mailto:support@onlyinkani.in" className="text-indigo-600 hover:underline">
-                support@onlyinkani.in
+              <a href="mailto:contact@onlyinkani.in" className="text-indigo-600 hover:underline">
+                contact@onlyinkani.in
               </a>
             </p>
           </div>
@@ -62,7 +62,7 @@ export default function Contact() {
             <div className="text-4xl text-indigo-600 mb-4">📍</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Location</h3>
             <p className="text-slate-600">
-              Goa, India
+              Bambolim, Goa, India. PIN: 403202
             </p>
           </div>
 

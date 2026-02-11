@@ -103,7 +103,7 @@ export default function PrivacyPolicy() {
               For any questions, contact us at:
             </p>
             <div className="space-y-2 text-white-theme">
-              <p><strong>Email:</strong> support@onlyinkani.in</p>
+              <p><strong>Email:</strong> contact@onlyinkani.in</p>
             </div>
             <p className="text-white-theme mt-6">
               We appreciate your trust in Onlyinkani.in.

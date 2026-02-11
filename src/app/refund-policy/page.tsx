@@ -107,7 +107,7 @@ export default function RefundPolicy() {
               For return or refund requests, contact us at:
             </p>
             <div className="space-y-2 text-white-theme">
-              <p><strong>Email:</strong> support@onlyinkani.in</p>
+              <p><strong>Email:</strong> contact@onlyinkani.in</p>
             </div>
             <p className="text-white-theme mt-6">
               We're here to help and ensure your complete satisfaction!

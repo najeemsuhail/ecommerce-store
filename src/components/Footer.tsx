@@ -58,10 +58,10 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-6 text-white">Support</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Contact Us</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">FAQs</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Shipping Info</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Returns</a></li>
+              <li><Link href="/contact" className="text-gray-300 hover:text-blue-400 transition font-medium">Contact Us</Link></li>
+              <li><Link href="/faq" className="text-gray-300 hover:text-blue-400 transition font-medium">FAQs</Link></li>
+              <li><Link href="/shipping-info" className="text-gray-300 hover:text-blue-400 transition font-medium">Shipping Info</Link></li>
+              <li><Link href="/returns" className="text-gray-300 hover:text-blue-400 transition font-medium">Returns</Link></li>
             </ul>
           </div>
 
@@ -70,10 +70,10 @@ export default function Footer() {
             <h3 className="font-bold text-lg mb-6 text-white">Company</h3>
             <ul className="space-y-3">
               <li><Link href="/about" className="text-gray-300 hover:text-blue-400 transition font-medium">About Us</Link></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Blog</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-blue-400 transition font-medium">Press</a></li>
+              <li><Link href="/blog" className="text-gray-300 hover:text-blue-400 transition font-medium">Blog</Link></li>
             </ul>
           </div>
+
 
           {/* Newsletter */}
           <div suppressHydrationWarning>
@@ -114,9 +114,10 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
             <p className="text-gray-400 text-sm">&copy; 2026 Onlyinka.in All rights reserved.</p>
             <div className="flex gap-6 text-gray-400 text-sm">
-              <a href="#" className="hover:text-blue-400 transition">Privacy Policy</a>
-              <a href="#" className="hover:text-blue-400 transition">Terms of Service</a>
-              <a href="#" className="hover:text-blue-400 transition">Cookie Settings</a>
+              <Link href="/privacy-policy" className="hover:text-blue-400 transition">Privacy Policy</Link>
+              <Link href="/terms-of-service" className="hover:text-blue-400 transition">Terms of Service</Link>
+              <Link href="/refund-policy" className="hover:text-blue-400 transition">Refund Policy</Link>
+              <Link href="/contact" className="hover:text-blue-400 transition">Contact</Link>
             </div>
           </div>
         </div>

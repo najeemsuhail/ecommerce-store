@@ -97,7 +97,7 @@ export default function TermsOfService() {
               If you have any questions about these Terms & Conditions, please contact us:
             </p>
             <div className="space-y-2 text-white-theme">
-              <p><strong>Email:</strong> support@onlyinkani.in</p>
+              <p><strong>Email:</strong> contact@onlyinkani.in</p>
             </div>
           </section>
 
