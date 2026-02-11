@@ -65,7 +65,7 @@ export default function Contact() {
             <h3 className="text-xl font-bold text-slate-800 mb-2">Location</h3>
             <p className="text-slate-600">
               Bambolim, Goa, India. <br></br>
-              PIN: 403202
+              Pin: 403202
             </p>
           </div>
 
