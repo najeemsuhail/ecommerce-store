@@ -95,8 +95,10 @@ export default function Footer() {
                 </a>
               ))}
             </div>
-            <div className=\"flex flex-col gap-2 text-xs text-gray-400 pt-4 border-t border-slate-700\">
-              <Link href=\"/unsubscribe\" className=\"hover:text-blue-400 transition\">\n                📧 Manage Newsletter\n              </Link>
+            <div className="flex flex-col gap-2 text-xs text-gray-400 pt-4 border-t border-slate-700">
+              <Link href="/unsubscribe" className="hover:text-blue-400 transition">
+                📧 Manage Newsletter
+              </Link>
             </div>
           </div>
 
