@@ -11,6 +11,8 @@ export default function Contact() {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -20,15 +22,37 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you'd send this data to your backend
-    console.log('Form submitted:', formData);
-    setSubmitted(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    // Reset success message after 5 seconds
-    setTimeout(() => setSubmitted(false), 5000);
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      setSubmitted(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err: any) {
+      console.error('Error submitting form:', err);
+      setError(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +96,19 @@ export default function Contact() {
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl text-indigo-600 mb-4">⏰</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Support Hours</h3>
-            <p className="text-slate-600">
+            
+
+          {error && (
+            <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+              <div>
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
+              </div>
+            </div>
+          )}<p className="text-slate-600">
               Monday to Saturday<br />
               10:00 AM to 5:00 PM
             </p>
@@ -129,9 +165,10 @@ export default function Contact() {
               />
             </div>
 
-            <div>
-              <label htmlFor="subject" className="block text-sm font-semibold text-slate-700 mb-2">
-                Subject *
+            <ddisabled={isSubmitting}
+              className="w-full btn-gradient-primary-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Sending...' : 'Send Message'}
               </label>
               <input
                 type="text"

@@ -4,6 +4,7 @@ import {
   getOrderShippedEmail,
   getOrderDeliveredEmail,
   getWelcomeEmail,
+  getContactFormEmail,
 } from './emailTemplates';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -17,7 +18,7 @@ export async function sendOrderConfirmationEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: email,
       subject: `Order Confirmation - Order #${order.id.substring(0, 8)}`,
       html: getOrderConfirmationEmail(order),
@@ -45,7 +46,7 @@ export async function sendOrderShippedEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: email,
       subject: `Order Shipped - Order #${order.id.substring(0, 8)}`,
       html: getOrderShippedEmail(order),
@@ -73,7 +74,7 @@ export async function sendOrderDeliveredEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: email,
       subject: `Order Delivered - Order #${order.id.substring(0, 8)}`,
       html: getOrderDeliveredEmail(order),
@@ -95,7 +96,7 @@ export async function sendOrderDeliveredEmail(order: any) {
 export async function sendWelcomeEmail(user: any) {
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: user.email,
       subject: 'Welcome to E-Store!',
       html: getWelcomeEmail(user),
@@ -107,6 +108,34 @@ export async function sendWelcomeEmail(user: any) {
     }
 
     console.log('✅ Welcome email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { success: false, error };
+  }
+}
+
+export async function sendContactFormEmail(contactData: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to: 'contact@onlyinkani.in',
+      replyTo: contactData.email,
+      subject: `Contact Form: ${contactData.subject}`,
+      html: getContactFormEmail(contactData),
+    });
+
+    if (error) {
+      console.error('Error sending contact form email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Contact form email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending email:', error);
