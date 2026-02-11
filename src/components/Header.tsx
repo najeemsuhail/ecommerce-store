@@ -248,7 +248,7 @@ export default function Header() {
                         onClick={() => setAccountMenuOpen(false)}
                         className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium border-b border-gray-theme transition-colors"
                       >
-                        Sign In/Sign Up
+                        Sign In / Sign Up
                       </Link>
 
                     </>
