@@ -104,30 +104,30 @@ export default function Contact() {
         </div>
 
         {/* Form Section */}
-        <div className="bg-light-theme rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-xl p-8 md:p-10 max-w-2xl mx-auto border border-slate-200">
           <h2 className="text-3xl font-bold text-slate-800 mb-2">Send us a Message</h2>
-          <p className="text-slate-600 mb-6">We aim to respond to all queries within 24 hours.</p>
+          <p className="text-slate-600 mb-8">We aim to respond to all queries within 24 hours.</p>
           
           {submitted && (
-            <div className="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <div className="bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-4 rounded-lg mb-6 flex items-start gap-3 animate-pulse">
+              <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
               </svg>
               <div>
-                <p className="font-bold">Success!</p>
-                <p>Thank you for your message. We'll get back to you soon.</p>
+                <p className="font-bold text-lg">Success!</p>
+                <p className="text-sm">Thank you for your message. We'll get back to you soon.</p>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-4 rounded-lg mb-6 flex items-start gap-3">
+              <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
               </svg>
               <div>
-                <p className="font-bold">Error</p>
-                <p>{error}</p>
+                <p className="font-bold text-lg">Error</p>
+                <p className="text-sm">{error}</p>
               </div>
             </div>
           )}
@@ -144,7 +144,7 @@ export default function Contact() {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all bg-white hover:border-slate-300"
                 placeholder="Your full name"
               />
             </div>
@@ -160,7 +160,7 @@ export default function Contact() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all bg-white hover:border-slate-300"
                 placeholder="your.email@example.com"
               />
             </div>
@@ -176,7 +176,7 @@ export default function Contact() {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all bg-white hover:border-slate-300"
                 placeholder="What is this about?"
               />
             </div>
@@ -192,7 +192,7 @@ export default function Contact() {
                 onChange={handleChange}
                 required
                 rows={6}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all bg-white hover:border-slate-300 resize-none"
                 placeholder="Please tell us how we can help..."
               />
             </div>

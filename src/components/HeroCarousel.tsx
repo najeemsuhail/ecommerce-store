@@ -163,7 +163,8 @@ export default function HeroCarousel() {
                     </svg>
                   </Link>
 
-                  <Link
+                  {/* Secondary CTA - Commented Out */}
+                  {/* <Link
                     href={s.secondaryCTA.href}
                     className="group px-4 py-2 md:px-6 md:py-2 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-bold text-xs md:text-sm rounded-full hover:bg-white/20 hover:border-white/50 transition-all duration-300 hover:scale-105 flex items-center gap-2 whitespace-nowrap"
                   >
@@ -171,7 +172,7 @@ export default function HeroCarousel() {
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>

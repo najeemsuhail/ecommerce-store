@@ -1,8 +1,62 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { CURRENCY_CONFIG } from '@/lib/currency';
+import { useState } from 'react';
 
 export default function Footer() {
+  const [email, setEmail] = useState('');
+  const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [subscribeMessage, setSubscribeMessage] = useState('');
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      setSubscribeStatus('error');
+      setSubscribeMessage('Please enter a valid email');
+      return;
+    }
+
+    setSubscribeStatus('loading');
+    
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      setSubscribeStatus('success');
+      setSubscribeMessage('Successfully subscribed! Check your email.');
+      setEmail('');
+      
+      // Reset message after 3 seconds
+      setTimeout(() => {
+        setSubscribeStatus('idle');
+        setSubscribeMessage('');
+      }, 3000);
+    } catch (error: any) {
+      setSubscribeStatus('error');
+      setSubscribeMessage(error.message || 'Failed to subscribe. Please try again.');
+      
+      // Reset after 3 seconds
+      setTimeout(() => {
+        setSubscribeStatus('idle');
+        setSubscribeMessage('');
+      }, 3000);
+    }
+  };
+
   return (
     <footer className="bg-gradient-to-b from-slate-900 via-slate-900 to-black text-white py-16 mt-auto border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4">
@@ -40,6 +94,9 @@ export default function Footer() {
                   </svg>
                 </a>
               ))}
+            </div>
+            <div className=\"flex flex-col gap-2 text-xs text-gray-400 pt-4 border-t border-slate-700\">
+              <Link href=\"/unsubscribe\" className=\"hover:text-blue-400 transition\">\n                📧 Manage Newsletter\n              </Link>
             </div>
           </div>
 
@@ -80,16 +137,34 @@ export default function Footer() {
           <div suppressHydrationWarning>
             <h3 className="font-bold text-lg mb-6 text-white">Subscribe</h3>
             <p className="text-gray-300 text-sm mb-4">Get exclusive deals and updates delivered to your inbox.</p>
-            <div className="flex gap-2">
+            
+            {subscribeMessage && (
+              <div className={`text-xs mb-3 p-2 rounded ${
+                subscribeStatus === 'success' 
+                  ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                  : 'bg-red-500/20 text-red-300 border border-red-500/30'
+              }`}>
+                {subscribeMessage}
+              </div>
+            )}
+            
+            <form onSubmit={handleSubscribe} className="flex gap-2">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
-                className="flex-1 px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition"
+                disabled={subscribeStatus === 'loading'}
+                className="flex-1 px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <button className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105">
-                →
+              <button 
+                type="submit"
+                disabled={subscribeStatus === 'loading'}
+                className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {subscribeStatus === 'loading' ? '...' : '→'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 

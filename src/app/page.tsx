@@ -6,7 +6,7 @@ import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import ProductCarousel from '@/components/ProductCarousel';
 import HeroCarousel from '@/components/HeroCarousel';
-import StatsSection from '@/components/StatsSection';
+// import StatsSection from '@/components/StatsSection'; // Commented out temporarily
 import CategoryCarousel from '@/components/CategoryCarousel';
 import FeaturedProductsSection from '@/components/FeaturedProductsSection';
 import FeaturesSection from '@/components/FeaturesSection';
@@ -137,7 +137,7 @@ export default function HomePage() {
       />
       <div className="bg-bg-gray">
         <HeroCarousel />
-        <StatsSection stats={stats} />
+        {/* <StatsSection stats={stats} /> */} {/* Commented out temporarily */}
         <CategoryCarousel categories={categories} />
         <RecentlyViewedSection />
         <FeaturedProductsSection products={featuredProducts} onQuickAdd={handleQuickAdd} />

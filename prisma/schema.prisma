@@ -270,3 +270,12 @@ model CouponUsage {
   @@index([userId])
   @@index([orderId])
 }
+
+model Newsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}

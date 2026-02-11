@@ -9,12 +9,12 @@ CREATE TABLE "Coupon" (
     "minOrderValue" REAL NOT NULL DEFAULT 0,
     "maxUses" INTEGER,
     "maxUsesPerCustomer" INTEGER NOT NULL DEFAULT 1,
-    "expiryDate" DATETIME,
+    "expiryDate" TIMESTAMP,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "applicableProducts" TEXT NOT NULL DEFAULT '[]',
     "applicableCategories" TEXT NOT NULL DEFAULT '[]',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable CouponUsage
@@ -25,7 +25,7 @@ CREATE TABLE "CouponUsage" (
     "guestEmail" TEXT,
     "orderId" TEXT,
     "discount" REAL NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "CouponUsage_couponId_fkey" FOREIGN KEY ("couponId") REFERENCES "Coupon" ("id") ON DELETE CASCADE,
     CONSTRAINT "CouponUsage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL
 );

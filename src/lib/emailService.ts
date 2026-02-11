@@ -123,8 +123,8 @@ export async function sendContactFormEmail(contactData: {
 }) {
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
-      to: 'contact@onlyinkani.in',
+      from: 'contact@onlyinkani.in',
+      to: 'suhail.najeem@gmail.com', // Test mode: can only send to verified email
       replyTo: contactData.email,
       subject: `Contact Form: ${contactData.subject}`,
       html: getContactFormEmail(contactData),

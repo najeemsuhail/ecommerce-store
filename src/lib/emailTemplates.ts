@@ -261,8 +261,12 @@ export function getOrderDeliveredEmail(order: any) {
         
         <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
           Need help? Contact us at contact@onlyinkani.in
-        </p>
-      </div>
+        </p>        
+        <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/unsubscribe" style="color: #999; text-decoration: none;">
+            Unsubscribe from our newsletter
+          </a>
+        </p>      </div>
       
       <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
         <p>© 2025 E-Store. All rights reserved.</p>
@@ -314,6 +318,12 @@ export function getWelcomeEmail(user: any) {
         
         <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
           Need help? Contact us at contact@onlyinkani.in
+        </p>
+        
+        <p style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/unsubscribe" style="color: #999; text-decoration: none;">
+            Unsubscribe from our newsletter
+          </a>
         </p>
       </div>
       
