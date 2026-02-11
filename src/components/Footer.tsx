@@ -60,8 +60,9 @@ export default function Footer() {
             <ul className="space-y-3">
               <li><Link href="/contact" className="text-gray-300 hover:text-blue-400 transition font-medium">Contact Us</Link></li>
               <li><Link href="/faq" className="text-gray-300 hover:text-blue-400 transition font-medium">FAQs</Link></li>
-              <li><Link href="/shipping-info" className="text-gray-300 hover:text-blue-400 transition font-medium">Shipping Info</Link></li>
-              <li><Link href="/returns" className="text-gray-300 hover:text-blue-400 transition font-medium">Returns</Link></li>
+              <li><Link href="/privacy-policy" className="text-gray-300 hover:text-blue-400 transition font-medium">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-service" className="text-gray-300 hover:text-blue-400 transition font-medium">Terms of Service</Link></li>
+              <li><Link href="/returns" className="text-gray-300 hover:text-blue-400 transition font-medium">Returns & Refund Policy</Link></li>
             </ul>
           </div>
 

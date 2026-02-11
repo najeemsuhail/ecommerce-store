@@ -55,6 +55,8 @@ export default function Contact() {
               <a href="mailto:contact@onlyinkani.in" className="text-indigo-600 hover:underline">
                 contact@onlyinkani.in
               </a>
+              <br />
+              Phone: <a href="tel:+919420386486" className="text-indigo-600 hover:underline">+91 9420 386 486</a>
             </p>
           </div>
 
@@ -62,7 +64,8 @@ export default function Contact() {
             <div className="text-4xl text-indigo-600 mb-4">📍</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Location</h3>
             <p className="text-slate-600">
-              Bambolim, Goa, India. PIN: 403202
+              Bambolim, Goa, India. <br></br>
+              PIN: 403202
             </p>
           </div>
 
@@ -71,7 +74,7 @@ export default function Contact() {
             <h3 className="text-xl font-bold text-slate-800 mb-2">Support Hours</h3>
             <p className="text-slate-600">
               Monday to Saturday<br />
-              9:00 AM to 6:00 PM
+              10:00 AM to 5:00 PM
             </p>
           </div>
         </div>
