@@ -122,23 +122,30 @@ export async function sendContactFormEmail(contactData: {
   message: string;
 }) {
   try {
+    // Validate input
+    if (!contactData.email || !contactData.name || !contactData.subject || !contactData.message) {
+      console.error('Missing required contact form data');
+      return { success: false, error: 'Missing required fields' };
+    }
+
+    // Send email to business inbox
     const { data, error } = await resend.emails.send({
-      from: 'contact@onlyinkani.in',
-      to: 'suhail.najeem@gmail.com', // Test mode: can only send to verified email
-      replyTo: contactData.email,
-      subject: `Contact Form: ${contactData.subject}`,
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to: process.env.EMAIL_FROM || 'contact@onlyinkani.in', // Send to business email
+      replyTo: contactData.email, // Reply goes to customer
+      subject: `New Contact Form Submission: ${contactData.subject}`,
       html: getContactFormEmail(contactData),
     });
 
     if (error) {
-      console.error('Error sending contact form email:', error);
+      console.error('Error sending contact form email to business:', error);
       return { success: false, error };
     }
 
-    console.log('✅ Contact form email sent:', data);
+    console.log('✅ Contact form email sent to business:', data);
     return { success: true, data };
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending contact form email:', error);
     return { success: false, error };
   }
 }
