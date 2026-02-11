@@ -96,19 +96,7 @@ export default function Contact() {
           <div className="bg-white rounded-lg shadow-md p-6 text-center">
             <div className="text-4xl text-indigo-600 mb-4">⏰</div>
             <h3 className="text-xl font-bold text-slate-800 mb-2">Support Hours</h3>
-            
-
-          {error && (
-            <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
-              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
-              </svg>
-              <div>
-                <p className="font-bold">Error</p>
-                <p>{error}</p>
-              </div>
-            </div>
-          )}<p className="text-slate-600">
+            <p className="text-slate-600">
               Monday to Saturday<br />
               10:00 AM to 5:00 PM
             </p>
@@ -128,6 +116,18 @@ export default function Contact() {
               <div>
                 <p className="font-bold">Success!</p>
                 <p>Thank you for your message. We'll get back to you soon.</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg mb-6 flex items-center gap-3">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+              <div>
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
               </div>
             </div>
           )}
@@ -199,9 +199,10 @@ export default function Contact() {
 
             <button
               type="submit"
-              className="w-full btn-gradient-primary-lg font-bold"
+              disabled={isSubmitting}
+              className="w-full btn-gradient-primary-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Message
+              {isSubmitting ? 'Sending...' : 'Send Message'}
             </button>
           </form>
         </div>
