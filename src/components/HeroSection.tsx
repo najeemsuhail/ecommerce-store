@@ -39,7 +39,7 @@ export default function HeroSection() {
           <p className="text-lg md:text-2xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg leading-relaxed">
             Explore curated collections of premium products with exclusive deals and fast delivery. 
             <span className="block text-transparent bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text font-semibold">
-              Join thousands of happy customers today.
+              Join as happy customer today.
             </span>
           </p>
           

@@ -39,7 +39,7 @@ export default function RefundPolicy() {
             <h2 className="text-3xl font-bold text-slate-800 mb-6">Returns</h2>
             
             <p className="text-lg text-slate-700 leading-relaxed mb-4">
-              You can request a return within <strong>7 days</strong> of receiving your order.
+              You can request a return within <strong>48 hours</strong> of receiving your order.
             </p>
             
             <p className="text-lg text-slate-700 leading-relaxed mb-4">
@@ -92,7 +92,7 @@ export default function RefundPolicy() {
             </p>
             
             <ol className="list-decimal list-inside text-slate-700 space-y-2 text-lg mb-6">
-              <li>Contact us within 7 days of receiving your order</li>
+              <li>Contact us within 48 hours of receiving your order</li>
               <li>Provide your order number and reason for return</li>
               <li>Wait for approval and return shipping instructions</li>
               <li>Ship the item back in original condition to the address provided</li>

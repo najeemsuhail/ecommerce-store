@@ -185,7 +185,7 @@ export default function Footer() {
             {[
               { icon: '🚚', title: 'Free Shipping', desc: `On orders over ${CURRENCY_CONFIG.symbol}500` },
               { icon: '🛡️', title: 'Secure Payment', desc: '100% encrypted' },
-              { icon: '↩️', title: 'Easy Returns', desc: '14-day guarantee' }
+              { icon: '↩️', title: 'Easy Returns', desc: '48 hours guarantee' }
             ].map((item, idx) => (
               <div key={idx} className="text-center">
                 <div className="text-3xl mb-2">{item.icon}</div>
