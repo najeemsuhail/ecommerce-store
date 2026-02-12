@@ -24,12 +24,14 @@ interface ProductCarouselProps {
   products: Product[];
   title: string;
   description?: string;
+  type?: 'default' | 'bestseller';
 }
 
 export default function ProductCarousel({
   products,
   title,
   description,
+  type = 'default',
 }: ProductCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -84,11 +86,12 @@ export default function ProductCarousel({
   const scroll = (direction: 'left' | 'right') => {
     const element = carouselRef.current;
     if (element) {
-      const scrollAmount = 320;
+      // Scroll by one item width (w-80 = 320px) + gap (gap-6 = 24px) = 344px
+      const itemWidth = 344;
       if (direction === 'left') {
-        element.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        element.scrollBy({ left: -itemWidth, behavior: 'smooth' });
       } else {
-        element.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        element.scrollBy({ left: itemWidth, behavior: 'smooth' });
       }
       setTimeout(checkScroll, 300);
     }
@@ -228,57 +231,69 @@ export default function ProductCarousel({
                 </div>
               </Link>
 
-              <div className="p-5">
-                <Link href={`/products/${product.slug}`}>
-                  <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-primary-theme transition-colors min-h-[3.5rem]">
-                    {product.name}
-                  </h3>
-                </Link>
+              {/* Card Content - show based on type */}
+              {type === 'default' ? (
+                <div className="p-5">
+                  <Link href={`/products/${product.slug}`}>
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-primary-theme transition-colors min-h-[3.5rem]">
+                      {product.name}
+                    </h3>
+                  </Link>
 
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <span className="text-2xl font-bold text-primary-theme">
-                      {formatPrice(product.price)}
-                    </span>
-                    {product.comparePrice && (
-                      <span className="text-sm text-text-lighter line-through ml-2">
-                        {formatPrice(product.comparePrice)}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <span className="text-2xl font-bold text-primary-theme">
+                        {formatPrice(product.price)}
                       </span>
+                      {product.comparePrice && (
+                        <span className="text-sm text-text-lighter line-through ml-2">
+                          {formatPrice(product.comparePrice)}
+                        </span>
+                      )}
+                    </div>
+                    {product.averageRating && product.averageRating > 0 && (
+                      <div className="flex items-center gap-1 text-warning text-sm">
+                        <svg
+                          className="w-4 h-4 fill-current"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                        </svg>
+                        <span className="font-semibold">{product.averageRating}</span>
+                      </div>
                     )}
                   </div>
-                  {product.averageRating && product.averageRating > 0 && (
-                    <div className="flex items-center gap-1 text-warning text-sm">
-                      <svg
-                        className="w-4 h-4 fill-current"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                      </svg>
-                      <span className="font-semibold">{product.averageRating}</span>
-                    </div>
-                  )}
-                </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={(e) => handleAddToCart(product, e)}
-                    className="flex-1 btn-primary-theme py-3 rounded-xl font-bold hover:scale-105 active:scale-95"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    onClick={(e) => handleWishlistClick(product, e)}
-                    className={`px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
-                      isInWishlist(product.id)
-                        ? 'bg-danger/20 text-danger border-2 border-danger'
-                        : 'bg-bg-gray text-text-light border-2 border-border-color hover:border-danger hover:text-danger'
-                    }`}
-                    title="Add to wishlist"
-                  >
-                    ♥
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => handleAddToCart(product, e)}
+                      className="flex-1 btn-primary-theme py-3 rounded-xl font-bold hover:scale-105 active:scale-95"
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={(e) => handleWishlistClick(product, e)}
+                      className={`px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
+                        isInWishlist(product.id)
+                          ? 'bg-danger/20 text-danger border-2 border-danger'
+                          : 'bg-bg-gray text-text-light border-2 border-border-color hover:border-danger hover:text-danger'
+                      }`}
+                      title="Add to wishlist"
+                    >
+                      ♥
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Minimal card for bestseller - only title */
+                <div className="p-3 bg-white">
+                  <Link href={`/products/${product.slug}`}>
+                    <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover/card:text-primary-theme transition-colors">
+                      {product.name}
+                    </h3>
+                  </Link>
+                </div>
+              )}
             </div>
           ))}
         </div>

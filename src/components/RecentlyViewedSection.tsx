@@ -2,41 +2,13 @@
 
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/currency';
-import { useCart } from '@/contexts/CartContext';
-import { useState } from 'react';
-import AddToCartNotification from './AddToCartNotification';
 
 export default function RecentlyViewedSection() {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
-  const { addItem } = useCart();
-  const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
-    message: '',
-    visible: false,
-  });
 
   if (recentlyViewed.length === 0) {
     return null;
   }
-
-  const handleAddToCart = (product: any) => {
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.images?.[0] || '/images/products/default.png',
-      slug: product.slug,
-      isDigital: product.isDigital || false,
-    });
-    setNotification({
-      message: `${product.name} added to cart!`,
-      visible: true,
-    });
-    setTimeout(() => {
-      setNotification({ message: '', visible: false });
-    }, 3000);
-  };
 
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8">
@@ -67,39 +39,19 @@ export default function RecentlyViewedSection() {
                 </div>
               </Link>
 
-              {/* Product Info */}
-              <div className="p-4">
+              {/* Product Info - Only title */}
+              <div className="p-3">
                 <Link
                   href={`/products/${product.slug}`}
-                  className="block text-gray-900 font-semibold hover:text-blue-600 line-clamp-2"
+                  className="block text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
                 >
                   {product.name}
                 </Link>
-
-                {/* Price */}
-                <p className="text-lg font-bold text-gray-900 mt-2">
-                  {formatPrice(product.price)}
-                </p>
-
-                {/* Add to Cart Button */}
-                <button
-                  onClick={() => handleAddToCart(product)}
-                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded transition-colors"
-                >
-                  Add to Cart
-                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Notification */}
-      <AddToCartNotification 
-        message={notification.message}
-        isVisible={notification.visible}
-        onClose={() => setNotification({ message: '', visible: false })}
-      />
     </section>
   );
 }

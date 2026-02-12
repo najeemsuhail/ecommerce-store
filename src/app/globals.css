@@ -694,3 +694,29 @@ body {
 .btn-gradient-primary-md:hover {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
+
+/* Styled scrollbar for better appearance */
+.scrollbar-hide {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-hide::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid #f8fafc;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

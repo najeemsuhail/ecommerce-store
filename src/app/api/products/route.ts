@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export const revalidate = 60; // Cache for 60 seconds to avoid connection pool exhaustion
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
 // GET all products (with search and filter)
 export async function GET(request: NextRequest) {
@@ -154,12 +154,19 @@ export async function GET(request: NextRequest) {
 
     // If no products found, return empty array
     if (products.length === 0) {
-      return NextResponse.json({
-        success: true,
-        products: [],
-        count: 0,
-        total: 0,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          products: [],
+          count: 0,
+          total: 0,
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+          },
+        }
+      );
     }
 
     // Calculate average rating for each product
@@ -183,12 +190,19 @@ export async function GET(request: NextRequest) {
       productsWithRating.sort((a, b) => b.averageRating - a.averageRating);
     }
 
-    return NextResponse.json({
-      success: true,
-      products: productsWithRating,
-      count: productsWithRating.length,
-      total: totalCount,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        products: productsWithRating,
+        count: productsWithRating.length,
+        total: totalCount,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+        },
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('[API /products] Error:', errorMessage, error);

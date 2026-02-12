@@ -157,55 +157,68 @@ export default function ProductRecommendations({
               </div>
             </Link>
 
-            {/* Product Info */}
-            <div className="p-4">
-              {/* Title */}
-              <Link href={`/products/${product.slug}`}>
-                <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[3rem]">
-                  {product.name}
-                </h3>
-              </Link>
+            {/* Product Info - Only show for non-trending sections */}
+            {recommendationType !== 'trending' && (
+              <div className="p-4">
+                {/* Title */}
+                <Link href={`/products/${product.slug}`}>
+                  <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[3rem]">
+                    {product.name}
+                  </h3>
+                </Link>
 
-              {/* Rating */}
-              {product.averageRating !== undefined && product.averageRating !== null && product.averageRating > 0 && (
-                <div className="flex items-center gap-2 my-2">
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4 fill-yellow-400" viewBox="0 0 20 20">
-                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                    </svg>
-                    <span className="text-sm font-semibold text-gray-700">
-                      {product.averageRating}
-                    </span>
+                {/* Rating */}
+                {product.averageRating !== undefined && product.averageRating !== null && product.averageRating > 0 && (
+                  <div className="flex items-center gap-2 my-2">
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4 fill-yellow-400" viewBox="0 0 20 20">
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                      </svg>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {product.averageRating}
+                      </span>
+                    </div>
+                    {product.reviewCount && product.reviewCount > 0 && (
+                      <span className="text-xs text-gray-500">({product.reviewCount} reviews)</span>
+                    )}
                   </div>
-                  {product.reviewCount && product.reviewCount > 0 && (
-                    <span className="text-xs text-gray-500">({product.reviewCount} reviews)</span>
+                )}
+
+                {/* Price */}
+                <div className="flex items-center gap-2 my-3">
+                  <span className="text-xl font-bold text-blue-600">
+                    {formatPrice(product.price)}
+                  </span>
+                  {product.comparePrice && (
+                    <span className="text-text-500 line-through text-sm">
+                      {formatPrice(product.comparePrice)}
+                    </span>
                   )}
                 </div>
-              )}
 
-              {/* Price */}
-              <div className="flex items-center gap-2 my-3">
-                <span className="text-xl font-bold text-blue-600">
-                  {formatPrice(product.price)}
-                </span>
-                {product.comparePrice && (
-                  <span className="text-text-500 line-through text-sm">
-                    {formatPrice(product.comparePrice)}
-                  </span>
-                )}
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
+                    onClick={() => onProductClick?.(product)}
+                  >
+                    View
+                  </Link>
+                </div>
               </div>
+            )}
 
-              {/* Actions */}
-              <div className="flex gap-2 pt-3 border-t border-gray-200">
-                <Link
-                  href={`/products/${product.slug}`}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
-                  onClick={() => onProductClick?.(product)}
-                >
-                  View
+            {/* For Trending - Only show title */}
+            {recommendationType === 'trending' && (
+              <div className="p-3 bg-white">
+                <Link href={`/products/${product.slug}`}>
+                  <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {product.name}
+                  </h3>
                 </Link>
               </div>
-            </div>
+            )}
           </div>
         ))}
       </div>

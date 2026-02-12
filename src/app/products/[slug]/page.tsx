@@ -40,7 +40,9 @@ export default function ProductDetailPage() {
 
   const fetchProduct = async () => {
     try {
-      const response = await fetch(`/api/products/${params.slug}`);
+      const response = await fetch(`/api/products/${params.slug}`, {
+        cache: 'force-cache', // Use browser cache with API Cache-Control headers
+      });
       const data = await response.json();
       if (data.success) {
         setProduct(data.product);
@@ -271,7 +273,7 @@ export default function ProductDetailPage() {
                   <p className="text-sm text-gray-600 mb-2 font-semibold">
                     Click to select image
                   </p>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {product.images.map((image: string, index: number) => (
                       <button
                         key={index}
@@ -347,7 +349,7 @@ export default function ProductDetailPage() {
                     {selectedVariant ? (
                       selectedVariant.stock > 0 ? (
                         <span className="text-green-600 font-semibold">
-                          ✓ In Stock)
+                          ✓ In Stock
                         </span>
                       ) : (
                         <span className="text-red-600 font-semibold">

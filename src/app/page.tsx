@@ -146,6 +146,7 @@ export default function HomePage() {
             products={bestSellers}
             title="Best Sellers"
             description="Most popular products loved by our customers"
+            type="bestseller"
           />
         )}
         <LatestBlogPostsSection />

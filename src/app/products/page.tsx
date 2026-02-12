@@ -122,7 +122,9 @@ function ProductsContent() {
 
   const fetchAllProducts = async () => {
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch('/api/products', {
+        cache: 'force-cache', // Use browser cache
+      });
       const data = await response.json();
       if (data.success) {
         setAllProducts(data.products);
@@ -226,7 +228,9 @@ function ProductsContent() {
       // Fetch with large limit to get all filtered products
       url += `skip=0&limit=10000`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        cache: 'force-cache', // Use browser cache with API Cache-Control headers
+      });
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);

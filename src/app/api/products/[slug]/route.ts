@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+export const revalidate = 60; // ISR: Revalidate every 60 seconds
+
 // GET single product by slug
 export async function GET(
   request: NextRequest,
@@ -48,14 +50,21 @@ export async function GET(
         ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
         : 0;
 
-    return NextResponse.json({
-      success: true,
-      product: {
-        ...product,
-        averageRating: Math.round(avgRating * 10) / 10,
-        reviewCount: product.reviews.length,
+    return NextResponse.json(
+      {
+        success: true,
+        product: {
+          ...product,
+          averageRating: Math.round(avgRating * 10) / 10,
+          reviewCount: product.reviews.length,
+        },
       },
-    });
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(
