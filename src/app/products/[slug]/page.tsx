@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
+import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import { formatPrice } from '@/lib/currency';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import ProductVideo from '@/components/ProductVideo';
@@ -367,6 +368,13 @@ export default function ProductDetailPage() {
                         </span>
                       )
                     )}
+                  </div>
+                )}
+
+                {/* Delivery Pincode Checker */}
+                {!product.isDigital && (
+                  <div className="mb-6">
+                    <DeliveryPinChecker />
                   </div>
                 )}
 

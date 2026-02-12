@@ -109,7 +109,7 @@ export default function CouponInput({
 
   return (
     <div className="space-y-3">
-      <form onSubmit={handleApplyCoupon} className="flex gap-2">
+      <div className="flex gap-2">
         <input
           type="text"
           placeholder="Enter coupon code"
@@ -119,8 +119,9 @@ export default function CouponInput({
           className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
         />
         <button
-          type="submit"
+          type="button"
           disabled={disabled || loading || !code.trim()}
+          onClick={(e) => handleApplyCoupon(e as any)}
           className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
@@ -129,7 +130,7 @@ export default function CouponInput({
             'Apply Coupon'
           )}
         </button>
-      </form>
+      </div>
 
       {message && (
         <div

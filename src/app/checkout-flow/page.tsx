@@ -8,6 +8,7 @@ import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import CouponInput from '@/components/CouponInput';
+import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import { formatPrice } from '@/lib/currency';
 
 declare global {
@@ -363,7 +364,7 @@ export default function CheckoutFlowPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2">
-              <form onSubmit={handleCheckout} className="space-y-6">
+              <form onSubmit={handleCheckout} noValidate className="space-y-6">
                 {/* Coupon Section */}
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="flex items-center gap-2 mb-4">
@@ -593,6 +594,12 @@ export default function CheckoutFlowPage() {
                     </div>
                   </div>
 
+                  {/* Delivery Pincode Checker - Optional check */}
+                  <div className="my-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-gray-700 mb-3">Want to check if we deliver to your area?</p>
+                    <DeliveryPinChecker />
+                  </div>
+
                   {/* Billing Address Same as Shipping - OUTSIDE hidden shipping form */}
                   <div className="pt-4 border-t">
                     <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer">
@@ -773,7 +780,7 @@ export default function CheckoutFlowPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   {loading && (
                     <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">

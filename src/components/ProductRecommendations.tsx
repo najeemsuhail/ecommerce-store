@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
+import { useCart } from '@/contexts/CartContext';
 
 interface Product {
   id: string;
@@ -44,6 +45,7 @@ export default function ProductRecommendations({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recommendationType, setRecommendationType] = useState<string>('');
+  const { addItem } = useCart();
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -198,13 +200,23 @@ export default function ProductRecommendations({
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-gray-200">
-                  <Link
-                    href={`/products/${product.slug}`}
+                  <button
+                    onClick={() => {
+                      addItem({
+                        productId: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: 1,
+                        image: product.images?.[0],
+                        slug: product.slug,
+                        isDigital: product.isDigital || false,
+                      });
+                      onAddToCart?.(product);
+                    }}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
-                    onClick={() => onProductClick?.(product)}
                   >
-                    View
-                  </Link>
+                    Add to Cart
+                  </button>
                 </div>
               </div>
             )}
