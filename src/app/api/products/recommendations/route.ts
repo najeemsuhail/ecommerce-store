@@ -301,9 +301,10 @@ export async function GET(request: NextRequest) {
       recommendationType: 'trending',
     });
   } catch (error) {
-    console.error('Recommendation fetch error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[API /recommendations] Error:', errorMessage, error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch recommendations' },
+      { success: false, error: 'Failed to fetch recommendations', details: errorMessage },
       { status: 500 }
     );
   }

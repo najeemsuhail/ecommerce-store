@@ -188,9 +188,10 @@ export async function GET(request: NextRequest) {
       total: totalCount,
     });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[API /products] Error:', errorMessage, error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch products' },
+      { success: false, error: 'Failed to fetch products', details: errorMessage },
       { status: 500 }
     );
   }
