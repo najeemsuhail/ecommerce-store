@@ -150,6 +150,16 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const totalCount = await prisma.product.count({ where });
 
+    // If no products found, return empty array
+    if (products.length === 0) {
+      return NextResponse.json({
+        success: true,
+        products: [],
+        count: 0,
+        total: 0,
+      });
+    }
+
     // Calculate average rating for each product
     const productsWithRating = products.map((product: any) => {
       const avgRating =

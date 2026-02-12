@@ -272,6 +272,14 @@ export async function GET(request: NextRequest) {
       ],
     });
 
+    if (trending.length === 0) {
+      return NextResponse.json({
+        success: true,
+        recommendations: [],
+        recommendationType: 'trending',
+      });
+    }
+
     const withMetrics = trending.map((p) => {
       const totalSales = p.orderItems.reduce((sum, item) => sum + item.quantity, 0);
       return {
