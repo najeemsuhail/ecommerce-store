@@ -2,7 +2,10 @@ import { readDeliveryPins, saveDeliveryPins } from '@/lib/deliveryPinsData';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/lib/adminAuth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Verify admin authentication
     const adminAuth = await isAdmin(request);
@@ -24,7 +27,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const allPins = await readDeliveryPins();
 
     // Find and update the pin by index (id is the index)
-    const index = parseInt(params.id);
+    const { id } = await params;
+    const index = parseInt(id);
     if (index < 0 || index >= allPins.length) {
       return NextResponse.json(
         { message: 'PIN code not found' },
@@ -49,7 +53,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     // Verify admin authentication
     const adminAuth = await isAdmin(request);
@@ -61,7 +68,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     const allPins = await readDeliveryPins();
 
     // Find and delete the pin by index (id is the index)
-    const index = parseInt(params.id);
+    const { id } = await params;
+    const index = parseInt(id);
     if (index < 0 || index >= allPins.length) {
       return NextResponse.json(
         { message: 'PIN code not found' },
