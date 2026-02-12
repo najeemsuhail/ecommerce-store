@@ -341,15 +341,14 @@ export async function POST(request: NextRequest) {
 
             // Add attribute values to product
             if (attribute) {
-              for (const value of attributeValues) {
-                await prisma.productAttributeValue.create({
-                  data: {
-                    productId: finalProduct.id,
-                    attributeId: attribute.id,
-                    value: String(value),
-                  },
-                });
-              }
+              // Store all values as a single entry (comma-separated for multiselect)
+              await prisma.productAttributeValue.create({
+                data: {
+                  productId: finalProduct.id,
+                  attributeId: attribute.id,
+                  value: attributeValues.map(String).join(', '),
+                },
+              });
             }
           }
         }

@@ -40,8 +40,6 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  if (categories.length === 0) return null;
-
   const maxIndex = Math.max(0, categories.length - itemsPerView);
 
   const handlePrev = () => {
@@ -54,9 +52,13 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
 
   // Auto-rotate carousel every 5 seconds
   useEffect(() => {
+    if (categories.length === 0) return; // Guard inside the hook
     const interval = setInterval(handleNext, 5000);
     return () => clearInterval(interval);
-  }, [maxIndex]);
+  }, [maxIndex, categories.length]);
+
+  // Early return AFTER all hooks
+  if (categories.length === 0) return null;
 
   const visibleCategories = categories.slice(
     currentIndex,

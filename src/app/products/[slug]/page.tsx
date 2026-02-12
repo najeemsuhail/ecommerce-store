@@ -347,7 +347,7 @@ export default function ProductDetailPage() {
                     {selectedVariant ? (
                       selectedVariant.stock > 0 ? (
                         <span className="text-green-600 font-semibold">
-                          ✓ In Stock ({selectedVariant.stock} available)
+                          ✓ In Stock)
                         </span>
                       ) : (
                         <span className="text-red-600 font-semibold">
