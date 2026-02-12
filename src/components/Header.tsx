@@ -24,6 +24,7 @@ export default function Header() {
   const { totalItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const [mobileSuggestions, setMobileSuggestions] = useState<MobileSuggestion[]>([]);
@@ -33,6 +34,12 @@ export default function Header() {
   const mobileSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
       setIsLoggedIn(!!token);
@@ -72,7 +79,7 @@ export default function Header() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [isMounted]);
 
   const checkAdminStatus = async (token: string) => {
     try {

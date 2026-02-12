@@ -13,8 +13,15 @@ export default function DashboardPage() {
   });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     fetchDashboardData();
 
     // Listen for storage changes (login/logout in other tabs)
@@ -24,7 +31,7 @@ export default function DashboardPage() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [isMounted]);
 
   const fetchDashboardData = async () => {
     const token = localStorage.getItem('token');
