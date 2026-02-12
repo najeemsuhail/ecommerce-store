@@ -93,7 +93,7 @@ export default function DeliveryPinChecker() {
                   value={pinCode}
                   onChange={(e) => setPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="e.g., 110001"
-                  maxLength="6"
+                  maxLength={6}
                   disabled={isLoading}
                   className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 />
