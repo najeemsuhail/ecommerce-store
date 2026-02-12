@@ -37,6 +37,7 @@ export function RecentlyViewedProvider({ children }: { children: React.ReactNode
       }
     } catch (error) {
       console.error('Failed to load recently viewed products:', error);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, []);
 

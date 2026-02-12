@@ -198,7 +198,7 @@ export default function Header() {
                 About
               </Link>
               
-              {isLoggedIn && (
+              {isMounted && isLoggedIn && (
                 <Link 
                   href="/dashboard" 
                   className={`font-medium transition-colors ${
@@ -210,7 +210,7 @@ export default function Header() {
                   Dashboard
                 </Link>
               )}
-              {isAdmin && (
+              {isMounted && isAdmin && (
                 <Link 
                   href="/admin" 
                   className={`font-medium transition-colors ${
@@ -240,13 +240,13 @@ export default function Header() {
               <button
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
                 className="text-gray-theme hover:text-primary-theme transition-colors cursor-pointer"
-                title={isLoggedIn ? 'Account' : 'Login'}
+                title={isMounted && isLoggedIn ? 'Account' : 'Login'}
               >
                 <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
               </button>
 
               {/* Account Dropdown Menu */}
-              {accountMenuOpen && (
+              {isMounted && accountMenuOpen && (
                 <div className="absolute right-0 top-full mt-2 w-48 bg-light-theme border border-gray-200 rounded-lg shadow-lg z-50">
                   {!isLoggedIn ? (
                     <>
@@ -289,7 +289,7 @@ export default function Header() {
             <Link href="/cart" className="relative text-gray-theme hover:text-primary-theme transition-colors" title="Shopping Cart">
               <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
-              {totalItems > 0 && (
+              {isMounted && totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-danger text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold" style={{backgroundColor: '#dc2626'}}>
                   {totalItems}
                 </span>
@@ -442,9 +442,9 @@ export default function Header() {
                     : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
-                {isLoggedIn ? 'Dashboard' : 'Login / Register'}
+                {isMounted && isLoggedIn ? 'Dashboard' : 'Login / Register'}
               </button>
-              {isAdmin && (
+              {isMounted && isAdmin && (
                 <Link 
                   href="/admin" 
                   onClick={() => setMenuOpen(false)} 
