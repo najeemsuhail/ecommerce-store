@@ -1,0 +1,22 @@
+[
+  {
+    "pinCode": "110001",
+    "type": "prepaid"
+  },
+  {
+    "pinCode": "110001",
+    "type": "cod"
+  },
+  {
+    "pinCode": "110002",
+    "type": "prepaid"
+  },
+  {
+    "pinCode": "110002",
+    "type": "cod"
+  },
+  {
+    "pinCode": "110003",
+    "type": "prepaid"
+  }
+]
