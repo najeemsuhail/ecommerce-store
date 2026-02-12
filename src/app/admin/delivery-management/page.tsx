@@ -81,7 +81,7 @@ export default function DeliveryManagementPage() {
 
     try {
       const url = editingId
-        ? `/api/admin/delivery-pin-codes/${editingId}`
+        ? `/api/admin/delivery-pin-codes/${encodeURIComponent(editingId)}`
         : '/api/admin/delivery-pin-codes';
 
       const method = editingId ? 'PUT' : 'POST';

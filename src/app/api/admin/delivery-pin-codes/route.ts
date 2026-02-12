@@ -1,11 +1,11 @@
 import { readDeliveryPins, saveDeliveryPins } from '@/lib/deliveryPinsData';
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdminAuth } from '@/lib/adminAuth';
+import { isAdmin } from '@/lib/adminAuth';
 
 export async function GET(request: NextRequest) {
   try {
     // Verify admin authentication
-    const adminAuth = await verifyAdminAuth(request);
+    const adminAuth = await isAdmin(request);
     if (!adminAuth) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Verify admin authentication
-    const adminAuth = await verifyAdminAuth(request);
+    const adminAuth = await isAdmin(request);
     if (!adminAuth) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
