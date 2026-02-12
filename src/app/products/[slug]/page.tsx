@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
     return (
       <Layout>
         <div className="min-h-screen bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 py-8 animate-pulse">
+          <div className="max-w-7xl mx-auto px-4 py-8">
             {/* Breadcrumb Skeleton */}
             <div className="mb-6 h-4 w-48 bg-gray-300 rounded"></div>
 
@@ -227,7 +227,7 @@ export default function ProductDetailPage() {
               {/* Main Image */}
               <div className="bg-light-theme rounded-lg shadow-lg p-4 mb-4 relative group">
                 <div
-                  className="relative h-96 bg-gray-200 rounded overflow-hidden"
+                  className="relative bg-gray-200 rounded overflow-hidden aspect-square"
                   style={{ cursor: showImageZoom ? 'zoom-out' : 'default' }}
                   onMouseMove={showImageZoom ? handleImageZoom : undefined}
                 >
@@ -286,7 +286,7 @@ export default function ProductDetailPage() {
                         <img
                           src={image}
                           alt={`${product.name} ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                       </button>
                     ))}
@@ -319,11 +319,11 @@ export default function ProductDetailPage() {
 
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-4xl font-bold text-primary-theme">
-                    ${selectedVariant ? selectedVariant.price : product.price}
+                    {formatPrice(selectedVariant ? selectedVariant.price : product.price)}
                   </span>
                   {product.comparePrice && (
                     <span className="text-xl text-gray-500 line-through">
-                      ${product.comparePrice}
+                      {formatPrice(product.comparePrice)}
                     </span>
                   )}
                 </div>
@@ -430,7 +430,7 @@ export default function ProductDetailPage() {
                           <div className="text-left">
                             <p className="font-semibold text-sm">{variant.name}</p>
                             <p className="text-primary-theme font-bold text-sm">
-                              ${variant.price}
+                              {formatPrice(variant.price)}
                             </p>
                             {variant.stock === 0 ? (
                               <p className="text-red-600 text-xs mt-1 font-semibold">Out of Stock</p>

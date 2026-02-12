@@ -68,7 +68,7 @@ export default function CartPage() {
         <div className="min-h-screen bg-bg-gray py-4 md:py-8">
           <div className="max-w-6xl mx-auto px-3 md:px-4">
             {/* Header Skeleton */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3 animate-pulse">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3">
               <div className="h-8 md:h-10 bg-bg-200 rounded w-1/3"></div>
               <div className="h-6 bg-bg-200 rounded w-20"></div>
             </div>
@@ -79,7 +79,7 @@ export default function CartPage() {
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="bg-light-theme rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4 animate-pulse"
+                    className="bg-light-theme rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4"
                   >
                     {/* Product Image Skeleton */}
                     <div className="w-full md:w-24 md:h-24 h-40 bg-bg-200 rounded flex-shrink-0"></div>
@@ -106,7 +106,7 @@ export default function CartPage() {
 
               {/* Order Summary Skeleton */}
               <div className="lg:col-span-1">
-                <div className="bg-light-theme rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8 animate-pulse">
+                <div className="bg-light-theme rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8">
                   <div className="h-6 md:h-7 bg-bg-200 rounded w-1/2 mb-4"></div>
 
                   <div className="space-y-3 mb-6">
