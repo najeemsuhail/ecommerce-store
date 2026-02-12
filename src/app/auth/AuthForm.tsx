@@ -107,7 +107,7 @@ export default function AuthForm() {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                    placeholder="+1 (555) 123-4567"
+                    placeholder="+91 9234567890"
                   />
                 </div>
               </>
