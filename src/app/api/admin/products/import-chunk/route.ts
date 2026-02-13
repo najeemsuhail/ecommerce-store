@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { products } = body;
+    const { products, categoryCache: cachedCategories } = body;
 
     if (!Array.isArray(products) || products.length === 0) {
       return NextResponse.json(
@@ -105,6 +105,14 @@ export async function POST(request: NextRequest) {
     const categoryCache = new Map<string, CachedCategory>();
     const attributeCache = new Map<string, CachedAttribute>();
 
+    // Restore category cache from client if provided
+    if (cachedCategories && Array.isArray(cachedCategories)) {
+      for (const cat of cachedCategories) {
+        categoryCache.set(cat.slug, cat);
+      }
+    }
+
+    // Pre-fetch categories for this chunk
     const categoryNameBySlug = new Map<string, string>();
     const categorySlugs = new Set<string>();
 
@@ -158,55 +166,44 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Process products in batches of 50 for better performance
-    const BATCH_SIZE = 50;
-    const CONCURRENCY = 1;
-    const totalBatches = Math.ceil(products.length / BATCH_SIZE);
+    // Prefetch slugs and existing products
+    const batchBaseSlugs = products
+      .map((product) => toSlug((product as ImportProduct).slug || (product as ImportProduct).name || ''))
+      .filter((slug) => slug.length > 0);
+    const existingSlugs = await getExistingSlugs(batchBaseSlugs);
+    const slugAllocator = createSlugAllocator(existingSlugs);
+    const existingProducts = await getExistingProducts(products as ImportProduct[]);
 
-    for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-      const startIdx = batchIndex * BATCH_SIZE;
-      const endIdx = Math.min(startIdx + BATCH_SIZE, products.length);
-      const batch = products.slice(startIdx, endIdx);
-
-      const batchBaseSlugs = batch
-        .map((product) => toSlug((product as ImportProduct).slug || (product as ImportProduct).name || ''))
-        .filter((slug) => slug.length > 0);
-      const existingSlugs = await getExistingSlugs(batchBaseSlugs);
-      const slugAllocator = createSlugAllocator(existingSlugs);
-      const existingProducts = await getExistingProducts(batch as ImportProduct[]);
-
-      console.log(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} products)`);
-
-      await runWithConcurrency(batch, CONCURRENCY, async (product, batchItemIndex) => {
-        const globalIndex = startIdx + batchItemIndex;
-        try {
-          await importProduct(
-            product as ImportProduct,
-            globalIndex,
-            results,
-            categoryCache,
-            attributeCache,
-            slugAllocator,
-            existingProducts
-          );
-        } catch (error) {
-          results.failed++;
-          results.errors.push({
-            index: globalIndex + 1,
-            name: product?.name || `Product ${globalIndex + 1}`,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          });
-        }
-      });
+    // Process products sequentially (CONCURRENCY = 1)
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i] as ImportProduct;
+      try {
+        await importProduct(
+          product,
+          i,
+          results,
+          categoryCache,
+          attributeCache,
+          slugAllocator,
+          existingProducts
+        );
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          index: i + 1,
+          name: product?.name || `Product ${i + 1}`,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
 
     return NextResponse.json({
       success: true,
       results,
-      message: `Import completed: ${results.imported} imported, ${results.updated} updated, ${results.failed} failed`,
+      categoryCache: Array.from(categoryCache.values()),
     });
   } catch (error) {
-    console.error('Error importing products:', error);
+    console.error('Error importing product chunk:', error);
     return NextResponse.json(
       {
         success: false,
@@ -456,6 +453,29 @@ async function getExistingSlugs(baseSlugs: string[]): Promise<Set<string>> {
   return new Set(existing.map((item) => item.slug));
 }
 
+function createSlugAllocator(existingSlugs: Set<string>): SlugAllocator {
+  const reserved = new Set(existingSlugs);
+  const counters = new Map<string, number>();
+
+  return {
+    allocate: (baseSlug: string) => {
+      if (!baseSlug) return baseSlug;
+
+      let counter = counters.get(baseSlug) ?? 0;
+      let candidate = counter === 0 ? baseSlug : `${baseSlug}-${counter}`;
+
+      while (reserved.has(candidate)) {
+        counter += 1;
+        candidate = `${baseSlug}-${counter}`;
+      }
+
+      counters.set(baseSlug, counter);
+      reserved.add(candidate);
+      return candidate;
+    },
+  };
+}
+
 async function getExistingProducts(products: ImportProduct[]): Promise<ExistingProductMaps> {
   const skus = products
     .map((product) => product.sku)
@@ -537,49 +557,6 @@ function resolveExistingProduct(
   }
 
   return null;
-}
-
-function createSlugAllocator(existingSlugs: Set<string>): SlugAllocator {
-  const reserved = new Set(existingSlugs);
-  const counters = new Map<string, number>();
-
-  return {
-    allocate: (baseSlug: string) => {
-      if (!baseSlug) return baseSlug;
-
-      let counter = counters.get(baseSlug) ?? 0;
-      let candidate = counter === 0 ? baseSlug : `${baseSlug}-${counter}`;
-
-      while (reserved.has(candidate)) {
-        counter += 1;
-        candidate = `${baseSlug}-${counter}`;
-      }
-
-      counters.set(baseSlug, counter);
-      reserved.add(candidate);
-      return candidate;
-    },
-  };
-}
-
-async function runWithConcurrency<T>(
-  items: T[],
-  concurrency: number,
-  handler: (item: T, index: number) => Promise<void>
-): Promise<void> {
-  const limit = Math.max(1, Math.min(concurrency, items.length));
-  let index = 0;
-
-  const workers = Array.from({ length: limit }, async () => {
-    while (index < items.length) {
-      const currentIndex = index;
-      const item = items[currentIndex];
-      index += 1;
-      await handler(item, currentIndex);
-    }
-  });
-
-  await Promise.all(workers);
 }
 
 async function getOrCreateCategory(

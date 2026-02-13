@@ -93,38 +93,99 @@ export default function ProductImporter() {
     }
 
     setLoading(true);
+    setMessage('Processing import...');
+    setResult(null);
+
     try {
       const fileContent = await file.text();
-      const jsonData = JSON.parse(fileContent);
+      let jsonData;
+      try {
+        jsonData = JSON.parse(fileContent);
+      } catch {
+        setMessage('✗ Invalid JSON format');
+        return;
+      }
+
+      const products = Array.isArray(jsonData) ? jsonData : [jsonData];
+      const CHUNK_SIZE = 10; // Process 10 products per chunk
+      const totalChunks = Math.ceil(products.length / CHUNK_SIZE);
+
+      const aggregatedResults: ImportResult = {
+        imported: 0,
+        updated: 0,
+        failed: 0,
+        errors: [],
+      };
 
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/products/import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ products: Array.isArray(jsonData) ? jsonData : [jsonData] }),
-      });
+      let categoryCache: any[] = [];
 
-      const data = await response.json();
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, products.length);
+        const chunk = products.slice(start, end);
 
-      if (data.success) {
-        setResult(data.results);
-        setMessage(`✓ ${data.message}`);
-        setFile(null);
-        if (document.querySelector('input[type="file"]') as HTMLInputElement) {
-          (document.querySelector('input[type="file"]') as HTMLInputElement).value = '';
+        setMessage(`Processing ${end} / ${products.length} products...`);
+
+        const response = await fetch('/api/admin/products/import-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ products: chunk, categoryCache }),
+        });
+
+        const responseText = await response.text();
+        let data: {
+          success?: boolean;
+          results?: ImportResult;
+          categoryCache?: any[];
+          error?: string;
+        } | null = null;
+
+        try {
+          data = responseText ? JSON.parse(responseText) : null;
+        } catch {
+          data = null;
         }
-      } else {
-        setMessage(`✗ Error: ${data.error}`);
+
+        if (!response.ok || !data?.success) {
+          const fallback = responseText ? responseText.slice(0, 300) : response.statusText;
+          setMessage(`✗ Error at chunk ${chunkIndex + 1}: ${data?.error || fallback || 'Import failed'}`);
+          setResult(aggregatedResults);
+          return;
+        }
+
+        // Aggregate results
+        if (data.results) {
+          aggregatedResults.imported += data.results.imported;
+          aggregatedResults.updated += data.results.updated;
+          aggregatedResults.failed += data.results.failed;
+          aggregatedResults.errors.push(
+            ...data.results.errors.map((err) => ({
+              ...err,
+              index: err.index + start, // Adjust index for global position
+            }))
+          );
+        }
+
+        // Update category cache
+        if (data.categoryCache) {
+          categoryCache = data.categoryCache;
+        }
+      }
+
+      setResult(aggregatedResults);
+      setMessage(
+        `✓ Import completed: ${aggregatedResults.imported} imported, ${aggregatedResults.updated} updated, ${aggregatedResults.failed} failed`
+      );
+      setFile(null);
+      if (document.querySelector('input[type="file"]') as HTMLInputElement) {
+        (document.querySelector('input[type="file"]') as HTMLInputElement).value = '';
       }
     } catch (error) {
-      if (error instanceof SyntaxError) {
-        setMessage('✗ Invalid JSON format');
-      } else {
-        setMessage('✗ Failed to import products');
-      }
+      setMessage('✗ Failed to import products');
       console.error('Import error:', error);
     } finally {
       setLoading(false);
