@@ -17,7 +17,7 @@ import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; id: string }>>([]);
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
@@ -68,8 +68,9 @@ export default function HomePage() {
         // Get top-level categories (no parent) for home page display
         const topLevelCategories = data
           .filter((cat: any) => !cat.parentId)
-          .slice(0, 6);
-        setCategories(topLevelCategories.map((cat: any) => cat.name));
+          .slice(0, 6)
+          .map((cat: any) => ({ name: cat.name, id: cat.id }));
+        setCategories(topLevelCategories);
       }
     } catch (error) {
       console.error('Failed to fetch categories');
