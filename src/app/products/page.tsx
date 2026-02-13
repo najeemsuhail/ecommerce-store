@@ -124,7 +124,7 @@ function ProductsContent() {
     try {
       // Fetch all products (with high limit) to calculate accurate facets
       const response = await fetch('/api/products?limit=10000', {
-        cache: 'force-cache', // Use browser cache
+        next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
       const data = await response.json();
       if (data.success) {
@@ -239,7 +239,7 @@ function ProductsContent() {
       url += `skip=0&limit=10000`;
 
       const response = await fetch(url, {
-        cache: 'force-cache', // Use browser cache with API Cache-Control headers
+        next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
       const data = await response.json();
       if (data.success) {

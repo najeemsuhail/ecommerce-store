@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   const fetchProduct = async () => {
     try {
       const response = await fetch(`/api/products/${params.slug}`, {
-        cache: 'force-cache', // Use browser cache with API Cache-Control headers
+        next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
       const data = await response.json();
       if (data.success) {

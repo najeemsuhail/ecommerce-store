@@ -39,11 +39,12 @@ export default function RecentlyViewedSection() {
                 </div>
               </Link>
 
-              {/* Product Info - Only title */}
+              {/* Product Info - Title limited to 2 lines */}
               <div className="p-3">
                 <Link
                   href={`/products/${product.slug}`}
-                  className="block text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-2"
+                  className="block text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 leading-tight"
+                  title={product.name}
                 >
                   {product.name}
                 </Link>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export const revalidate = 60; // ISR: Revalidate every 60 seconds
+export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
 // GET all products (with search and filter)
 export async function GET(request: NextRequest) {
