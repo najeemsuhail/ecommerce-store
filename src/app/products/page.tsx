@@ -30,6 +30,47 @@ interface FacetData {
   priceRange: { min: number; max: number };
 }
 
+// Filter Skeleton Component
+function FilterSkeleton() {
+  return (
+    <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20 space-y-6">
+      {/* Price Skeleton */}
+      <div className="border-b pb-6">
+        <div className="h-6 bg-gray-200 rounded w-20 mb-4 animate-pulse" />
+        <div className="space-y-3">
+          <div className="h-10 bg-gray-200 rounded animate-pulse" />
+          <div className="h-10 bg-gray-200 rounded animate-pulse" />
+          <div className="h-10 bg-gray-200 rounded animate-pulse" />
+        </div>
+      </div>
+
+      {/* Categories Skeleton */}
+      <div className="border-b pb-6">
+        <div className="h-6 bg-gray-200 rounded w-24 mb-4 animate-pulse" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-6 bg-gray-200 rounded w-full animate-pulse" />
+          ))}
+        </div>
+      </div>
+
+      {/* Attributes Skeleton */}
+      <div className="border-b pb-6">
+        <div className="h-6 bg-gray-200 rounded w-24 mb-4 animate-pulse" />
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-5 bg-gray-200 rounded w-16 animate-pulse" />
+              <div className="h-5 bg-gray-200 rounded w-full animate-pulse" />
+              <div className="h-5 bg-gray-200 rounded w-full animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Separate component that uses useSearchParams
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -365,7 +406,11 @@ function ProductsContent() {
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
-          {products.length > 0 && (
+          {loading ? (
+            <div className="hidden lg:block lg:col-span-1">
+              <FilterSkeleton />
+            </div>
+          ) : products.length > 0 ? (
             <div className="hidden lg:block lg:col-span-1">
               <FacetFilter
                 facets={facets}
@@ -373,7 +418,7 @@ function ProductsContent() {
                 onFilterChange={setFacetFilters}
               />
             </div>
-          )}
+          ) : null}
 
           {/* Mobile Filter Modal */}
           {mobileFilterOpen && products.length > 0 && (
