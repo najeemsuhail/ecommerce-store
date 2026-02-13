@@ -65,7 +65,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
   const fetchAttributes = useCallback(async () => {
     try {
       setAttributesLoading(true);
-      const allAttributes: Attribute[] = [];
+      const attributeMap = new Map<string, Attribute>(); // Use Map to deduplicate by ID
 
       if (selectedFilters.categoryIds.length > 0) {
         // Fetch attributes for selected categories
@@ -76,7 +76,14 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             if (!res.ok) continue;
             const data = await res.json();
             if (Array.isArray(data)) {
-              allAttributes.push(...data.filter((a: any) => a.filterable));
+              data
+                .filter((a: any) => a.filterable)
+                .forEach((attr: Attribute) => {
+                  // Add by ID - prevents duplicates even from different categories
+                  if (!attributeMap.has(attr.id)) {
+                    attributeMap.set(attr.id, attr);
+                  }
+                });
             }
           } catch (err) {
             console.warn(`Error fetching attributes for category ${categoryId}:`, err);
@@ -89,7 +96,14 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data)) {
-              allAttributes.push(...data.filter((a: any) => a.filterable));
+              data
+                .filter((a: any) => a.filterable)
+                .forEach((attr: Attribute) => {
+                  // Add by ID - prevents duplicates
+                  if (!attributeMap.has(attr.id)) {
+                    attributeMap.set(attr.id, attr);
+                  }
+                });
             }
           }
         } catch (err) {
@@ -97,11 +111,8 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         }
       }
 
-      // Remove duplicates
-      const uniqueAttrs = Array.from(
-        new Map(allAttributes.map(a => [a.id, a])).values()
-      );
-
+      const uniqueAttrs = Array.from(attributeMap.values());
+      
       setAttributes(uniqueAttrs);
       setExpandedAttrs(new Set(uniqueAttrs.map(a => a.id)));
     } catch (err) {

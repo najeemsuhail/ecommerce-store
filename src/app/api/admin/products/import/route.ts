@@ -94,15 +94,24 @@ export async function POST(request: NextRequest) {
           .trim()
           .replace(/^-+|-+$/g, '');
 
-        // Check if product already exists by externalId or by name/slug
+        // Check if product already exists - priority: SKU > externalId > slug
         let existingProduct = null;
-        if (product.externalId) {
+        
+        // 1. Check by SKU first (most reliable unique identifier)
+        if (product.sku) {
+          existingProduct = await prisma.product.findUnique({
+            where: { sku: product.sku },
+          });
+        }
+        
+        // 2. If not found by SKU, check by externalId
+        if (!existingProduct && product.externalId) {
           existingProduct = await prisma.product.findUnique({
             where: { externalId: String(product.externalId) },
           });
         }
 
-        // If not found by externalId, search by slug
+        // 3. If still not found, search by slug
         if (!existingProduct) {
           existingProduct = await prisma.product.findUnique({
             where: { slug: baseSlug },
@@ -241,11 +250,14 @@ export async function POST(request: NextRequest) {
         // Handle variants if provided
         if (product.variants && product.variants.length > 0) {
           for (const variant of product.variants) {
-            // Find or create variant
+            // Find existing variant by SKU within THIS product only
             let existingVariant = null;
             if (variant.sku) {
-              existingVariant = await prisma.productVariant.findUnique({
-                where: { sku: variant.sku },
+              existingVariant = await prisma.productVariant.findFirst({
+                where: { 
+                  sku: variant.sku,
+                  productId: finalProduct.id, // Only update variants of this product
+                },
               });
             }
 
@@ -264,6 +276,16 @@ export async function POST(request: NextRequest) {
                 },
               });
             } else {
+              // Check if SKU exists for a different product (conflict)
+              if (variant.sku) {
+                const skuConflict = await prisma.productVariant.findUnique({
+                  where: { sku: variant.sku },
+                });
+                if (skuConflict) {
+                  throw new Error(`Variant SKU '${variant.sku}' already exists for another product`);
+                }
+              }
+              
               // Create new variant
               await prisma.productVariant.create({
                 data: {

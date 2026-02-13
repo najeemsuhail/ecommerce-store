@@ -122,7 +122,8 @@ function ProductsContent() {
 
   const fetchAllProducts = async () => {
     try {
-      const response = await fetch('/api/products', {
+      // Fetch all products (with high limit) to calculate accurate facets
+      const response = await fetch('/api/products?limit=10000', {
         cache: 'force-cache', // Use browser cache
       });
       const data = await response.json();
@@ -135,6 +136,9 @@ function ProductsContent() {
         let minPrice = Number.MAX_VALUE;
         let maxPrice = 0;
 
+        // Track which products are in which categories to avoid duplicate counting
+        const categoryProducts = new Map<string, Set<string>>();
+        
         data.products.forEach((p: any) => {
           if (p.brand) {
             brands.set(p.brand, (brands.get(p.brand) || 0) + 1);
@@ -146,15 +150,21 @@ function ProductsContent() {
               const categoryId = cat.category?.id || cat.categoryId;
               if (!categories.has(categoryName)) {
                 categories.set(categoryName, { id: categoryId, count: 0 });
+                categoryProducts.set(categoryName, new Set());
               }
-              const catData = categories.get(categoryName)!;
-              catData.count += 1;
+              // Add product ID to track unique products per category
+              categoryProducts.get(categoryName)!.add(p.id);
             });
           }
           if (p.price) {
             minPrice = Math.min(minPrice, p.price);
             maxPrice = Math.max(maxPrice, p.price);
           }
+        });
+        
+        // Update category counts with unique product counts
+        categories.forEach((catData, catName) => {
+          catData.count = categoryProducts.get(catName)?.size || 0;
         });
 
         setFacets({
