@@ -44,6 +44,10 @@ interface ImportProduct {
   attributes?: Record<string, string[]>;
 }
 
+type CachedCategory = { id: string; slug: string; name: string };
+type CachedAttribute = { id: string; slug: string; categoryId: string | null };
+type SlugAllocator = { allocate: (baseSlug: string) => string };
+
 export async function POST(request: NextRequest) {
   try {
     // Check admin authorization
@@ -72,8 +76,65 @@ export async function POST(request: NextRequest) {
       errors: [] as Array<{ index: number; name: string; error: string }>,
     };
 
+    const categoryCache = new Map<string, CachedCategory>();
+    const attributeCache = new Map<string, CachedAttribute>();
+
+    const categoryNameBySlug = new Map<string, string>();
+    const categorySlugs = new Set<string>();
+
+    for (const product of products as ImportProduct[]) {
+      const categories = Array.isArray(product.category)
+        ? product.category
+        : product.category
+          ? [product.category]
+          : [];
+
+      for (const categoryName of categories) {
+        const slug = toSlug(categoryName);
+        categorySlugs.add(slug);
+        if (!categoryNameBySlug.has(slug)) {
+          categoryNameBySlug.set(slug, categoryName);
+        }
+      }
+    }
+
+    if (categorySlugs.size > 0) {
+      const existingCategories = await prisma.category.findMany({
+        where: { slug: { in: Array.from(categorySlugs) } },
+        select: { id: true, slug: true, name: true },
+      });
+
+      for (const category of existingCategories) {
+        categoryCache.set(category.slug, category);
+      }
+
+      const missingCategories = Array.from(categorySlugs)
+        .filter((slug) => !categoryCache.has(slug))
+        .map((slug) => ({
+          slug,
+          name: categoryNameBySlug.get(slug) || slug,
+        }));
+
+      if (missingCategories.length > 0) {
+        await prisma.category.createMany({
+          data: missingCategories,
+          skipDuplicates: true,
+        });
+
+        const createdCategories = await prisma.category.findMany({
+          where: { slug: { in: missingCategories.map((item) => item.slug) } },
+          select: { id: true, slug: true, name: true },
+        });
+
+        for (const category of createdCategories) {
+          categoryCache.set(category.slug, category);
+        }
+      }
+    }
+
     // Process products in batches of 50 for better performance
     const BATCH_SIZE = 50;
+    const CONCURRENCY = 1;
     const totalBatches = Math.ceil(products.length / BATCH_SIZE);
 
     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
@@ -81,24 +142,34 @@ export async function POST(request: NextRequest) {
       const endIdx = Math.min(startIdx + BATCH_SIZE, products.length);
       const batch = products.slice(startIdx, endIdx);
 
+      const batchBaseSlugs = batch
+        .map((product) => toSlug((product as ImportProduct).slug || (product as ImportProduct).name || ''))
+        .filter((slug) => slug.length > 0);
+      const existingSlugs = await getExistingSlugs(batchBaseSlugs);
+      const slugAllocator = createSlugAllocator(existingSlugs);
+
       console.log(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} products)`);
 
-      // Process all products in batch in parallel
-      await Promise.all(
-        batch.map(async (product, batchItemIndex) => {
-          const globalIndex = startIdx + batchItemIndex;
-          try {
-            await importProduct(product as ImportProduct, globalIndex, results);
-          } catch (error) {
-            results.failed++;
-            results.errors.push({
-              index: globalIndex + 1,
-              name: product?.name || `Product ${globalIndex + 1}`,
-              error: error instanceof Error ? error.message : 'Unknown error',
-            });
-          }
-        })
-      );
+      await runWithConcurrency(batch, CONCURRENCY, async (product, batchItemIndex) => {
+        const globalIndex = startIdx + batchItemIndex;
+        try {
+          await importProduct(
+            product as ImportProduct,
+            globalIndex,
+            results,
+            categoryCache,
+            attributeCache,
+            slugAllocator
+          );
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            index: globalIndex + 1,
+            name: product?.name || `Product ${globalIndex + 1}`,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      });
     }
 
     return NextResponse.json({
@@ -122,7 +193,10 @@ export async function POST(request: NextRequest) {
 async function importProduct(
   product: ImportProduct,
   index: number,
-  results: any
+  results: any,
+  categoryCache: Map<string, CachedCategory>,
+  attributeCache: Map<string, CachedAttribute>,
+  slugAllocator: SlugAllocator
 ): Promise<void> {
   // Validation
   if (!product.name || !product.description || product.price === undefined) {
@@ -134,13 +208,7 @@ async function importProduct(
   }
 
   // Generate slug from name if not provided
-  const baseSlug = (product.slug || product.name || '')
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]/g, '')
-    .replace(/-+/g, '-')
-    .trim()
-    .replace(/^-+|-+$/g, '');
+  const baseSlug = toSlug(product.slug || product.name || '');
 
   // Check if product already exists - priority: SKU > externalId > slug
   let existingProduct = null;
@@ -198,17 +266,7 @@ async function importProduct(
     });
     results.updated++;
   } else {
-    // Check for unique slug if creating new product
-    let finalSlug = baseSlug;
-    let counter = 1;
-    while (true) {
-      const existing = await prisma.product.findUnique({
-        where: { slug: finalSlug },
-      });
-      if (!existing) break;
-      finalSlug = `${baseSlug}-${counter}`;
-      counter++;
-    }
+    const finalSlug = slugAllocator.allocate(baseSlug);
 
     // Create new product
     finalProduct = await prisma.product.create({
@@ -240,178 +298,275 @@ async function importProduct(
     results.imported++;
   }
 
-  // Handle categories in parallel
+  // Handle categories
   const categories = Array.isArray(product.category)
     ? product.category
     : product.category
       ? [product.category]
       : [];
 
+  let primaryCategoryId: string | null = null;
+  const categoryIds = new Set<string>();
+
   if (categories.length > 0) {
+    const firstCategory = await getOrCreateCategory(categories[0], categoryCache);
+    primaryCategoryId = firstCategory.id;
+    categoryIds.add(firstCategory.id);
+
+    for (const categoryName of categories.slice(1)) {
+      const category = await getOrCreateCategory(categoryName, categoryCache);
+      categoryIds.add(category.id);
+    }
+  }
+
+  if (categoryIds.size > 0) {
     await prisma.productCategory.deleteMany({
       where: { productId: finalProduct.id },
     });
 
-    // Process all categories in parallel
-    await Promise.all(
-      categories.map(async (categoryName) => {
-        const categorySlug = categoryName.toLowerCase().replace(/\s+/g, '-');
-
-        let category = await prisma.category.findUnique({
-          where: { slug: categorySlug },
-        });
-
-        if (!category) {
-          category = await prisma.category.create({
-            data: {
-              name: categoryName,
-              slug: categorySlug,
-            },
-          });
-        }
-
-        // Avoid duplicate links
-        const existingLink = await prisma.productCategory.findUnique({
-          where: {
-            productId_categoryId: {
-              productId: finalProduct.id,
-              categoryId: category.id,
-            },
-          },
-        });
-
-        if (!existingLink) {
-          await prisma.productCategory.create({
-            data: {
-              productId: finalProduct.id,
-              categoryId: category.id,
-            },
-          });
-        }
-      })
-    );
+    await prisma.productCategory.createMany({
+      data: Array.from(categoryIds).map((categoryId) => ({
+        productId: finalProduct.id,
+        categoryId,
+      })),
+      skipDuplicates: true,
+    });
   }
 
   // Handle variants if provided
   if (product.variants && product.variants.length > 0) {
-    await Promise.all(
-      product.variants.map(async (variant) => {
-        let existingVariant = null;
+    for (const variant of product.variants) {
+      let existingVariant = null;
+      if (variant.sku) {
+        existingVariant = await prisma.productVariant.findFirst({
+          where: {
+            sku: variant.sku,
+            productId: finalProduct.id,
+          },
+        });
+      }
+
+      if (existingVariant) {
+        await prisma.productVariant.update({
+          where: { id: existingVariant.id },
+          data: {
+            name: variant.name,
+            price: variant.price,
+            stock: variant.stock ?? (variant.available ? 1 : 0),
+            size: variant.size || existingVariant.size,
+            color: variant.color || existingVariant.color,
+            material: variant.material || existingVariant.material,
+            image: variant.image || existingVariant.image,
+          },
+        });
+      } else {
         if (variant.sku) {
-          existingVariant = await prisma.productVariant.findFirst({
-            where: {
-              sku: variant.sku,
-              productId: finalProduct.id,
-            },
+          const skuConflict = await prisma.productVariant.findUnique({
+            where: { sku: variant.sku },
           });
-        }
-
-        if (existingVariant) {
-          await prisma.productVariant.update({
-            where: { id: existingVariant.id },
-            data: {
-              name: variant.name,
-              price: variant.price,
-              stock: variant.stock ?? (variant.available ? 1 : 0),
-              size: variant.size || existingVariant.size,
-              color: variant.color || existingVariant.color,
-              material: variant.material || existingVariant.material,
-              image: variant.image || existingVariant.image,
-            },
-          });
-        } else {
-          if (variant.sku) {
-            const skuConflict = await prisma.productVariant.findUnique({
-              where: { sku: variant.sku },
-            });
-            if (skuConflict) {
-              throw new Error(
-                `Variant SKU '${variant.sku}' already exists for another product`
-              );
-            }
+          if (skuConflict) {
+            throw new Error(
+              `Variant SKU '${variant.sku}' already exists for another product`
+            );
           }
-
-          await prisma.productVariant.create({
-            data: {
-              productId: finalProduct.id,
-              name: variant.name,
-              sku: variant.sku,
-              price: variant.price,
-              stock: variant.stock ?? (variant.available ? 1 : 0),
-              size: variant.size,
-              color: variant.color,
-              material: variant.material,
-              image: variant.image,
-            },
-          });
         }
-      })
-    );
+
+        await prisma.productVariant.create({
+          data: {
+            productId: finalProduct.id,
+            name: variant.name,
+            sku: variant.sku,
+            price: variant.price,
+            stock: variant.stock ?? (variant.available ? 1 : 0),
+            size: variant.size,
+            color: variant.color,
+            material: variant.material,
+            image: variant.image,
+          },
+        });
+      }
+    }
   }
 
   // Handle attributes if provided
   if (product.attributes && Object.keys(product.attributes).length > 0) {
-    let categoryId: string | null = null;
-
-    if (categories.length > 0) {
-      const categorySlug = categories[0].toLowerCase().replace(/\s+/g, '-');
-      const category = await prisma.category.findUnique({
-        where: { slug: categorySlug },
-      });
-      if (category) {
-        categoryId = category.id;
-      }
-    }
-
     await prisma.productAttributeValue.deleteMany({
       where: { productId: finalProduct.id },
     });
 
-    // Process attributes in parallel
-    await Promise.all(
-      Object.entries(product.attributes).map(async ([attributeName, attributeValues]) => {
-        if (!Array.isArray(attributeValues) || attributeValues.length === 0) return;
+    const attributeValueData: Array<{ productId: string; attributeId: string; value: string }> = [];
 
-        let attribute = null;
+    for (const [attributeName, attributeValues] of Object.entries(product.attributes)) {
+      if (!Array.isArray(attributeValues) || attributeValues.length === 0) continue;
 
-        if (categoryId) {
-          attribute = await prisma.attribute.findFirst({
-            where: {
-              categoryId: categoryId,
-              slug: attributeName.toLowerCase().replace(/\s+/g, '-'),
-            },
-          });
+      const attribute = await getOrCreateAttribute(
+        attributeName,
+        attributeValues,
+        primaryCategoryId,
+        attributeCache
+      );
 
-          if (!attribute) {
-            attribute = await prisma.attribute.create({
-              data: {
-                categoryId: categoryId,
-                name: attributeName,
-                slug: attributeName.toLowerCase().replace(/\s+/g, '-'),
-                type: 'multiselect',
-                filterable: true,
-                options: attributeValues,
-              },
-            });
-          }
-        } else {
-          attribute = await prisma.attribute.findFirst({
-            where: {
-              slug: attributeName.toLowerCase().replace(/\s+/g, '-'),
-            },
-          });
-        }
+      if (attribute) {
+        attributeValueData.push({
+          productId: finalProduct.id,
+          attributeId: attribute.id,
+          value: attributeValues.map(String).join(', '),
+        });
+      }
+    }
 
-        if (attribute) {
-          await prisma.productAttributeValue.create({
-            data: {
-              productId: finalProduct.id,
-              attributeId: attribute.id,
-              value: attributeValues.map(String).join(', '),
-            },
-          });
-        }
-      })
-    );
+    if (attributeValueData.length > 0) {
+      await prisma.productAttributeValue.createMany({
+        data: attributeValueData,
+        skipDuplicates: true,
+      });
+    }
   }
+}
+
+function toSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]/g, '')
+    .replace(/-+/g, '-')
+    .trim()
+    .replace(/^-+|-+$/g, '');
+}
+
+async function getExistingSlugs(baseSlugs: string[]): Promise<Set<string>> {
+  const uniqueBaseSlugs = Array.from(new Set(baseSlugs.filter((slug) => slug.length > 0)));
+  if (uniqueBaseSlugs.length === 0) return new Set();
+
+  const existing = await prisma.product.findMany({
+    where: {
+      OR: uniqueBaseSlugs.map((slug) => ({ slug: { startsWith: slug } })),
+    },
+    select: { slug: true },
+  });
+
+  return new Set(existing.map((item) => item.slug));
+}
+
+function createSlugAllocator(existingSlugs: Set<string>): SlugAllocator {
+  const reserved = new Set(existingSlugs);
+  const counters = new Map<string, number>();
+
+  return {
+    allocate: (baseSlug: string) => {
+      if (!baseSlug) return baseSlug;
+
+      let counter = counters.get(baseSlug) ?? 0;
+      let candidate = counter === 0 ? baseSlug : `${baseSlug}-${counter}`;
+
+      while (reserved.has(candidate)) {
+        counter += 1;
+        candidate = `${baseSlug}-${counter}`;
+      }
+
+      counters.set(baseSlug, counter);
+      reserved.add(candidate);
+      return candidate;
+    },
+  };
+}
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  handler: (item: T, index: number) => Promise<void>
+): Promise<void> {
+  const limit = Math.max(1, Math.min(concurrency, items.length));
+  let index = 0;
+
+  const workers = Array.from({ length: limit }, async () => {
+    while (index < items.length) {
+      const currentIndex = index;
+      const item = items[currentIndex];
+      index += 1;
+      await handler(item, currentIndex);
+    }
+  });
+
+  await Promise.all(workers);
+}
+
+async function getOrCreateCategory(
+  categoryName: string,
+  categoryCache: Map<string, CachedCategory>
+): Promise<CachedCategory> {
+  const categorySlug = toSlug(categoryName);
+  const cached = categoryCache.get(categorySlug);
+  if (cached) return cached;
+
+  let category = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+    select: { id: true, slug: true, name: true },
+  });
+
+  if (!category) {
+    category = await prisma.category.create({
+      data: {
+        name: categoryName,
+        slug: categorySlug,
+      },
+      select: { id: true, slug: true, name: true },
+    });
+  }
+
+  categoryCache.set(category.slug, category);
+  return category;
+}
+
+async function getOrCreateAttribute(
+  attributeName: string,
+  attributeValues: string[],
+  categoryId: string | null,
+  attributeCache: Map<string, CachedAttribute>
+): Promise<CachedAttribute | null> {
+  const slug = toSlug(attributeName);
+  const cacheKey = `${categoryId || 'global'}:${slug}`;
+  const cached = attributeCache.get(cacheKey);
+  if (cached) return cached;
+
+  let attribute = null;
+
+  if (categoryId) {
+    attribute = await prisma.attribute.findFirst({
+      where: {
+        categoryId,
+        slug,
+      },
+      select: { id: true, slug: true, categoryId: true },
+    });
+
+    if (!attribute) {
+      attribute = await prisma.attribute.create({
+        data: {
+          categoryId,
+          name: attributeName,
+          slug,
+          type: 'multiselect',
+          filterable: true,
+          options: attributeValues,
+        },
+        select: { id: true, slug: true, categoryId: true },
+      });
+    }
+  } else {
+    attribute = await prisma.attribute.findFirst({
+      where: { slug },
+      select: { id: true, slug: true, categoryId: true },
+    });
+  }
+
+  if (!attribute) return null;
+
+  const cachedAttribute = {
+    id: attribute.id,
+    slug: attribute.slug,
+    categoryId: attribute.categoryId,
+  };
+  attributeCache.set(cacheKey, cachedAttribute);
+  return cachedAttribute;
 }
