@@ -9,7 +9,7 @@ interface Attribute {
   id: string;
   name: string;
   type: string;
-  options: string[];
+  options: Array<{ value: string; count: number }>;
   filterable: boolean;
 }
 
@@ -44,7 +44,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     categories: true,
     price: true,
     type: true,
-    attributes: true,
+    attributes: false, // Start collapsed to prevent layout jumps when attributes load
   });
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributesLoading, setAttributesLoading] = useState(true);
@@ -65,7 +65,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
   const fetchAttributes = useCallback(async () => {
     try {
       setAttributesLoading(true);
-      const attributeMap = new Map<string, Attribute>(); // Use Map to deduplicate by ID
+      const attributeMap = new Map<string, Attribute>(); // Deduplicate by NAME
 
       if (selectedFilters.categoryIds.length > 0) {
         // Fetch attributes for selected categories
@@ -79,9 +79,26 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
               data
                 .filter((a: any) => a.filterable)
                 .forEach((attr: Attribute) => {
-                  // Add by ID - prevents duplicates even from different categories
-                  if (!attributeMap.has(attr.id)) {
-                    attributeMap.set(attr.id, attr);
+                  // Merge attributes with same name (from different categories)
+                  if (!attributeMap.has(attr.name)) {
+                    attributeMap.set(attr.name, {
+                      id: attr.id,
+                      name: attr.name,
+                      type: attr.type,
+                      options: (attr.options || []).map(opt => ({ value: typeof opt === 'string' ? opt : opt.value, count: 0 })),
+                      filterable: attr.filterable,
+                    });
+                  } else {
+                    // Merge options from duplicate attributes
+                    const existing = attributeMap.get(attr.name)!;
+                    const existingOptions = new Set(existing.options.map(o => o.value));
+                    (attr.options || []).forEach(opt => {
+                      const optValue = typeof opt === 'string' ? opt : opt.value;
+                      if (!existingOptions.has(optValue)) {
+                        existing.options.push({ value: optValue, count: 0 });
+                        existingOptions.add(optValue);
+                      }
+                    });
                   }
                 });
             }
@@ -99,9 +116,26 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
               data
                 .filter((a: any) => a.filterable)
                 .forEach((attr: Attribute) => {
-                  // Add by ID - prevents duplicates
-                  if (!attributeMap.has(attr.id)) {
-                    attributeMap.set(attr.id, attr);
+                  // Merge attributes with same name
+                  if (!attributeMap.has(attr.name)) {
+                    attributeMap.set(attr.name, {
+                      id: attr.id,
+                      name: attr.name,
+                      type: attr.type,
+                      options: (attr.options || []).map(opt => ({ value: typeof opt === 'string' ? opt : opt.value, count: 0 })),
+                      filterable: attr.filterable,
+                    });
+                  } else {
+                    // Merge options from duplicate attributes
+                    const existing = attributeMap.get(attr.name)!;
+                    const existingOptions = new Set(existing.options.map(o => o.value));
+                    (attr.options || []).forEach(opt => {
+                      const optValue = typeof opt === 'string' ? opt : opt.value;
+                      if (!existingOptions.has(optValue)) {
+                        existing.options.push({ value: optValue, count: 0 });
+                        existingOptions.add(optValue);
+                      }
+                    });
                   }
                 });
             }
@@ -111,10 +145,34 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         }
       }
 
+      // Fetch all products to calculate option counts
+      try {
+        const res = await fetch('/api/products?limit=10000');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.products)) {
+            // Calculate counts for each attribute option
+            attributeMap.forEach((attr) => {
+              attr.options.forEach((opt) => {
+                opt.count = data.products.filter((p: any) => {
+                  if (p.attributeValues && Array.isArray(p.attributeValues)) {
+                    return p.attributeValues.some((av: any) => 
+                      av.attribute?.name === attr.name && av.value === opt.value
+                    );
+                  }
+                  return false;
+                }).length;
+              });
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching products for attribute counts:', err);
+      }
+
       const uniqueAttrs = Array.from(attributeMap.values());
-      
       setAttributes(uniqueAttrs);
-      setExpandedAttrs(new Set(uniqueAttrs.map(a => a.id)));
+      setExpandedAttrs(new Set()); // Don't auto-expand attributes when they load
     } catch (err) {
       console.error('Failed to load attributes:', err);
     } finally {
@@ -188,7 +246,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     selectedFilters.priceRange.max < facets.priceRange.max;
 
   return (
-    <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20">
+    <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20 overflow-y-auto max-h-[calc(100vh-120px)]" style={{ contain: 'layout' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Filters</h2>
@@ -307,24 +365,24 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
           {expandedSections.attributes && (
             <div className="mt-4 space-y-4">
               {attributes.map((attr) => (
-                <div key={attr.id}>
+                <div key={attr.name}>
                   <p className="text-sm font-medium text-gray-700 mb-2">{attr.name}</p>
                   <div className="space-y-2">
                     {attr.type === 'select' || attr.type === 'size' ? (
                       attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt) || false}
+                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt.value) || false}
                             onChange={(e) => {
                               const newFilters = { ...selectedFilters.attributes || {} };
                               if (!newFilters[attr.id]) {
                                 newFilters[attr.id] = [];
                               }
                               if (e.target.checked) {
-                                newFilters[attr.id].push(opt);
+                                newFilters[attr.id].push(opt.value);
                               } else {
-                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt);
+                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt.value);
                               }
                               if (newFilters[attr.id].length === 0) {
                                 delete newFilters[attr.id];
@@ -336,24 +394,25 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                             }}
                             className="w-4 h-4 rounded"
                           />
-                          <span className="text-sm text-gray-700">{opt}</span>
+                          <span className="text-sm text-gray-700">{opt.value}</span>
+                          <span className="text-gray-500 text-sm">({opt.count})</span>
                         </label>
                       )) : null
                     ) : attr.type === 'color' ? (
                       attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt) || false}
+                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt.value) || false}
                             onChange={(e) => {
                               const newFilters = { ...selectedFilters.attributes || {} };
                               if (!newFilters[attr.id]) {
                                 newFilters[attr.id] = [];
                               }
                               if (e.target.checked) {
-                                newFilters[attr.id].push(opt);
+                                newFilters[attr.id].push(opt.value);
                               } else {
-                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt);
+                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt.value);
                               }
                               if (newFilters[attr.id].length === 0) {
                                 delete newFilters[attr.id];
@@ -368,9 +427,10 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
                           <div className="flex items-center gap-2">
                             <div
                               className="w-4 h-4 rounded border border-gray-300"
-                              style={{ backgroundColor: opt }}
+                              style={{ backgroundColor: opt.value }}
                             />
-                            <span className="text-sm text-gray-700">{opt}</span>
+                            <span className="text-sm text-gray-700">{opt.value}</span>
+                            <span className="text-gray-500 text-sm">({opt.count})</span>
                           </div>
                         </label>
                       )) : null
