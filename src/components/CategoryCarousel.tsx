@@ -43,14 +43,13 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
             <Link
               key={category.id}
               href={`/products?category=${encodeURIComponent(category.name)}`}
-              className="group relative overflow-hidden rounded-xl transition-all duration-300 bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md hover:shadow-xl"
+              className="group relative overflow-hidden rounded-lg border border-gray-200 transition-all duration-300 bg-white hover:border-gray-400 hover:shadow-md"
             >
-              <div className="px-6 py-8 text-center">
-                <h3 className="font-bold text-lg text-white group-hover:scale-110 transition-transform duration-300">
+              <div className="px-4 py-6 text-center">
+                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                   {category.name}
                 </h3>
               </div>
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
             </Link>
           ))}
         </div>

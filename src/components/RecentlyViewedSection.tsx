@@ -27,7 +27,7 @@ export default function RecentlyViewedSection() {
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {recentlyViewed.map((product) => (
-            <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div key={product.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
               {/* Product Image */}
               <Link href={`/products/${product.slug}`}>
                 <div className="relative overflow-hidden bg-gray-100 h-48">
