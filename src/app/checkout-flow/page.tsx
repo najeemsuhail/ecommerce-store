@@ -298,7 +298,7 @@ export default function CheckoutFlowPage() {
         key: paymentResult.keyId,
         amount: paymentResult.amount,
         currency: paymentResult.currency,
-        name: 'E-Store',
+        name: 'onlyinkani.in',
         description: 'Order Payment',
         order_id: paymentResult.razorpayOrderId,
         prefill: {

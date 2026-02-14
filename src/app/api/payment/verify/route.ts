@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
-import { sendOrderConfirmationEmail } from '@/lib/emailService';
+import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +53,9 @@ const fullOrder = await prisma.order.findUnique({
   if (fullOrder) {
     sendOrderConfirmationEmail(fullOrder).catch((err) =>
       console.error('Failed to send confirmation email:', err)
+    );
+    sendAdminNewOrderEmail(fullOrder).catch((err) =>
+      console.error('Failed to send admin new order email:', err)
     );
   }
 

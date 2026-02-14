@@ -42,16 +42,14 @@ export default function CategoriesSection({ categories }: CategoriesSectionProps
           ))}
         </div>
 
-        {hasMore && (
-          <div className="mt-12 text-center">
-            <Link
-              href="/categories"
-              className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-            >
-              View All Categories
-            </Link>
-          </div>
-        )}
+        <div className="mt-12 text-center">
+          <Link
+            href="/categories"
+            className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md hover:shadow-lg"
+          >
+            View All Categories {hasMore && `(${categories.length})`}
+          </Link>
+        </div>
       </div>
     </section>
   );

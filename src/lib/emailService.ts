@@ -5,9 +5,22 @@ import {
   getOrderDeliveredEmail,
   getWelcomeEmail,
   getContactFormEmail,
+  getVerificationEmail,
+  getAdminNewUserEmail,
+  getAdminNewOrderEmail,
 } from './emailTemplates';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+const getAdminNotificationEmails = (): string[] => {
+  const raw = process.env.ADMIN_NOTIFICATION_EMAILS || process.env.EMAIL_FROM || '';
+  const emails = raw
+    .split(',')
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+  return emails.length > 0 ? emails : ['contact@onlyinkani.in'];
+};
 
 export async function sendOrderConfirmationEmail(order: any) {
   try {
@@ -146,6 +159,76 @@ export async function sendContactFormEmail(contactData: {
     return { success: true, data };
   } catch (error) {
     console.error('Error sending contact form email:', error);
+    return { success: false, error };
+  }
+}
+
+export async function sendVerificationEmail(user: any, verificationToken: string) {
+  try {
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to: user.email,
+      subject: 'Verify Your Email - E-Store',
+      html: getVerificationEmail(user, verificationUrl),
+    });
+
+    if (error) {
+      console.error('Error sending verification email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Verification email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAdminNewUserEmail(user: any) {
+  try {
+    const to = getAdminNotificationEmails();
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to,
+      subject: `New User Registered - ${user.email}`,
+      html: getAdminNewUserEmail(user),
+    });
+
+    if (error) {
+      console.error('Error sending admin new user email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Admin new user email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending admin new user email:', error);
+    return { success: false, error };
+  }
+}
+
+export async function sendAdminNewOrderEmail(order: any) {
+  try {
+    const to = getAdminNotificationEmails();
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to,
+      subject: `New Order Received - ${order.id.substring(0, 8)}`,
+      html: getAdminNewOrderEmail(order),
+    });
+
+    if (error) {
+      console.error('Error sending admin new order email:', error);
+      return { success: false, error };
+    }
+
+    console.log('✅ Admin new order email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending admin new order email:', error);
     return { success: false, error };
   }
 }

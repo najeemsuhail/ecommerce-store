@@ -8,6 +8,8 @@ export default function AuthForm() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/';
   const [isLogin, setIsLogin] = useState(true);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,6 +40,16 @@ export default function AuthForm() {
       const data = await response.json();
 
       if (data.success) {
+        if (!isLogin && !data.token) {
+          // Registration successful but needs email verification
+          setShowVerificationMessage(true);
+          setVerificationEmail(formData.email);
+          setFormData({ email: '', password: '', name: '', phone: '' });
+          setMessage('');
+          return;
+        }
+
+        // Login or already verified registration
         setToken(data.token);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -57,6 +69,42 @@ export default function AuthForm() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  if (showVerificationMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-light-theme rounded-lg shadow-lg p-6 lg:p-8 text-center">
+            <div className="mb-4 text-4xl">📧</div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Verify Your Email</h2>
+            <p className="text-slate-600 mb-4">
+              We've sent a verification link to <strong>{verificationEmail}</strong>
+            </p>
+            <p className="text-sm text-slate-500 mb-6">
+              Please check your email and click the verification link to activate your account. The link will expire in 24 hours.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+              <p className="text-sm font-semibold text-blue-900 mb-2">💡 Tips:</p>
+              <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
+                <li>Check your spam/junk folder if you don't see the email</li>
+                <li>The link will redirect you back here and log you in</li>
+                <li>Need a new link? Just register again with the same email</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => {
+                setShowVerificationMessage(false);
+                setIsLogin(true);
+              }}
+              className="w-full text-indigo-600 font-bold hover:underline"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-start lg:items-center justify-center pt-8 lg:pt-0 px-4">

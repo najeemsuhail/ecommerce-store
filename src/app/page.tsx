@@ -68,9 +68,15 @@ export default function HomePage() {
         // Get top-level categories (no parent) for home page display
         const topLevelCategories = data
           .filter((cat: any) => !cat.parentId)
-          .slice(0, 6)
           .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
-        setCategories(topLevelCategories);
+        
+        // Remove duplicates by name (keep first occurrence)
+        const uniqueCategories = topLevelCategories.filter(
+          (cat: any, index: number, self: any[]) =>
+            index === self.findIndex((c: any) => c.name === cat.name)
+        );
+        
+        setCategories(uniqueCategories.slice(0, 6));
       }
     } catch (error) {
       console.error('Failed to fetch categories');

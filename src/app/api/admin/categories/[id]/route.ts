@@ -43,6 +43,22 @@ export async function PUT(
     const { id } = await params;
     const { name, slug, parentId } = await req.json();
 
+    // Check for duplicate name at the same hierarchy level (excluding current category)
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        name,
+        parentId: parentId || null,
+        NOT: { id }
+      }
+    });
+
+    if (existingCategory) {
+      return NextResponse.json(
+        { error: 'A category with this name already exists at this level' },
+        { status: 409 }
+      );
+    }
+
     const category = await prisma.category.update({
       where: { id },
       data: {

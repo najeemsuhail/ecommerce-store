@@ -35,6 +35,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check for duplicate name at the same hierarchy level
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        name,
+        parentId: parentId || null
+      }
+    });
+
+    if (existingCategory) {
+      return NextResponse.json(
+        { error: 'A category with this name already exists at this level' },
+        { status: 409 }
+      );
+    }
+
     const category = await prisma.category.create({
       data: {
         name,

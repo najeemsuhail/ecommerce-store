@@ -27,14 +27,12 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
             </h2>
             <p className="text-lg text-gray-600">Browse our product categories</p>
           </div>
-          {hasMore && (
-            <Link
-              href="/categories"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold whitespace-nowrap"
-            >
-              View All
-            </Link>
-          )}
+          <Link
+            href="/categories"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold whitespace-nowrap shadow-md hover:shadow-lg"
+          >
+            View All {hasMore && `(${categories.length})`}
+          </Link>
         </div>
 
         {/* Categories Grid */}

@@ -400,3 +400,137 @@ ${contactData.message}
     </html>
   `;
 }
+
+export function getVerificationEmail(user: any, verificationUrl: string) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verify Your Email</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">✉️ Verify Your Email</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Hi ${user.name || 'there'},
+        </p>
+        
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          Welcome to <strong>Onlyinkani.in</strong>! We're excited to have you join our community.
+        </p>
+        
+        <p style="font-size: 16px; margin-bottom: 20px;">
+          To get started and access your account, please verify your email address by clicking the button below.
+        </p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${verificationUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            Verify Email Address
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+          Or copy and paste this link in your browser:
+        </p>
+        
+        <div style="background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd; word-break: break-all; font-size: 12px; color: #667eea; margin-bottom: 20px;">
+          ${verificationUrl}
+        </div>
+        
+        <div style="background: #e7f3ff; border: 1px solid #b3d9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0; font-size: 14px; color: #004085;">
+            <strong>⏰ This link expires in 24 hours.</strong> After that, you'll need to register again if you haven't verified your email.
+          </p>
+        </div>
+        
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">
+          If you didn't create this account, you can safely ignore this email.
+        </p>
+        
+        <p style="font-size: 14px; color: #666;">
+          Best regards,<br>
+          <strong>The Onlyinkani.in Team</strong>
+        </p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+        <p>© 2026 Onlyinkani.in. All rights reserved.</p>
+        <p style="margin: 5px 0;">
+          <a href="https://onlyinkani.in/privacy-policy" style="color: #999; text-decoration: none;">Privacy Policy</a> | 
+          <a href="https://onlyinkani.in/terms-of-service" style="color: #999; text-decoration: none;">Terms of Service</a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+export function getAdminNewUserEmail(user: any) {
+  const name = user.name || 'New user';
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New User Registration</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #111827; padding: 24px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: #fff; margin: 0;">New User Registered</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">A new user just signed up.</p>
+        <div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;">
+          <p style="margin: 0 0 8px;"><strong>Name:</strong> ${name}</p>
+          <p style="margin: 0 0 8px;"><strong>Email:</strong> ${user.email}</p>
+          <p style="margin: 0;"><strong>Phone:</strong> ${user.phone || 'N/A'}</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 16px; font-size: 12px; color: #999;">
+        <p>© 2026 Onlyinkani.in. All rights reserved.</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+export function getAdminNewOrderEmail(order: any) {
+  const customerName = order.user?.name || order.guestName || 'Customer';
+  const customerEmail = order.user?.email || order.guestEmail || 'N/A';
+  const itemCount = order.items?.length || 0;
+  const total = order.total || order.totalAmount || order.totalPrice || 'N/A';
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Order Received</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0f766e; padding: 24px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: #fff; margin: 0;">New Order Received</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px;">
+        <p style="font-size: 16px;">A new order has been placed.</p>
+        <div style="background: #fff; padding: 16px; border-radius: 8px; border: 1px solid #eee;">
+          <p style="margin: 0 0 8px;"><strong>Order ID:</strong> ${order.id}</p>
+          <p style="margin: 0 0 8px;"><strong>Customer:</strong> ${customerName}</p>
+          <p style="margin: 0 0 8px;"><strong>Email:</strong> ${customerEmail}</p>
+          <p style="margin: 0 0 8px;"><strong>Items:</strong> ${itemCount}</p>
+          <p style="margin: 0;"><strong>Total:</strong> ${total}</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 16px; font-size: 12px; color: #999;">
+        <p>© 2026 Onlyinkani.in. All rights reserved.</p>
+      </div>
+    </body>
+    </html>
+  `;
+}

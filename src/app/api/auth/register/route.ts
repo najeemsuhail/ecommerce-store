@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, generateToken } from '@/lib/auth';
-import { sendWelcomeEmail } from '@/lib/emailService';
+import { sendVerificationEmail, sendAdminNewUserEmail } from '@/lib/emailService';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,10 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Generate verification token (valid for 24 hours)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     // Create user
     const user = await prisma.user.create({
       data: {
@@ -45,29 +50,32 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         name: name || null,
         phone: phone || null,
+        verificationToken,
+        verificationTokenExpiry,
+        emailVerified: false,
       },
     });
 
-    // Send welcome email (don't wait for it)
-    sendWelcomeEmail(user).catch((err) =>
-      console.error('Failed to send welcome email:', err)
+    // Send verification email
+    try {
+      await sendVerificationEmail(user, verificationToken);
+    } catch (err) {
+      console.error('Failed to send verification email:', err);
+    }
+
+    // Notify admin about new registration (do not block response)
+    sendAdminNewUserEmail(user).catch((err) =>
+      console.error('Failed to send admin new user email:', err)
     );
 
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-    });
-
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
+    // Return success message without token (user needs to verify email first)
+    const { password: _, verificationToken: __, ...userWithoutSensitiveData } = user;
 
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully',
-        user: userWithoutPassword,
-        token,
+        message: 'Registration successful! Please check your email to verify your account.',
+        user: userWithoutSensitiveData,
       },
       { status: 201 }
     );
