@@ -7,16 +7,27 @@ import { useCart } from '@/contexts/CartContext';
 import SearchAutocomplete from './SearchAutocomplete';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faHeart, faUser, faShoppingCart, faBars, faTimes, faFolder } from '@fortawesome/free-solid-svg-icons';
 import { formatPrice } from '@/lib/currency';
 
-interface MobileSuggestion {
+interface ProductSuggestion {
+  type: 'product';
   id: string;
   name: string;
   slug: string;
   price: number;
   image: string | null;
 }
+
+interface CategorySuggestion {
+  type: 'category';
+  id: string;
+  name: string;
+  slug: string;
+  productCount: number;
+}
+
+type MobileSuggestion = ProductSuggestion | CategorySuggestion;
 
 export default function Header() {
   const router = useRouter();
@@ -108,8 +119,12 @@ export default function Header() {
       const response = await fetch(`/api/products/autocomplete?q=${encodeURIComponent(query)}&limit=6`);
       const data = await response.json();
       if (data.success) {
-        // Use products from the new API format
-        setMobileSuggestions(data.products || []);
+        // Combine categories and products for display
+        const combined: MobileSuggestion[] = [
+          ...(data.categories || []).map((cat: any) => ({ ...cat, type: 'category' as const })),
+          ...(data.products || []).map((prod: any) => ({ ...prod, type: 'product' as const })),
+        ];
+        setMobileSuggestions(combined);
         setShowMobileSuggestions(true);
       }
     } catch (error) {
@@ -132,7 +147,11 @@ export default function Header() {
   };
 
   const handleMobileSuggestionSelect = (suggestion: MobileSuggestion) => {
-    router.push(`/products/${suggestion.slug}`);
+    if (suggestion.type === 'category') {
+      router.push(`/products?category=${suggestion.name}`);
+    } else {
+      router.push(`/products/${suggestion.slug}`);
+    }
     setMobileSearchQuery('');
     setShowMobileSuggestions(false);
     setMenuOpen(false);
@@ -356,28 +375,40 @@ export default function Header() {
                   ) : mobileSuggestions.length > 0 ? (
                     <ul className="max-h-64 overflow-y-auto">
                       {mobileSuggestions.map((suggestion) => (
-                        <li key={suggestion.id}>
+                        <li key={`${suggestion.type}-${suggestion.id}`}>
                           <button
                             onClick={() => handleMobileSuggestionSelect(suggestion)}
                             className="w-full text-left px-4 py-3 hover:bg-light-gray-theme flex items-center gap-3 border-b border-gray-100 last:border-b-0 transition-colors"
                           >
-                            {suggestion.image && (
-                              <img 
-                                src={suggestion.image} 
-                                alt={suggestion.name}
-                                className="w-10 h-10 object-cover rounded"
-                              />
+                            {suggestion.type === 'category' ? (
+                              <>
+                                <FontAwesomeIcon icon={faFolder} className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-dark-theme truncate">{suggestion.name}</div>
+                                  <div className="text-xs text-light-theme">{suggestion.productCount} products</div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {suggestion.image && (
+                                  <img 
+                                    src={suggestion.image} 
+                                    alt={suggestion.name}
+                                    className="w-10 h-10 object-cover rounded"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-dark-theme truncate">{suggestion.name}</div>
+                                  <div className="text-xs text-light-theme">{formatPrice(suggestion.price)}</div>
+                                </div>
+                              </>
                             )}
-                            <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-dark-theme truncate">{suggestion.name}</div>
-                              <div className="text-xs text-light-theme">{formatPrice(suggestion.price)}</div>
-                            </div>
                           </button>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <div className="px-4 py-3 text-gray-500 text-sm">No products found</div>
+                    <div className="px-4 py-3 text-gray-500 text-sm">No results found</div>
                   )}
                 </div>
               )}

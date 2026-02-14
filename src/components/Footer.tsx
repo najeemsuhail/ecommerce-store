@@ -4,6 +4,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { CURRENCY_CONFIG } from '@/lib/currency';
 import { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebook, faInstagram } from '@fortawesome/free-brands-svg-icons';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -80,27 +82,18 @@ export default function Footer() {
             </p>
             <div className="flex gap-3 pt-4">
               {[
-                { icon: 'facebook', url: '#', label: 'Facebook' },
-                { icon: 'instagram', url: '#', label: 'Instagram' }
+                { icon: faFacebook, url: '#', label: 'Facebook' },
+                { icon: faInstagram, url: '#', label: 'Instagram' }
               ].map((social) => (
                 <a
-                  key={social.icon}
+                  key={social.label}
                   href={social.url}
                   className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 transition-all duration-300 hover:scale-110"
                   aria-label={social.label}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {social.icon === 'facebook' && (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
-                  )}
-                  {social.icon === 'instagram' && (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 0C5.373 0 0 5.373 0 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-6.627-5.373-12-12-12zm0 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2zm0 1.5c-4.688 0-8.5 3.812-8.5 8.5s3.812 8.5 8.5 8.5 8.5-3.812 8.5-8.5-3.812-8.5-8.5-8.5zm0 1.5c3.859 0 7 3.141 7 7s-3.141 7-7 7-7-3.141-7-7 3.141-7 7-7zm0 2c-2.761 0-5 2.239-5 5s2.239 5 5 5 5-2.239 5-5-2.239-5-5-5zm5.5-4c-.276 0-.5.224-.5.5s.224.5.5.5.5-.224.5-.5-.224-.5-.5-.5z" />
-                    </svg>
-                  )}
+                  <FontAwesomeIcon icon={social.icon} className="w-5 h-5" />
                 </a>
               ))}
             </div>
