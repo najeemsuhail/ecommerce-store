@@ -176,7 +176,7 @@ export default function Footer() {
         <div className="border-t border-slate-800 pt-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[
-              { icon: '🚚', title: 'Free Shipping', desc: `On orders over ${CURRENCY_CONFIG.symbol}500` },
+              { icon: '🚚', title: 'Free Shipping', desc: `On orders over ${CURRENCY_CONFIG.symbol}1000` },
               { icon: '🛡️', title: 'Secure Payment', desc: '100% encrypted' },
               { icon: '↩️', title: 'Easy Returns', desc: '48 hours guarantee' }
             ].map((item, idx) => (

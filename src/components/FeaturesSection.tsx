@@ -9,7 +9,7 @@ export default function FeaturesSection() {
         </svg>
       ),
       title: 'Free Shipping',
-      description: `On orders over ${CURRENCY_CONFIG.symbol}500`,
+      description: `On orders over ${CURRENCY_CONFIG.symbol}1000`,
     },
     {
       icon: (
@@ -27,7 +27,7 @@ export default function FeaturesSection() {
         </svg>
       ),
       title: 'Easy Returns',
-      description: '14-day return policy',
+      description: 'Easy return policy',
     },
   ];
 
