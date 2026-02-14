@@ -24,6 +24,7 @@ export async function GET(
           include: { attribute: true },
         },
         reviews: {
+          take: 10, // Limit to first 10 reviews
           include: {
             user: {
               select: {

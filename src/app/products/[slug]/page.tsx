@@ -10,6 +10,7 @@ import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
+import ReviewForm from '@/components/ReviewForm';
 import { formatPrice } from '@/lib/currency';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import ProductVideo from '@/components/ProductVideo';
@@ -539,10 +540,18 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Reviews Section */}
-          {product.reviews && product.reviews.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-              <div className="space-y-4">
+          <div className="mt-12">
+            {/* Review Form */}
+            <ReviewForm 
+              productId={product.id}
+              productName={product.name}
+            />
+
+            {/* Reviews List */}
+            {product.reviews && product.reviews.length > 0 ? (
+              <div>
+                <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+                <div className="space-y-4">
                 {product.reviews.map((review: any) => (
                   <div key={review.id} className="bg-light-theme rounded-lg shadow p-6">
                     <div className="flex items-center gap-4 mb-2">
@@ -560,8 +569,13 @@ export default function ProductDetailPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No reviews yet. Be the first to review this product!</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Product Recommendations */}
