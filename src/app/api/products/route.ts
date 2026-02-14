@@ -43,17 +43,30 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } },
+        { tags: { has: search } },
+        // Also search in category names
+        {
+          categories: {
+            some: {
+              category: {
+                name: { contains: search, mode: 'insensitive' }
+              }
+            }
+          }
+        },
       ];
     }
 
-    // Handle multiple categories
+    // Handle multiple categories (by name or slug)
     if (categories.length > 0) {
       where.categories = {
         some: {
           category: {
-            name: {
-              in: categories,
-            }
+            OR: [
+              { name: { in: categories } },
+              { slug: { in: categories } },
+            ],
           }
         }
       };

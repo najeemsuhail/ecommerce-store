@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 interface CategoryCarouselProps {
-  categories: Array<{ name: string; id: string }>;
+  categories: Array<{ name: string; id: string; slug: string }>;
 }
 
 export default function CategoryCarousel({ categories }: CategoryCarouselProps) {

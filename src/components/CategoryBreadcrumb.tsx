@@ -74,7 +74,7 @@ export default function CategoryBreadcrumb({ categoryIds = [] }: CategoryBreadcr
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/products?category=${cat.id}`}
+            href={`/products?category=${encodeURIComponent(cat.name)}`}
             className="inline-block px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 transition"
           >
             {cat.name}

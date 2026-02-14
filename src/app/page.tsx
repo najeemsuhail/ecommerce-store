@@ -17,7 +17,7 @@ import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Array<{ name: string; id: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; id: string; slug: string }>>([]);
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
@@ -69,7 +69,7 @@ export default function HomePage() {
         const topLevelCategories = data
           .filter((cat: any) => !cat.parentId)
           .slice(0, 6)
-          .map((cat: any) => ({ name: cat.name, id: cat.id }));
+          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
         setCategories(topLevelCategories);
       }
     } catch (error) {

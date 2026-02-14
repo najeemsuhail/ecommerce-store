@@ -108,7 +108,8 @@ export default function Header() {
       const response = await fetch(`/api/products/autocomplete?q=${encodeURIComponent(query)}&limit=6`);
       const data = await response.json();
       if (data.success) {
-        setMobileSuggestions(data.suggestions);
+        // Use products from the new API format
+        setMobileSuggestions(data.products || []);
         setShowMobileSuggestions(true);
       }
     } catch (error) {

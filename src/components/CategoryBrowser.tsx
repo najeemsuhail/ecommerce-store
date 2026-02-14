@@ -59,7 +59,7 @@ export default function CategoryBrowser() {
         )}
         {category.children.length === 0 && <span className="w-4" />}
         <Link
-          href={`/products?category=${category.id}`}
+          href={`/products?category=${encodeURIComponent(category.name)}`}
           className="text-gray-700 hover:text-blue-600 flex-1"
         >
           {category.name}
