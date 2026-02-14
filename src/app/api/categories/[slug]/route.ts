@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 // GET category by slug
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
     const decodedSlug = decodeURIComponent(slug);
 
     const category = await prisma.category.findUnique({
