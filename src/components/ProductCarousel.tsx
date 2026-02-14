@@ -18,6 +18,7 @@ interface Product {
   averageRating?: number;
   isFeatured?: boolean;
   isDigital?: boolean;
+  weight?: number;
 }
 
 interface ProductCarouselProps {
@@ -107,6 +108,7 @@ export default function ProductCarousel({
       image: product.images?.[0],
       slug: product.slug,
       isDigital: product.isDigital || false,
+      weight: product.weight || undefined,
     });
     setNotification({
       message: `${product.name} added to cart!`,

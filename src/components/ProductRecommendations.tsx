@@ -15,6 +15,7 @@ interface Product {
   averageRating?: number;
   reviewCount?: number;
   isDigital?: boolean;
+  weight?: number;
 }
 
 interface ProductRecommendationsProps {
@@ -210,6 +211,7 @@ export default function ProductRecommendations({
                         image: product.images?.[0],
                         slug: product.slug,
                         isDigital: product.isDigital || false,
+                        weight: product.weight || undefined,
                       });
                       onAddToCart?.(product);
                     }}

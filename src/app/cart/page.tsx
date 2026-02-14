@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import { formatPrice } from '@/lib/currency';
+import { calculateShippingCost } from '@/lib/shipping';
 
 export default function CartPage() {
   const {
@@ -34,7 +35,9 @@ export default function CartPage() {
     setIsLoading(false);
   }, []);
 
-  const shippingCost = items.some((item) => !item.isDigital) ? 50.0 : 0;
+  // Calculate shipping based on order total
+  const hasPhysicalProducts = items.some((item) => !item.isDigital);
+  const shippingCost = calculateShippingCost(totalPrice, hasPhysicalProducts);
   const total = totalPrice + shippingCost;
 
   const handleCheckout = () => {
@@ -54,6 +57,7 @@ export default function CartPage() {
       slug: product.slug,
       image: product.images?.[0],
       isDigital: product.isDigital || false,
+      weight: product.weight || undefined,
     });
     
     setNotification({
@@ -282,10 +286,18 @@ export default function CartPage() {
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
 
-                  {shippingCost > 0 && (
-                    <div className="flex justify-between text-gray-600 text-sm md:text-base">
-                      <span>Shipping</span>
+                  <div className="flex justify-between text-gray-600 text-sm md:text-base">
+                    <span>Shipping</span>
+                    {shippingCost === 0 && hasPhysicalProducts ? (
+                      <span className="text-green-600 font-semibold">FREE</span>
+                    ) : (
                       <span>{formatPrice(shippingCost)}</span>
+                    )}
+                  </div>
+
+                  {hasPhysicalProducts && totalPrice < 1000 && (
+                    <div className="text-xs text-gray-500">
+                      Add {formatPrice(1000 - totalPrice)} more for FREE shipping!
                     </div>
                   )}
 

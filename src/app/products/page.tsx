@@ -320,6 +320,7 @@ function ProductsContent() {
       image: product.images?.[0],
       slug: product.slug,
       isDigital: product.isDigital,
+      weight: product.weight || undefined,
     });
     setNotification({
       message: `${product.name} added to cart!`,

@@ -12,6 +12,7 @@ interface CartItem {
   image?: string;
   slug: string;
   isDigital: boolean;
+  weight?: number;
 }
 
 interface CartContextType {

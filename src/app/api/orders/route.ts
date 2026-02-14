@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { extractToken, verifyToken } from '@/lib/auth';
+import { calculateShippingCost } from '@/lib/shipping';
 
 // GET all orders (for logged-in user)
 export async function GET(request: NextRequest) {
@@ -222,9 +223,9 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Calculate shipping (simple logic - can be enhanced)
+    // Calculate shipping based on order total
     const hasPhysicalProducts = products.some((p) => !p.isDigital);
-    const shippingCost = hasPhysicalProducts ? 15.0 : 0; // Flat $15 shipping
+    const shippingCost = calculateShippingCost(subtotal, hasPhysicalProducts);
 
     const discountAmount = discount || 0;
     const total = subtotal + shippingCost - discountAmount;

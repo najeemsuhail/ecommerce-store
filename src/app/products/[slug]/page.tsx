@@ -102,6 +102,7 @@ export default function ProductDetailPage() {
       image: product.images?.[0],
       slug: product.slug,
       isDigital: product.isDigital,
+      weight: product.weight || undefined,
     };
 
     if (selectedVariant) {
@@ -582,6 +583,7 @@ export default function ProductDetailPage() {
                     image: product.images?.[0],
                     slug: product.slug,
                     isDigital: product.isDigital || false,
+                    weight: product.weight || undefined,
                   });
                   setNotificationMessage(`${product.name} added to cart!`);
                   setShowNotification(true);

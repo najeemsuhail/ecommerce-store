@@ -12,6 +12,7 @@ interface Product {
   images?: string[];
   averageRating?: number;
   isDigital?: boolean;
+  weight?: number;
 }
 
 interface FeaturedProductsSectionProps {

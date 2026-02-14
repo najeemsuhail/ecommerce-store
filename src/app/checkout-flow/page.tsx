@@ -10,6 +10,7 @@ import AddToCartNotification from '@/components/AddToCartNotification';
 import CouponInput from '@/components/CouponInput';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import { formatPrice } from '@/lib/currency';
+import { calculateShippingCost } from '@/lib/shipping';
 
 declare global {
   interface Window {
@@ -73,6 +74,7 @@ export default function CheckoutFlowPage() {
       image: product.images?.[0],
       slug: product.slug,
       isDigital: product.isDigital || false,
+      weight: product.weight || undefined,
     });
     setNotification({
       isVisible: true,
@@ -180,7 +182,7 @@ export default function CheckoutFlowPage() {
 
   // Calculate totals
   const hasPhysicalProducts = items.some((item) => !item.isDigital);
-  const shippingCost = hasPhysicalProducts ? 50.0 : 0;
+  const shippingCost = calculateShippingCost(totalPrice, hasPhysicalProducts);
   const codFee = paymentMethod === 'cod' ? 20.0 : 0; // COD handling fee
   const subtotal = totalPrice + shippingCost + codFee;
   const total = Math.max(0, subtotal - appliedDiscount);
@@ -833,10 +835,18 @@ export default function CheckoutFlowPage() {
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
 
-                  {shippingCost > 0 && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    {shippingCost === 0 && hasPhysicalProducts ? (
+                      <span className="text-green-600 font-semibold">FREE</span>
+                    ) : (
                       <span>{formatPrice(shippingCost)}</span>
+                    )}
+                  </div>
+
+                  {hasPhysicalProducts && totalPrice < 1000 && (
+                    <div className="text-xs text-green-600">
+                      Add {formatPrice(1000 - totalPrice)} more for FREE shipping!
                     </div>
                   )}
 
