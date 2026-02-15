@@ -699,6 +699,19 @@ function ProductsContent() {
                           SALE
                         </span>
                       )}
+                      {product.isActive && (
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                          <button
+                            onClick={(e) => handleAddToCart(product, e)}
+                            className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                            title="Add to Cart"
+                          >
+                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3zm5 16a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Product Info */}
@@ -740,24 +753,9 @@ function ProductsContent() {
                       )}
 
                       <div className="flex gap-2">
-                        {product.isActive ? (
-                          <button
-                            onClick={(e) => handleAddToCart(product, e)}
-                            className="flex-1 btn-primary-theme py-2"
-                          >
-                            Add to Cart
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="flex-1 bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed"
-                          >
-                            Not Available
-                          </button>
-                        )}
                         <button
                           onClick={(e) => handleWishlistToggle(product, e)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
                             isInWishlist(product.id)
                               ? 'wishlist-btn-active'
                               : 'bg-gray-light text-gray-theme border-2 border-gray-theme hover:border-danger-theme hover:text-danger-theme'

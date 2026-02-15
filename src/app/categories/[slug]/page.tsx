@@ -326,6 +326,18 @@ export default function CategoryPage() {
                       </button>
                     </div>
 
+                    {product.isActive && (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <button
+                          onClick={(e) => handleAddToCart(product, e)}
+                          className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                          title="Add to Cart"
+                        >
+                          <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Discount Badge */}
                     {product.comparePrice && product.comparePrice > product.price && (
                       <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
@@ -366,26 +378,6 @@ export default function CategoryPage() {
                         </span>
                       )}
                     </div>
-
-                    {/* Add to Cart Button */}
-                    {product.isActive ? (
-                      <button
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faShoppingCart} className="w-4 h-4" />
-                        <span className="text-sm font-medium">Add to Cart</span>
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="w-full bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        <span className="text-sm font-medium">
-                          Not Available
-                        </span>
-                      </button>
-                    )}
                   </div>
                 </Link>
               ))}

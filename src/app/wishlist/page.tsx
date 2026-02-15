@@ -36,8 +36,20 @@ export default function WishlistPage() {
       checkAuth();
     };
 
+    // Listen for page becoming visible (returns from login redirect)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAuth();
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const handleCreateGroup = (e: React.FormEvent) => {
@@ -117,7 +129,7 @@ export default function WishlistPage() {
             <h2 className="text-xl lg:text-2xl font-bold mb-2 text-dark-theme">Sign In Required</h2>
             <p className="text-gray-600 mb-6 text-sm lg:text-base">You need to sign in to view your wishlist collections.</p>
             <Link
-              href="/auth"
+              href="/auth?redirect=/wishlist"
               className="btn-block-primary"
             >
               Sign In

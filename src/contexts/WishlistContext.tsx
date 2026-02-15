@@ -113,22 +113,30 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   // Also watch for token changes in localStorage
   useEffect(() => {
+    let previousToken = getToken();
+
     const checkTokenChange = () => {
-      const token = getToken();
-      if (!token) {
+      const currentToken = getToken();
+      
+      if (!currentToken && previousToken) {
         // Token was removed (user logged out)
         setGroups([]);
         setIsLoggedIn(false);
+      } else if (currentToken && !previousToken) {
+        // Token was added (user logged in) - refresh wishlist data
+        refreshWishlist();
       }
+      
+      previousToken = currentToken;
     };
 
     // Check on mount
     checkTokenChange();
 
     // Set up interval to check for token changes
-    const interval = setInterval(checkTokenChange, 1000);
+    const interval = setInterval(checkTokenChange, 500);
     return () => clearInterval(interval);
-  }, [getToken]);
+  }, [getToken, refreshWishlist]);
 
   const createGroup = useCallback(async (groupName: string) => {
     const token = getToken();

@@ -159,6 +159,34 @@ export default function ProductRecommendations({
                     SALE
                   </div>
                 )}
+
+                {/* Add to Cart Button on Hover */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addItem({
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          quantity: 1,
+                          image: product.images?.[0],
+                          slug: product.slug,
+                          isDigital: product.isDigital || false,
+                          weight: product.weight || undefined,
+                        });
+                        onAddToCart?.(product);
+                      }}
+                      className="bg-white text-blue-600 hover:bg-blue-600 hover:text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
+                      title="Add to Cart"
+                    >
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3zm5 16a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </Link>
 
@@ -198,37 +226,6 @@ export default function ProductRecommendations({
                     <span className="text-text-500 line-through text-sm">
                       {formatPrice(product.comparePrice)}
                     </span>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-gray-200">
-                  {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
-                    <button
-                      onClick={() => {
-                        addItem({
-                          productId: product.id,
-                          name: product.name,
-                          price: product.price,
-                          quantity: 1,
-                          image: product.images?.[0],
-                          slug: product.slug,
-                          isDigital: product.isDigital || false,
-                          weight: product.weight || undefined,
-                        });
-                        onAddToCart?.(product);
-                      }}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
-                    >
-                      Add to Cart
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-full bg-gray-300 text-gray-600 py-2 px-3 rounded cursor-not-allowed text-sm"
-                    >
-                      {product.isActive === false ? 'Not Available' : 'Out of Stock'}
-                    </button>
                   )}
                 </div>
               </div>
