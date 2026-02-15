@@ -114,8 +114,7 @@ export default function RecentlyViewedSection() {
                 </div>
                 
                 {/* Mobile action buttons */}
-                {product.isActive !== false && (
-                  <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
+                <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -149,7 +148,6 @@ export default function RecentlyViewedSection() {
                       </svg>
                     </button>
                   </div>
-                )}
               </Link>
 
               {/* Product Info - Title limited to 2 lines */}
