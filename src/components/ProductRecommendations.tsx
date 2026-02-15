@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
 import { useCart } from '@/contexts/CartContext';
+import { useWishlist } from '@/contexts/WishlistContext';
+import AddToWishlistModal from '@/components/AddToWishlistModal';
 
 interface Product {
   id: string;
@@ -49,6 +51,15 @@ export default function ProductRecommendations({
   const [error, setError] = useState<string | null>(null);
   const [recommendationType, setRecommendationType] = useState<string>('');
   const { addItem } = useCart();
+  const { isInWishlist, groups, removeItemFromGroup } = useWishlist();
+  const [wishlistModal, setWishlistModal] = useState({
+    isOpen: false,
+    productId: '',
+    productName: '',
+    productPrice: 0,
+    productImage: '',
+    productSlug: '',
+  });
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -114,6 +125,32 @@ export default function ProductRecommendations({
     }
   };
 
+  const handleWishlistClick = (product: Product, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    if (isInWishlist(product.id)) {
+      // If already in wishlist, remove from all groups
+      groups.forEach((group) => {
+        const isInThisGroup = group.items.some(
+          (item) => item.productId === product.id
+        );
+        if (isInThisGroup) {
+          removeItemFromGroup(group.id, product.id);
+        }
+      });
+    } else {
+      // If not in wishlist, show modal to select group
+      setWishlistModal({
+        isOpen: true,
+        productId: product.id,
+        productName: product.name,
+        productPrice: product.price,
+        productImage: product.images?.[0],
+        productSlug: product.slug,
+      });
+    }
+  };
+
   return (
     <section className={`py-12 ${className}`}>
       {showTitle && (
@@ -161,30 +198,45 @@ export default function ProductRecommendations({
                 )}
 
                 {/* Add to Cart Button on Hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
                   {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addItem({
-                          productId: product.id,
-                          name: product.name,
-                          price: product.price,
-                          quantity: 1,
-                          image: product.images?.[0],
-                          slug: product.slug,
-                          isDigital: product.isDigital || false,
-                          weight: product.weight || undefined,
-                        });
-                        onAddToCart?.(product);
-                      }}
-                      className="bg-white text-blue-600 hover:bg-blue-600 hover:text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
-                      title="Add to Cart"
-                    >
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3zm5 16a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </button>
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addItem({
+                            productId: product.id,
+                            name: product.name,
+                            price: product.price,
+                            quantity: 1,
+                            image: product.images?.[0],
+                            slug: product.slug,
+                            isDigital: product.isDigital || false,
+                            weight: product.weight || undefined,
+                          });
+                          onAddToCart?.(product);
+                        }}
+                        className="bg-white text-blue-600 hover:bg-blue-600 hover:text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
+                        title="Add to Cart"
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3zm5 16a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => handleWishlistClick(product, e)}
+                        className={`p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500 text-white'
+                            : 'bg-white text-gray-600 hover:text-red-500'
+                        }`}
+                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                      </button>
+                    </>
                   ) : null}
                 </div>
               </div>
@@ -244,6 +296,25 @@ export default function ProductRecommendations({
           </div>
         ))}
       </div>
+
+      <AddToWishlistModal
+        isOpen={wishlistModal.isOpen}
+        onClose={() =>
+          setWishlistModal({
+            isOpen: false,
+            productId: '',
+            productName: '',
+            productPrice: 0,
+            productImage: '',
+            productSlug: '',
+          })
+        }
+        productId={wishlistModal.productId}
+        productName={wishlistModal.productName}
+        productPrice={wishlistModal.productPrice}
+        productImage={wishlistModal.productImage}
+        productSlug={wishlistModal.productSlug}
+      />
     </section>
   );
 }
