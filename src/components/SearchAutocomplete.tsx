@@ -161,103 +161,84 @@ export default function SearchAutocomplete() {
     if (query.trim()) {
       router.push(`/products?search=${encodeURIComponent(query)}`);
       setIsOpen(false);
+      setQuery('');
     }
   };
 
   return (
-    <div ref={containerRef} className="hidden md:block relative flex-1 max-w-md">
+    <div ref={containerRef} className="relative flex-1 max-w-2xl mx-2 md:mx-0">
       <div className="relative">
         {/* Search Input */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">
+          <FontAwesomeIcon
+            icon={faSearch}
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-lighter w-4 h-4"
+          />
           <input
             ref={inputRef}
             type="text"
-            placeholder="Search products, categories..."
+            placeholder="Search products..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => query && setIsOpen(true)}
-            className="w-full px-4 py-2 pl-10 rounded-lg border border-border-color focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+            className="flex-1 px-4 py-2.5 pl-12 pr-10 rounded-full bg-transparent focus:outline-none text-sm"
           />
-          <FontAwesomeIcon
-            icon={faSearch}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-lighter w-4 h-4"
-          />
+          {query && (
+            <button
+              onClick={() => {
+                setQuery('');
+                setIsOpen(false);
+              }}
+              className="px-3 text-text-lighter hover:text-text-dark transition-colors"
+              title="Clear search"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Autocomplete Dropdown */}
-        {isOpen && (results.totalResults > 0 || isLoading) && (
+        {isOpen && (query || results.totalResults > 0) && (
           <div
             ref={suggestionsRef}
-            className="absolute top-full left-0 right-0 mt-1 bg-light-theme border border-border-color rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto"
+            className="absolute top-full left-0 right-0 mt-2 bg-white border border-border-color rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
           >
             {isLoading ? (
-              <div className="px-4 py-3 text-center text-text-lighter text-sm">
-                Loading suggestions...
+              <div className="px-4 py-6 text-center text-text-lighter text-sm">
+                <svg className="inline animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Searching...
               </div>
             ) : (
               <>
-                {/* Categories */}
-                {results.categories.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-text-light uppercase bg-bg-gray">
-                      Categories
-                    </div>
-                    {results.categories.map((category, index) => {
-                      const globalIndex = index;
-                      return (
-                        <button
-                          key={category.id}
-                          data-index={globalIndex}
-                          onClick={() => handleSelectSuggestion(category)}
-                          onMouseEnter={() => setSelectedIndex(globalIndex)}
-                          className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors border-b ${
-                            globalIndex === selectedIndex
-                              ? 'bg-primary/10'
-                              : 'hover:bg-bg-gray'
-                          }`}
-                        >
-                          <FontAwesomeIcon
-                            icon={faFolder}
-                            className="w-4 h-4 text-primary flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-text-dark text-sm truncate">
-                              {category.name}
-                            </div>
-                            <div className="text-xs text-text-light">
-                              {category.productCount} {category.productCount === 1 ? 'product' : 'products'}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
                 {/* Products */}
                 {results.products.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-text-light uppercase bg-bg-gray">
+                  <div className="border-b border-border-color last:border-b-0">
+                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light rounded-t-2xl flex items-center gap-2">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z" />
+                      </svg>
                       Products
                     </div>
                     {results.products.map((product, index) => {
-                      const globalIndex = results.categories.length + index;
+                      const globalIndex = index;
                       return (
                         <button
                           key={product.id}
                           data-index={globalIndex}
                           onClick={() => handleSelectSuggestion(product)}
                           onMouseEnter={() => setSelectedIndex(globalIndex)}
-                          className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors border-b ${
-                            globalIndex === selectedIndex
-                              ? 'bg-primary/10'
-                              : 'hover:bg-bg-gray'
+                          className={`w-full px-4 py-3 flex gap-3 text-left transition-colors border-b border-border-color last:border-b-0 ${
+                            globalIndex === selectedIndex ? 'bg-blue-50' : 'hover:bg-blue-50'
                           }`}
                         >
                           {/* Product Image */}
                           {product.image ? (
-                            <div className="w-10 h-10 flex-shrink-0 bg-bg-gray rounded overflow-hidden">
+                            <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg overflow-hidden">
                               <img
                                 src={product.image}
                                 alt={product.name}
@@ -268,27 +249,50 @@ export default function SearchAutocomplete() {
                               />
                             </div>
                           ) : (
-                            <div className="w-10 h-10 flex-shrink-0 bg-bg-gray rounded flex items-center justify-center">
+                            <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg flex items-center justify-center">
                               <FontAwesomeIcon icon={faBox} className="w-4 h-4 text-text-lighter" />
                             </div>
                           )}
 
                           {/* Product Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-text-dark text-sm truncate">
-                              {product.name}
-                            </div>
+                            <div className="font-semibold text-text-dark text-sm line-clamp-2">{product.name}</div>
                             {product.brand && (
-                              <div className="text-xs text-text-light">
-                                {product.brand}
-                              </div>
+                              <div className="text-xs text-text-lighter mt-1">{product.brand}</div>
                             )}
+                            <div className="text-sm font-bold text-primary mt-1">{formatPrice(product.price)}</div>
                           </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-                          {/* Price */}
-                          <div className="flex-shrink-0 font-semibold text-text-dark text-sm">
-                            {formatPrice(product.price)}
-                          </div>
+                {/* Categories */}
+                {results.categories.length > 0 && (
+                  <div className="border-b border-border-color last:border-b-0">
+                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+                      </svg>
+                      Categories
+                    </div>
+                    {results.categories.map((category, index) => {
+                      const globalIndex = results.products.length + index;
+                      return (
+                        <button
+                          key={category.id}
+                          data-index={globalIndex}
+                          onClick={() => handleSelectSuggestion(category)}
+                          onMouseEnter={() => setSelectedIndex(globalIndex)}
+                          className={`w-full px-4 py-3 flex justify-between items-center text-left transition-colors border-b border-border-color last:border-b-0 ${
+                            globalIndex === selectedIndex ? 'bg-purple-50' : 'hover:bg-purple-50'
+                          }`}
+                        >
+                          <span className="font-semibold text-text-dark text-sm">{category.name}</span>
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium flex-shrink-0">
+                            {category.productCount}
+                          </span>
                         </button>
                       );
                     })}
@@ -297,46 +301,57 @@ export default function SearchAutocomplete() {
 
                 {/* Tags */}
                 {results.tags.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-text-light uppercase bg-bg-gray">
-                      Tags
+                  <div className="border-b border-border-color last:border-b-0">
+                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.5 2a1.5 1.5 0 00-1.5 1.5v3H2a1 1 0 000 2h1v2H2a1 1 0 000 2h1v3a1.5 1.5 0 001.5 1.5h3v1a1 1 0 002 0v-1h2v1a1 1 0 002 0v-1h3a1.5 1.5 0 001.5-1.5v-3h1a1 1 0 000-2h-1v-2h1a1 1 0 000-2h-1v-3A1.5 1.5 0 0014.5 2h-9zm0 2h9v9h-9V4z" clipRule="evenodd" />
+                      </svg>
+                      Trending Tags
                     </div>
-                    {results.tags.map((tag, index) => {
-                      const globalIndex = results.categories.length + results.products.length + index;
-                      return (
+                    <div className="px-4 py-3 flex flex-wrap gap-2">
+                      {results.tags.map((tag) => (
                         <button
                           key={tag.name}
-                          data-index={globalIndex}
                           onClick={() => handleSelectSuggestion(tag)}
-                          onMouseEnter={() => setSelectedIndex(globalIndex)}
-                          className={`w-full px-4 py-3 flex items-center gap-3 text-left transition-colors border-b last:border-b-0 ${
-                            globalIndex === selectedIndex
-                              ? 'bg-primary/10'
-                              : 'hover:bg-bg-gray'
-                          }`}
+                          className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 text-text-dark text-xs rounded-full hover:from-blue-100 hover:to-purple-100 hover:text-primary transition-colors font-medium border border-border-color"
                         >
-                          <FontAwesomeIcon
-                            icon={faTag}
-                            className="w-4 h-4 text-secondary flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-text-dark text-sm truncate">
-                              {tag.name}
-                            </div>
-                          </div>
+                          #{tag.name}
                         </button>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {/* View All Results */}
-                <button
-                  onClick={handleSearch}
-                  className="w-full px-4 py-2 text-center text-primary-theme hover:bg-primary-light font-medium text-sm border-t"
-                >
-                  View all results for "{query}"
-                </button>
+                {/* No Results */}
+                {query && results.products.length === 0 && results.categories.length === 0 && results.tags.length === 0 && (
+                  <div className="px-4 py-8 text-center">
+                    <svg className="mx-auto w-12 h-12 text-text-lighter mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <p className="text-sm text-text-lighter font-medium">No results for "{query}"</p>
+                    <button
+                      onClick={handleSearch}
+                      className="mt-3 text-xs text-primary hover:text-primary-dark font-semibold"
+                    >
+                      Search all products →
+                    </button>
+                  </div>
+                )}
+
+                {/* View All Results Footer */}
+                {query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0) && (
+                  <div className="border-t border-border-color bg-bg-light rounded-b-2xl">
+                    <button
+                      onClick={handleSearch}
+                      className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>Search all results for "{query}"</span>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>

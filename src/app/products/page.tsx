@@ -766,17 +766,6 @@ function ProductsContent() {
                       )}
 
                       <div className="flex gap-2">
-                        <button
-                          onClick={(e) => handleWishlistToggle(product, e)}
-                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
-                            isInWishlist(product.id)
-                              ? 'wishlist-btn-active'
-                              : 'bg-gray-light text-gray-theme border-2 border-gray-theme hover:border-danger-theme hover:text-danger-theme'
-                          }`}
-                          title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                        >
-                          ♥
-                        </button>
                       </div>
                     </div>
                   </Link>
