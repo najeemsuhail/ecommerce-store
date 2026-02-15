@@ -39,13 +39,13 @@ export default function CategoriesPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-12">
           {/* Header */}
-          <div className="text-center mb-16">
-            <h1 className="text-5xl font-bold mb-4 text-gray-900">
+          <div className="text-center mb-12 md:mb-16">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
               <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 All Categories
               </span>
             </h1>
-            <p className="text-xl text-gray-600">Browse all available product categories</p>
+            <p className="text-base md:text-xl text-gray-600">Browse all available product categories</p>
           </div>
 
           {/* Categories Grid */}
@@ -78,11 +78,11 @@ export default function CategoriesPage() {
                   </div>
 
                   {/* Content */}
-                  <div className="relative px-8 py-12 text-center flex flex-col items-center justify-center min-h-32">
-                    <h3 className="font-bold text-2xl text-white group-hover:scale-105 transition-transform duration-300 line-clamp-3">
+                  <div className="relative px-4 py-8 md:px-8 md:py-12 text-center flex flex-col items-center justify-center min-h-28 md:min-h-32">
+                    <h3 className="font-bold text-base md:text-lg lg:text-2xl text-white group-hover:scale-105 transition-transform duration-300 line-clamp-3">
                       {category.name}
                     </h3>
-                    <div className="mt-4 text-white/80 group-hover:text-white transition-colors text-sm font-semibold">
+                    <div className="mt-2 md:mt-4 text-white/80 group-hover:text-white transition-colors text-xs md:text-sm font-semibold">
                       Browse →
                     </div>
                   </div>

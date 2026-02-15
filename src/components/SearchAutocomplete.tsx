@@ -166,10 +166,10 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
   };
 
   return (
-    <div ref={containerRef} className={`relative flex-1 max-w-2xl mx-2 md:max-w-4xl md:mx-6 ${className}`}>
-      <div className="relative">
+    <div ref={containerRef} className={`relative flex-1 max-w-3xl mx-4 md:max-w-5xl lg:max-w-6xl md:mx-8 ${className}`}>
+      <div className="relative w-full">
         {/* Search Input */}
-        <div className="relative flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">
+        <div className="relative w-full flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">
           <FontAwesomeIcon
             icon={faSearch}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-lighter w-4 h-4"
@@ -182,7 +182,7 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => query && setIsOpen(true)}
-            className="flex-1 px-4 py-2.5 pl-12 pr-10 rounded-full bg-transparent focus:outline-none text-sm"
+            className="flex-1 w-full px-4 py-2.5 pl-12 pr-10 rounded-full bg-transparent focus:outline-none text-sm"
           />
           {query && (
             <button
