@@ -123,11 +123,17 @@ function ProductsContent() {
 
   useEffect(() => {
     const category = searchParams.get('category');
+    const search = searchParams.get('search');
+    
     if (category) {
       setFacetFilters((prev) => ({
         ...prev,
         categories: [category],
       }));
+    }
+    
+    if (search) {
+      setSearchTerm(search);
     }
   }, [searchParams]);
 
@@ -141,7 +147,7 @@ function ProductsContent() {
     setDisplayedCount(itemsPerLoad); // Reset to initial load
     setProducts([]); // Clear products
     fetchProducts();
-  }, [facetFilters, sortBy]);
+  }, [facetFilters, sortBy, searchTerm]);
   
   // Infinite scroll observer
   useEffect(() => {
@@ -236,6 +242,10 @@ function ProductsContent() {
     setLoading(true);
     try {
       let url = '/api/products?';
+      
+      if (searchTerm) {
+        url += `search=${encodeURIComponent(searchTerm)}&`;
+      }
       
       if (facetFilters.brands.length > 0) {
         facetFilters.brands.forEach((brand) => {
