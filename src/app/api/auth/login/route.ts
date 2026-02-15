@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         name: true,
         phone: true,
         address: true,
+        emailVerified: true,
         createdAt: true,
       }
     });
@@ -100,6 +101,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },
         { status: 401 }
+      );
+    }
+
+    // Check if email is verified
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          code: 'EMAIL_NOT_VERIFIED'
+        },
+        { status: 403 }
       );
     }
 

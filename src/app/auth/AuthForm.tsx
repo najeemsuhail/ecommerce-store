@@ -56,7 +56,12 @@ export default function AuthForm() {
         router.push(redirectUrl);
         return;
       } else {
-        setMessage(`❌ ${data.error}`);
+        // Handle email not verified error
+        if (data.code === 'EMAIL_NOT_VERIFIED') {
+          setMessage(`⚠️ ${data.error}`);
+        } else {
+          setMessage(`❌ ${data.error}`);
+        }
       }
     } catch (error) {
       setMessage('An error occurred. Please try again.');
@@ -139,7 +144,7 @@ export default function AuthForm() {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                    placeholder="John Doe"
+                    placeholder="Kani Malar"
                   />
                 </div>
 
@@ -173,7 +178,7 @@ export default function AuthForm() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                placeholder="you@example.com"
+                placeholder="kanimalar@example.com"
               />
             </div>
 
@@ -189,7 +194,7 @@ export default function AuthForm() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                placeholder="••••••••"
+                placeholder="**********"
               />
             </div>
 
