@@ -111,7 +111,7 @@ export async function sendWelcomeEmail(user: any) {
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: user.email,
-      subject: 'Welcome to E-Store!',
+      subject: 'Welcome to onlyinkani.in!',
       html: getWelcomeEmail(user),
     });
 
@@ -170,7 +170,7 @@ export async function sendVerificationEmail(user: any, verificationToken: string
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
       to: user.email,
-      subject: 'Verify Your Email - E-Store',
+      subject: 'Verify Your Email - onlyinkani.in',
       html: getVerificationEmail(user, verificationUrl),
     });
 

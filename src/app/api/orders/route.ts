@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { extractToken, verifyToken } from '@/lib/auth';
 import { calculateShippingCost } from '@/lib/shipping';
+import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from '@/lib/emailService';
 
 // GET all orders (for logged-in user)
 export async function GET(request: NextRequest) {
@@ -293,6 +294,31 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+    }
+
+    // Send order confirmation emails for COD orders
+    if (body.paymentMethod === 'cod') {
+      // Fetch full order details with user for email
+      const fullOrder = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          user: true,
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (fullOrder) {
+        sendOrderConfirmationEmail(fullOrder).catch((err) =>
+          console.error('Failed to send COD order confirmation email:', err)
+        );
+        sendAdminNewOrderEmail(fullOrder).catch((err) =>
+          console.error('Failed to send admin COD order notification email:', err)
+        );
+      }
     }
 
     return NextResponse.json(
