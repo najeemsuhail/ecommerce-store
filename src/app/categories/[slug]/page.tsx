@@ -38,6 +38,8 @@ interface Product {
   images: string[];
   brand?: string;
   isDigital: boolean;
+  isActive: boolean;
+  stock?: number;
   weight?: number;
   averageRating?: number;
   reviewCount?: number;
@@ -366,13 +368,24 @@ export default function CategoryPage() {
                     </div>
 
                     {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => handleAddToCart(product, e)}
-                      className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
-                    >
-                      <FontAwesomeIcon icon={faShoppingCart} className="w-4 h-4" />
-                      <span className="text-sm font-medium">Add to Cart</span>
-                    </button>
+                    {product.isActive ? (
+                      <button
+                        onClick={(e) => handleAddToCart(product, e)}
+                        className="w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faShoppingCart} className="w-4 h-4" />
+                        <span className="text-sm font-medium">Add to Cart</span>
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-full bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <span className="text-sm font-medium">
+                          Not Available
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </Link>
               ))}

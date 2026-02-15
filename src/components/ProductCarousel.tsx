@@ -18,6 +18,8 @@ interface Product {
   averageRating?: number;
   isFeatured?: boolean;
   isDigital?: boolean;
+  isActive?: boolean;
+  stock?: number;
   weight?: number;
 }
 
@@ -267,12 +269,21 @@ export default function ProductCarousel({
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      onClick={(e) => handleAddToCart(product, e)}
-                      className="flex-1 btn-primary-theme py-3 rounded-xl font-bold hover:scale-105 active:scale-95"
-                    >
-                      Add to Cart
-                    </button>
+                    {product.isActive !== false ? (
+                      <button
+                        onClick={(e) => handleAddToCart(product, e)}
+                        className="flex-1 btn-primary-theme py-3 rounded-xl font-bold hover:scale-105 active:scale-95"
+                      >
+                        Add to Cart
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="flex-1 bg-gray-300 text-gray-600 py-3 rounded-xl cursor-not-allowed"
+                      >
+                        Not Available
+                      </button>
+                    )}
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
                       className={`px-4 py-3 rounded-xl font-bold transition-all duration-300 ${

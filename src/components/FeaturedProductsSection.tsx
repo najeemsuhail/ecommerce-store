@@ -12,6 +12,8 @@ interface Product {
   images?: string[];
   averageRating?: number;
   isDigital?: boolean;
+  isActive?: boolean;
+  stock?: number;
   weight?: number;
 }
 
@@ -96,12 +98,21 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
               </div>
               
               <div className="flex gap-2">
-                <button
-                  onClick={() => onQuickAdd(product)}
-                  className="flex-1 btn-primary-theme py-2.5 rounded-lg font-medium hover:scale-105"
-                >
-                  Add to Cart
-                </button>
+                {product.isActive !== false ? (
+                  <button
+                    onClick={() => onQuickAdd(product)}
+                    className="flex-1 btn-primary-theme py-2.5 rounded-lg font-medium hover:scale-105"
+                  >
+                    Add to Cart
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="flex-1 bg-gray-300 text-gray-600 py-2.5 rounded-lg cursor-not-allowed"
+                  >
+                    Not Available
+                  </button>
+                )}
                 <Link
                   href={`/products/${product.slug}`}
                   className="px-4 py-2.5 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:text-primary-theme transition-all duration-300 flex items-center justify-center"

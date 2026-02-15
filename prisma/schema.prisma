@@ -139,12 +139,14 @@ model ProductVariant {
   name       String
   sku        String?     @unique
   price      Float
+  comparePrice Float?
   stock      Int         @default(0)
   size       String?
   color      String?
   material   String?
   image      String?
   weight     Float?
+  isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   orderItems OrderItem[]

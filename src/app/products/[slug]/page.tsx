@@ -228,7 +228,7 @@ export default function ProductDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Images Gallery */}
-            <div>
+            <div className="sticky top-8 h-fit">
               {/* Main Image */}
               <div className="bg-light-theme rounded-lg shadow-lg p-4 mb-4 relative group">
                 <div
@@ -322,15 +322,23 @@ export default function ProductDetailPage() {
                 )}
    
 
-                <div className="flex items-center gap-4 mb-6">
-                  <span className="text-4xl font-bold text-primary-theme">
-                    {formatPrice(selectedVariant ? selectedVariant.price : product.price)}
-                  </span>
-                  {product.comparePrice && (
-                    <span className="text-xl text-gray-500 line-through">
-                      {formatPrice(product.comparePrice)}
+                <div className="mb-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <span className="text-4xl font-bold text-primary-theme">
+                      {formatPrice(selectedVariant ? selectedVariant.price : product.price)}
                     </span>
-                  )}
+                    {(selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) && 
+                      (selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) > (selectedVariant ? selectedVariant.price : product.price) && (
+                      <>
+                        <span className="text-xl text-gray-500 line-through">
+                          {formatPrice(selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice)}
+                        </span>
+                        <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-bold">
+                          Save {formatPrice((selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) - (selectedVariant ? selectedVariant.price : product.price))}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {/* Rating */}
@@ -343,40 +351,6 @@ export default function ProductDetailPage() {
                     <span className="text-sm text-gray-600">
                       ({product.reviewCount} reviews)
                     </span>
-                  </div>
-                )}
-
-                {/* Stock Status */}
-                {!product.isDigital && (
-                  <div className="mb-6">
-                    {selectedVariant ? (
-                      selectedVariant.stock > 0 ? (
-                        <span className="text-green-600 font-semibold">
-                          ✓ In Stock
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">
-                          ✗ Out of Stock
-                        </span>
-                      )
-                    ) : (
-                      product.stock > 0 ? (
-                        <span className="text-green-600 font-semibold">
-                          ✓ In Stock ({product.stock} available)
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">
-                          ✗ Out of Stock
-                        </span>
-                      )
-                    )}
-                  </div>
-                )}
-
-                {/* Delivery Pincode Checker */}
-                {!product.isDigital && (
-                  <div className="mb-6">
-                    <DeliveryPinChecker />
                   </div>
                 )}
 
@@ -436,19 +410,26 @@ export default function ProductDetailPage() {
                             selectedVariant?.id === variant.id
                               ? 'border-blue-600 bg-blue-50'
                               : 'border-gray-300 hover:border-gray-400'
-                          } ${variant.stock === 0 ? 'opacity-50' : ''}`}
-                          disabled={variant.stock === 0}
+                          } ${variant.isActive === false ? 'opacity-50' : ''}`}
+                          disabled={variant.isActive === false}
                         >
                           <div className="text-left">
                             <p className="font-semibold text-sm">{variant.name}</p>
-                            <p className="text-primary-theme font-bold text-sm">
-                              {formatPrice(variant.price)}
-                            </p>
-                            {variant.stock === 0 ? (
-                              <p className="text-red-600 text-xs mt-1 font-semibold">Out of Stock</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-primary-theme font-bold text-sm">
+                                {formatPrice(variant.price)}
+                              </p>
+                              {variant.comparePrice && variant.comparePrice > variant.price && (
+                                <p className="text-gray-500 line-through text-xs">
+                                  {formatPrice(variant.comparePrice)}
+                                </p>
+                              )}
+                            </div>
+                            {variant.isActive === false ? (
+                              <p className="text-red-600 text-xs mt-1 font-semibold">Not Available</p>
                             ) : (
                               <p className="text-green-600 text-xs mt-1 font-semibold">
-                                {variant.stock} available
+                                Available
                               </p>
                             )}
                           </div>
@@ -458,8 +439,15 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
+                {/* Delivery Pincode Checker */}
+                {!product.isDigital && (
+                  <div className="mb-6">
+                    <DeliveryPinChecker />
+                  </div>
+                )}
+
                 {/* Quantity and Add to Cart */}
-                {(!product.isDigital ? (selectedVariant ? selectedVariant.stock > 0 : product.stock > 0) : true) && (
+                {product.isActive && (!selectedVariant || selectedVariant.isActive !== false) && (
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
                       <label className="font-semibold">Quantity:</label>

@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    const groups = await prisma.wishlistGroup.findMany({
+    let groups = await prisma.wishlistGroup.findMany({
       where: { userId },
       include: {
         items: {
@@ -45,6 +45,21 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Create default wishlist group if user has no groups
+    if (groups.length === 0) {
+      const defaultGroup = await prisma.wishlistGroup.create({
+        data: {
+          userId,
+          name: 'My Wishlist',
+        },
+        include: {
+          items: true,
+        },
+      });
+      groups = [defaultGroup];
+      console.log(`Created default wishlist group for user ${userId}`);
+    }
 
     console.log(`Found ${groups.length} wishlist groups for user ${userId}`);
     groups.forEach(g => console.log(`Group "${g.name}" has ${g.items.length} items`));

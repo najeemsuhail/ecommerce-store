@@ -15,6 +15,8 @@ interface Product {
   averageRating?: number;
   reviewCount?: number;
   isDigital?: boolean;
+  isActive?: boolean;
+  stock?: number;
   weight?: number;
 }
 
@@ -201,24 +203,33 @@ export default function ProductRecommendations({
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      addItem({
-                        productId: product.id,
-                        name: product.name,
-                        price: product.price,
-                        quantity: 1,
-                        image: product.images?.[0],
-                        slug: product.slug,
-                        isDigital: product.isDigital || false,
-                        weight: product.weight || undefined,
-                      });
-                      onAddToCart?.(product);
-                    }}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
-                  >
-                    Add to Cart
-                  </button>
+                  {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
+                    <button
+                      onClick={() => {
+                        addItem({
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          quantity: 1,
+                          image: product.images?.[0],
+                          slug: product.slug,
+                          isDigital: product.isDigital || false,
+                          weight: product.weight || undefined,
+                        });
+                        onAddToCart?.(product);
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded font-medium text-sm transition-colors text-center"
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full bg-gray-300 text-gray-600 py-2 px-3 rounded cursor-not-allowed text-sm"
+                    >
+                      {product.isActive === false ? 'Not Available' : 'Out of Stock'}
+                    </button>
+                  )}
                 </div>
               </div>
             )}

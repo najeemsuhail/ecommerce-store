@@ -740,12 +740,21 @@ function ProductsContent() {
                       )}
 
                       <div className="flex gap-2">
-                        <button
-                          onClick={(e) => handleAddToCart(product, e)}
-                          className="flex-1 btn-primary-theme py-2"
-                        >
-                          Add to Cart
-                        </button>
+                        {product.isActive ? (
+                          <button
+                            onClick={(e) => handleAddToCart(product, e)}
+                            className="flex-1 btn-primary-theme py-2"
+                          >
+                            Add to Cart
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="flex-1 bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed"
+                          >
+                            Not Available
+                          </button>
+                        )}
                         <button
                           onClick={(e) => handleWishlistToggle(product, e)}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
