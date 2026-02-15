@@ -198,7 +198,7 @@ export default function ProductRecommendations({
                 )}
 
                 {/* Add to Cart Button on Hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                    <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                   {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
                     <>
                       <button
@@ -239,6 +239,45 @@ export default function ProductRecommendations({
                     </>
                   ) : null}
                 </div>
+                
+                {/* Mobile action buttons */}
+                {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) && (
+                  <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addItem({
+                          productId: product.id,
+                          name: product.name,
+                          price: product.price,
+                          quantity: 1,
+                          image: product.images?.[0],
+                          slug: product.slug,
+                          isDigital: product.isDigital || false,
+                          weight: product.weight || undefined,
+                        });
+                        onAddToCart?.(product);
+                      }}
+                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                      title="Add to Cart"
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={(e) => handleWishlistClick(product, e)}
+                      className={`p-2.5 rounded-lg transition-all ${
+                        isInWishlist(product.id)
+                          ? 'bg-red-500 text-white hover:bg-red-600'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                      title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
             </Link>
 

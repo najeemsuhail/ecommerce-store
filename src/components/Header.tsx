@@ -246,7 +246,7 @@ export default function Header() {
           </div>
 
           {/* CENTER: Search Autocomplete */}
-          <SearchAutocomplete />
+          <SearchAutocomplete className="hidden md:flex" />
 
           {/* RIGHT: Icons (all screens) */}
           <div className="flex items-center gap-4 flex-shrink-0">

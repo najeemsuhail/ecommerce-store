@@ -39,7 +39,7 @@ interface SearchResults {
   totalResults: number;
 }
 
-export default function SearchAutocomplete() {
+export default function SearchAutocomplete({ className = '' }: { className?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResults>({ 
@@ -166,7 +166,7 @@ export default function SearchAutocomplete() {
   };
 
   return (
-    <div ref={containerRef} className="relative flex-1 max-w-2xl mx-2 md:mx-0">
+    <div ref={containerRef} className={`relative flex-1 md:max-w-none max-w-2xl mx-2 md:mx-4 ${className}`}>
       <div className="relative">
         {/* Search Input */}
         <div className="relative flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">

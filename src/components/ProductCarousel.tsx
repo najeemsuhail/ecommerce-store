@@ -232,7 +232,7 @@ export default function ProductCarousel({
                     </div>
                   )}
                   {product.isActive !== false && (
-                    <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                    <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover/card:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
                         className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
