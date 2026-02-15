@@ -145,7 +145,7 @@ export default function ProductRecommendations({
         productId: product.id,
         productName: product.name,
         productPrice: product.price,
-        productImage: product.images?.[0],
+        productImage: product.images?.[0] ?? '',
         productSlug: product.slug,
       });
     }
