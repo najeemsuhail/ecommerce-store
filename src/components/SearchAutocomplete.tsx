@@ -166,7 +166,7 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
   };
 
   return (
-    <div ref={containerRef} className={`relative flex-1 md:max-w-none max-w-2xl mx-2 md:mx-4 ${className}`}>
+    <div ref={containerRef} className={`relative flex-1 max-w-2xl mx-2 md:max-w-4xl md:mx-6 ${className}`}>
       <div className="relative">
         {/* Search Input */}
         <div className="relative flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">

@@ -231,7 +231,7 @@ export default function ProductDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Images Gallery */}
-            <div className="sticky top-8 h-fit">
+            <div className="lg:sticky lg:top-8 h-fit">
               {/* Main Image */}
               <div className="bg-light-theme rounded-lg shadow-lg p-4 mb-4 relative group">
                 <div
