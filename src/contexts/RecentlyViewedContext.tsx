@@ -9,6 +9,9 @@ export interface RecentlyViewedProduct {
   images: string[];
   price: number;
   viewedAt: number;
+  isDigital?: boolean;
+  weight?: number;
+  isActive?: boolean;
 }
 
 interface RecentlyViewedContextType {

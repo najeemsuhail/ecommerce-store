@@ -56,6 +56,9 @@ export default function ProductDetailPage() {
           images: data.product.images || [],
           price: data.product.price,
           viewedAt: Date.now(),
+          isDigital: data.product.isDigital,
+          weight: data.product.weight,
+          isActive: data.product.isActive,
         });
         // Set first variant as default if variants exist
         if (data.product.variants && data.product.variants.length > 0) {

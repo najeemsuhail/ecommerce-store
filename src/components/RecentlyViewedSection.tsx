@@ -87,7 +87,8 @@ export default function RecentlyViewedSection() {
                           quantity: 1,
                           image: product.images?.[0],
                           slug: product.slug,
-                          isDigital: false,
+                          isDigital: product.isDigital || false,
+                          weight: product.weight || undefined,
                         });
                       }}
                       className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
@@ -114,7 +115,7 @@ export default function RecentlyViewedSection() {
                 </div>
                 
                 {/* Mobile action buttons */}
-                <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
+                                <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
