@@ -319,9 +319,22 @@ export default function ProductDetailPage() {
               <div className="bg-light-theme rounded-lg shadow-lg p-6">
                 {/* Title and Price */}
                 <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-                
+
                 {product.brand && (
-                  <p className="text-gray-600 mb-4">Brand: {product.brand}</p>
+                  <p className="text-gray-600 mb-1">Brand: {product.brand}</p>
+                )}
+
+                {/* Product Categories */}
+                {product.categories && product.categories.length > 0 && (
+                  <div className="mb-4">
+                    <span className="text-gray-600">Categories: </span>
+                    {product.categories.map((cat: any, idx: number) => (
+                      <span key={cat.category?.id || cat.categoryId} className="inline-block text-sm text-primary-theme font-medium mr-2">
+                        {cat.category?.name || cat.categoryId}
+                        {idx < product.categories.length - 1 && ','}
+                      </span>
+                    ))}
+                  </div>
                 )}
    
 
@@ -336,7 +349,7 @@ export default function ProductDetailPage() {
                         <span className="text-xl text-gray-500 line-through">
                           {formatPrice(selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice)}
                         </span>
-                        <span className="bg-red-500 text-white px-2 py-1 rounded text-sm font-bold">
+                        <span className="bg-green-500 text-white px-2 py-1 rounded text-sm font-bold">
                           Save {formatPrice((selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) - (selectedVariant ? selectedVariant.price : product.price))}
                         </span>
                       </>
@@ -511,7 +524,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* Tags */}
+                {/* Tags section commented out
                 {product.tags && product.tags.length > 0 && (
                   <div className="mt-6">
                     <div className="flex flex-wrap gap-2">
@@ -526,6 +539,7 @@ export default function ProductDetailPage() {
                     </div>
                   </div>
                 )}
+                */}
               </div>
             </div>
           </div>
