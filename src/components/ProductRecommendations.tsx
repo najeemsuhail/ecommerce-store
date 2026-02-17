@@ -190,12 +190,7 @@ export default function ProductRecommendations({
                   </div>
                 )}
 
-                {/* Sale Badge */}
-                {product.comparePrice && (
-                  <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    SALE
-                  </div>
-                )}
+                // ...sale badge removed...
 
                 {/* Add to Cart Button on Hover */}
                     <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">

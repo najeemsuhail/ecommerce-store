@@ -313,6 +313,17 @@ async function importProduct(
   let primaryCategoryId: string | null = null;
   const categoryIds = new Set<string>();
 
+  // Get existing categories for the product if updating
+  let existingCategoryIds: string[] = [];
+  if (existingProduct) {
+    const existingProductCategories = await prisma.productCategory.findMany({
+      where: { productId: existingProduct.id },
+      select: { categoryId: true },
+    });
+    existingCategoryIds = existingProductCategories.map((c) => c.categoryId);
+    existingCategoryIds.forEach((id) => categoryIds.add(id));
+  }
+
   if (categories.length > 0) {
     const firstCategory = await getOrCreateCategory(categories[0], categoryCache);
     primaryCategoryId = firstCategory.id;
@@ -325,10 +336,7 @@ async function importProduct(
   }
 
   if (categoryIds.size > 0) {
-    await prisma.productCategory.deleteMany({
-      where: { productId: finalProduct.id },
-    });
-
+    // Only add new category links, don't delete existing
     await prisma.productCategory.createMany({
       data: Array.from(categoryIds).map((categoryId) => ({
         productId: finalProduct.id,

@@ -124,14 +124,16 @@ function ProductsContent() {
   useEffect(() => {
     const category = searchParams.get('category');
     const search = searchParams.get('search');
-    
+
     if (category) {
       setFacetFilters((prev) => ({
         ...prev,
-        categories: [category],
+        categories: prev.categories.includes(category)
+          ? prev.categories
+          : [...prev.categories, category],
       }));
     }
-    
+
     if (search) {
       setSearchTerm(search);
     }
@@ -704,11 +706,7 @@ function ProductsContent() {
                           Featured
                         </span>
                       )}
-                      {product.comparePrice && (
-                        <span className="absolute top-2 left-2 bg-danger text-white text-xs px-2 py-1 rounded font-semibold" style={{backgroundColor: '#dc2626'}}>
-                          SALE
-                        </span>
-                      )}
+                      // ...sale badge removed...
                       {product.isActive && (
                         <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                           <button
@@ -733,6 +731,18 @@ function ProductsContent() {
                               <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
                             </svg>
                           </button>
+                        </div>
+                      )}
+
+                      {/* Show categories after Add to Cart button */}
+                      {product.categories && Array.isArray(product.categories) && product.categories.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="text-xs font-semibold text-text-600">Categories:</span>
+                          {product.categories.map((cat: any) => (
+                            <span key={cat.categoryId || cat.id} className="bg-bg-200 text-text-700 px-2 py-1 rounded text-xs">
+                              {cat.category?.name || cat.name || cat.categoryId}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>

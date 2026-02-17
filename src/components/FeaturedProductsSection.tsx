@@ -99,11 +99,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                     </svg>
                   </div>
                 )}
-                {product.comparePrice && (
-                  <div className="absolute top-3 right-3 px-3 py-1 rounded-full text-sm font-bold shadow-lg text-white" style={{backgroundColor: '#dc2626'}}>
-                    SALE
-                  </div>
-                )}
+                // ...sale badge removed...
                 {product.isActive !== false && (
                   <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                     <button
