@@ -421,8 +421,6 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
-                // ...existing code...
-
                 {/* Variants */}
                 {product.variants && product.variants.length > 1 && (
                   <div className="mb-6">
