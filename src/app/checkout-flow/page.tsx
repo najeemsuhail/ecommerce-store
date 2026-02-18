@@ -303,7 +303,7 @@ export default function CheckoutFlowPage() {
         order_id: paymentResult.razorpayOrderId,
         prefill: {
           name: shippingAddress.name,
-          email: localStorage.getItem('userEmail') || 'customer@example.com',
+          email: localStorage.getItem('userEmail') || shippingAddress.name,
           contact: shippingAddress.phone,
         },
         theme: {

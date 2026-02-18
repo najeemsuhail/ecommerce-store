@@ -374,8 +374,31 @@ export default function ProductDetailPage() {
                 <div className="mb-6">
                   <div 
                     className="text-gray-700 prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
-                  />
+                    style={{
+                      /* Ensure decent spacing and disc bullets for lists */
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    <div
+                      dangerouslySetInnerHTML={{ __html: product.description }}
+                    />
+                    <style>{`
+                      .prose ul, .prose ol {
+                        margin-left: 1.5em;
+                        padding-left: 1.2em;
+                      }
+                      .prose ul {
+                        list-style-type: disc !important;
+                      }
+                      .prose ol {
+                        list-style-type: decimal !important;
+                      }
+                      .prose li {
+                        margin-bottom: 0.3em;
+                        font-size: 1em;
+                      }
+                    `}</style>
+                  </div>
                 </div>
 
                 {/* Specifications */}
@@ -398,20 +421,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* Product Attributes */}
-                {product.attributes && product.attributes.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-lg mb-2">Product Attributes</h3>
-                    <div className="bg-gray-50 rounded p-4 space-y-2">
-                      {product.attributes.map((attr: any) => (
-                        <div key={attr.id} className="flex justify-between">
-                          <span className="text-gray-600">{attr.attribute?.name || attr.attributeId}:</span>
-                          <span className="font-semibold">{attr.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                // ...existing code...
 
                 {/* Variants */}
                 {product.variants && product.variants.length > 1 && (
