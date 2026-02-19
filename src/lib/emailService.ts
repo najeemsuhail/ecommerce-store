@@ -1,3 +1,28 @@
+// Password reset email
+export async function sendPasswordResetEmail(user: any, resetToken: string) {
+  try {
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      to: user.email,
+      subject: 'Reset Your Password - onlyinkani.in',
+      html: `<p>Hi ${user.name || user.email},</p>
+        <p>You requested a password reset. Click the link below to set a new password:</p>
+        <p><a href="${resetUrl}" style="color: #667eea;">Reset Password</a></p>
+        <p>If you did not request this, you can ignore this email.</p>
+        <p>This link will expire in 1 hour.</p>`
+    });
+    if (error) {
+      console.error('Error sending password reset email:', error);
+      return { success: false, error };
+    }
+    console.log('✅ Password reset email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return { success: false, error };
+  }
+}
 import { Resend } from 'resend';
 import {
   getOrderConfirmationEmail,

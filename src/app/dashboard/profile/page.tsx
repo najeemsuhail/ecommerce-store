@@ -8,6 +8,50 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  // Password update state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  // Handle password update
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordSaving(true);
+    setPasswordMessage('');
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordMessage('❌ New passwords do not match');
+      setPasswordSaving(false);
+      return;
+    }
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('/api/auth/update-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPasswordMessage('✅ Password updated successfully!');
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPasswordMessage(`❌ ${data.error}`);
+      }
+    } catch (error) {
+      setPasswordMessage('❌ Failed to update password');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -158,6 +202,60 @@ export default function ProfilePage() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </form>
+
+          {/* Update Password Form */}
+          <div className="mt-10">
+            <h3 className="font-bold text-lg mb-4">Change Password</h3>
+            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter current password"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter new password"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              {passwordMessage && (
+                <div className={`p-4 rounded-lg ${
+                  passwordMessage.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                }`}>
+                  {passwordMessage}
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={passwordSaving}
+                className="btn-full-primary"
+              >
+                {passwordSaving ? 'Saving...' : 'Update Password'}
+              </button>
+            </form>
+          </div>
         </div>
 
         {/* Account Info */}
