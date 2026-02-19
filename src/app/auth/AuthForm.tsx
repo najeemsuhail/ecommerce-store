@@ -178,7 +178,7 @@ export default function AuthForm() {
   if (showForgot) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mt-16 md:mt-24">
           <div className="bg-light-theme rounded-lg shadow-lg p-6 lg:p-8">
             <h2 className="text-2xl font-bold text-center text-slate-800 mb-6">Forgot Password</h2>
             {forgotMessage && (
