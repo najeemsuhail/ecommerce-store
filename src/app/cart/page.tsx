@@ -180,97 +180,63 @@ export default function CartPage() {
               {items.map((item) => (
                 <div
                   key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId}
-                  className="bg-light-theme rounded-lg shadow p-3 md:p-6 grid grid-cols-2 gap-3 md:flex md:flex-row md:grid-cols-1 md:gap-4"
+                  className="bg-white rounded-xl shadow-md p-3 md:p-6 flex items-center gap-3 md:gap-6 border border-gray-100"
                 >
                   {/* Product Image */}
-                  <div className="col-span-1 w-full aspect-square max-w-[90px] md:w-24 md:h-24 bg-bg-gray rounded flex-shrink-0 relative flex items-center justify-center">
+                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
-                        fill
-                        className="object-cover rounded"
+                        width={80}
+                        height={80}
+                        className="object-cover w-full h-full"
                         onError={(e) => { e.currentTarget.src = '/images/broken-image.png'; }}
                       />
                     ) : (
                       <img
                         src="/images/broken-image.png"
                         alt="No Image"
-                        className="object-contain w-12 h-12 mx-auto"
+                        className="object-contain w-10 h-10"
                       />
                     )}
                   </div>
 
                   {/* Product Info */}
-                  <div className="col-span-1 flex-1 flex flex-col justify-center">
-                    <h3 className="font-semibold text-base md:text-lg mb-1">
-                      {item.name}
-                    </h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="font-semibold text-base md:text-lg truncate max-w-[140px] md:max-w-none">{item.name}</h3>
+                      <span className="font-bold text-primary-theme text-base md:text-lg">{formatPrice(item.price * item.quantity)}</span>
+                    </div>
                     {item.variantName && (
-                      <p className="text-text-lighter text-xs md:text-sm mb-2">
-                        {item.variantName}
-                      </p>
+                      <p className="text-text-lighter text-xs md:text-sm mb-1 truncate">{item.variantName}</p>
                     )}
-                    <p className="text-text-light text-sm mb-3 md:mb-2">
-                      {formatPrice(item.price)}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs text-gray-500 line-through">{formatPrice(item.price)}</span>
                       {item.isDigital && (
-                        <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                          Digital
-                        </span>
+                        <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">Digital</span>
                       )}
-                    </p>
-
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
+                    </div>
+                    <div className="flex items-center gap-2">
                       {/* Quantity Controls */}
-                      <div className="flex items-center border rounded">
+                      <div className="flex items-center border rounded overflow-hidden">
                         <button
                           disabled={item.quantity <= 1}
-                          onClick={() =>
-                            updateQuantity(
-                              item.productId,
-                              item.quantity - 1,
-                              item.variantId
-                            )
-                          }
-                          className="px-2 md:px-3 py-1 hover:bg-gray-100 disabled:opacity-50 text-sm"
-                        >
-                          −
-                        </button>
-
-                        <span className="px-3 md:px-4 py-1 border-x text-sm">
-                          {item.quantity}
-                        </span>
-
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
+                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50 text-sm"
+                        >−</button>
+                        <span className="px-3 py-1 border-x text-sm bg-gray-50">{item.quantity}</span>
                         <button
-                          onClick={() =>
-                            updateQuantity(
-                              item.productId,
-                              item.quantity + 1,
-                              item.variantId
-                            )
-                          }
-                          className="px-2 md:px-3 py-1 hover:bg-gray-100 text-sm"
-                        >
-                          +
-                        </button>
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
+                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
+                        >+</button>
                       </div>
-
                       {/* Remove Button */}
                       <button
                         onClick={() => removeItem(item.productId, item.variantId)}
-                        className="text-red-600 hover:text-red-700 text-xs md:text-sm"
-                      >
-                        Remove
-                      </button>
+                        className="text-xs text-red-500 hover:underline ml-2"
+                      >Remove</button>
                     </div>
-                  </div>
-
-                  {/* Item Total */}
-                  <div className="text-right flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start">
-                    <span className="text-gray-600 text-xs md:hidden">Total:</span>
-                    <p className="font-semibold text-base md:text-lg">
-                      {formatPrice(item.price * item.quantity)}
-                    </p>
                   </div>
                 </div>
               ))}
