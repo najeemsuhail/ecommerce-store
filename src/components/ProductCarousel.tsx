@@ -202,10 +202,14 @@ export default function ProductCarousel({
               display: none;
             }
           `}</style>
-          {products.map((product) => (
+          {products.map((product, idx) => (
             <div
               key={product.id}
-              className="flex-shrink-0 w-80 group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary"
+              className={
+                type === 'bestseller' && typeof window !== 'undefined' && window.innerWidth < 640
+                  ? 'flex-shrink-0 w-1/2 min-w-[50vw] group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary'
+                  : 'flex-shrink-0 w-80 group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary'
+              }
             >
               <Link href={`/products/${product.slug}`} className="block">
                 <div className="relative h-64 bg-bg-gray overflow-hidden">

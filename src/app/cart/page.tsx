@@ -180,26 +180,29 @@ export default function CartPage() {
               {items.map((item) => (
                 <div
                   key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId}
-                  className="bg-light-theme rounded-lg shadow p-3 md:p-6 flex flex-col md:flex-row gap-3 md:gap-4"
+                  className="bg-light-theme rounded-lg shadow p-3 md:p-6 grid grid-cols-2 gap-3 md:flex md:flex-row md:grid-cols-1 md:gap-4"
                 >
                   {/* Product Image */}
-                  <div className="w-full md:w-24 md:h-24 h-40 bg-bg-gray rounded flex-shrink-0 relative">
+                  <div className="col-span-1 w-full aspect-square max-w-[90px] md:w-24 md:h-24 bg-bg-gray rounded flex-shrink-0 relative flex items-center justify-center">
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
                         className="object-cover rounded"
+                        onError={(e) => { e.currentTarget.src = '/images/broken-image.png'; }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-text-lighter">
-                        No Image
-                      </div>
+                      <img
+                        src="/images/broken-image.png"
+                        alt="No Image"
+                        className="object-contain w-12 h-12 mx-auto"
+                      />
                     )}
                   </div>
 
                   {/* Product Info */}
-                  <div className="flex-1">
+                  <div className="col-span-1 flex-1 flex flex-col justify-center">
                     <h3 className="font-semibold text-base md:text-lg mb-1">
                       {item.name}
                     </h3>
