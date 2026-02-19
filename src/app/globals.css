@@ -232,7 +232,7 @@ body {
 .btn-full-primary {
   width: 100%;
   background-color: var(--primary);
-  color: var(--text-light);
+  color: #fff;
   padding: 0.75rem;
   border-radius: 0.5rem;
   font-weight: 600;
