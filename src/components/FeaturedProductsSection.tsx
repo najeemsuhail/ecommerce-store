@@ -77,7 +77,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
           <p className="text-xl text-gray-600 font-medium">Hand-picked items just for you</p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
           <div
             key={product.id}

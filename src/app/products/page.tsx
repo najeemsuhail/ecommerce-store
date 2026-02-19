@@ -618,7 +618,7 @@ function ProductsContent() {
 
             {/* Loading */}
             {loading && (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(12)].map((_, i) => (
                   <div key={i} className="bg-light-theme rounded-lg shadow overflow-hidden">
                     {/* Image Skeleton */}
@@ -678,7 +678,7 @@ function ProductsContent() {
 
             {/* Products Grid */}
             {!loading && products.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.slice(0, displayedCount).map((product, index) => (
                   <Link
                     key={product.id}
@@ -870,7 +870,7 @@ function ProductsLoading() {
             <div className="h-10 bg-bg-200 rounded w-32"></div>
             <div className="h-10 bg-bg-200 rounded w-32"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="bg-light-theme rounded-lg shadow p-4">
                 <div className="h-48 bg-bg-200 rounded mb-4"></div>

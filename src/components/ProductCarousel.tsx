@@ -89,8 +89,14 @@ export default function ProductCarousel({
   const scroll = (direction: 'left' | 'right') => {
     const element = carouselRef.current;
     if (element) {
-      // Scroll by one item width (w-80 = 320px) + gap (gap-6 = 24px) = 344px
-      const itemWidth = 344;
+      // Default: 1 item per scroll (w-80 = 320px) + gap (gap-6 = 24px) = 344px
+      // For bestseller on mobile: 2 items per scroll
+      let itemWidth = 344;
+      if (type === 'bestseller') {
+        if (window.innerWidth < 640) {
+          itemWidth = 344 * 2 + 24; // 2 items + 1 gap
+        }
+      }
       if (direction === 'left') {
         element.scrollBy({ left: -itemWidth, behavior: 'smooth' });
       } else {

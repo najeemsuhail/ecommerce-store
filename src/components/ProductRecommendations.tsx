@@ -94,7 +94,7 @@ export default function ProductRecommendations({
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="bg-gray-200 rounded-lg h-80"></div>
           ))}
@@ -162,7 +162,7 @@ export default function ProductRecommendations({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
         {products.map((product) => (
           <div
             key={product.id}
