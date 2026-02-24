@@ -1,10 +1,20 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
   images: {
-    domains: ["via.placeholder.com", "cdn.shopify.com"],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.shopify.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+    ],
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

@@ -4,10 +4,22 @@ import { Metadata } from 'next';
 type Props = { params: { slug: string } };
 
 async function fetchProduct(slug: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || ''}/api/products/${encodeURIComponent(slug)}`, { next: { revalidate: 300 } });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.product ?? null;
+  try {
+    const url = `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/products/${encodeURIComponent(slug)}`;
+    const res = await fetch(url, { next: { revalidate: 300 } });
+    if (!res.ok) {
+      console.error(`[head.tsx] Failed to fetch product meta for slug: ${slug}. Status: ${res.status}. URL: ${url}`);
+      return null;
+    }
+    const data = await res.json();
+    if (!data.product) {
+      console.error(`[head.tsx] No product found in API response for slug: ${slug}. URL: ${url}`);
+    }
+    return data.product ?? null;
+  } catch (err) {
+    console.error(`[head.tsx] Error fetching product meta for slug: ${slug}:`, err);
+    return null;
+  }
 }
 
 export default async function Head({ params }: Props) {
@@ -22,7 +34,7 @@ export default async function Head({ params }: Props) {
 
   return (
     <>
-      <title>{title}</title>
+      <title>sample title</title>
       <meta name="description" content={description} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />

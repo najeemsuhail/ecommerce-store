@@ -251,6 +251,7 @@ export default function ProductDetailPage() {
                           ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` }
                           : undefined
                       }
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -295,6 +296,7 @@ export default function ProductDetailPage() {
                           src={image}
                           alt={`${product.name} ${index + 1}`}
                           className="w-full h-full object-contain"
+                          loading="lazy"
                         />
                       </button>
                     ))}
