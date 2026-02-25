@@ -2,9 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFolder, faTag, faBox } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faBox } from '@fortawesome/free-solid-svg-icons';
 import { formatPrice } from '@/lib/currency';
 
 interface ProductSuggestion {
@@ -39,7 +38,15 @@ interface SearchResults {
   totalResults: number;
 }
 
-export default function SearchAutocomplete({ className = '' }: { className?: string }) {
+export default function SearchAutocomplete({
+  className = '',
+  mobile = false,
+  onNavigate,
+}: {
+  className?: string;
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResults>({ 
@@ -155,6 +162,7 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
     }
     setIsOpen(false);
     setQuery('');
+    onNavigate?.();
   };
 
   const handleSearch = () => {
@@ -162,11 +170,15 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
       router.push(`/products?search=${encodeURIComponent(query)}`);
       setIsOpen(false);
       setQuery('');
+      onNavigate?.();
     }
   };
 
   return (
-    <div ref={containerRef} className={`relative flex-1 max-w-3xl mx-4 md:max-w-5xl lg:max-w-6xl md:mx-8 ${className}`}>
+    <div
+      ref={containerRef}
+      className={`relative flex-1 ${mobile ? 'max-w-none mx-0' : 'max-w-3xl mx-4 md:max-w-5xl lg:max-w-6xl md:mx-8'} ${className}`}
+    >
       <div className="relative w-full">
         {/* Search Input */}
         <div className="relative w-full flex items-center bg-white rounded-full border border-border-color hover:border-primary hover:shadow-md transition-all">
@@ -182,15 +194,24 @@ export default function SearchAutocomplete({ className = '' }: { className?: str
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => query && setIsOpen(true)}
-            className="flex-1 w-full px-4 py-2.5 pl-12 pr-10 rounded-full bg-transparent focus:outline-none text-sm"
+            className={`flex-1 w-full px-4 py-2.5 pl-12 ${mobile ? 'pr-20' : 'pr-10'} rounded-full bg-transparent focus:outline-none text-sm`}
           />
+          {mobile && (
+            <button
+              onClick={handleSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-semibold rounded-full bg-primary text-white hover:bg-primary-dark transition-colors"
+              title="Search"
+            >
+              Search
+            </button>
+          )}
           {query && (
             <button
               onClick={() => {
                 setQuery('');
                 setIsOpen(false);
               }}
-              className="px-3 text-text-lighter hover:text-text-dark transition-colors"
+              className={`text-text-lighter hover:text-text-dark transition-colors ${mobile ? 'absolute right-[72px] top-1/2 -translate-y-1/2 px-2' : 'px-3'}`}
               title="Clear search"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
