@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Elasticsearch Product Search
+
+Product search (`/api/products`) and autocomplete (`/api/products/autocomplete`) can use Elasticsearch when configured.
+
+Set these environment variables:
+
+- `ELASTICSEARCH_URL` (required to enable Elasticsearch)
+- `ELASTICSEARCH_INDEX` (optional, defaults to `products`)
+- `ELASTICSEARCH_API_KEY` (optional)
+- `ELASTICSEARCH_USERNAME` and `ELASTICSEARCH_PASSWORD` (optional alternative to API key)
+
+If Elasticsearch is not configured (or unavailable), the API automatically falls back to PostgreSQL-based search.

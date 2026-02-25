@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
@@ -39,7 +40,36 @@ export async function GET(request: NextRequest) {
       isActive: true,
     };
 
-    if (search) {
+    const hasNonSearchFilters =
+      categories.length > 0 ||
+      brands.length > 0 ||
+      Boolean(isDigital) ||
+      Boolean(minPrice) ||
+      Boolean(maxPrice) ||
+      Boolean(tag) ||
+      Boolean(isFeatured) ||
+      attributeFilters.size > 0;
+
+    const shouldUseElasticsearch =
+      Boolean(search) &&
+      isElasticsearchEnabled() &&
+      !hasNonSearchFilters;
+
+    let elasticsearchResult: { productIds: string[]; total: number } | null = null;
+
+    if (shouldUseElasticsearch && search) {
+      try {
+        elasticsearchResult = await searchProductIdsFromElasticsearch({
+          query: search,
+          from: skip,
+          size: limit,
+        });
+      } catch (error) {
+        console.error('Elasticsearch product search failed, falling back to database search:', error);
+      }
+    }
+
+    if (search && !elasticsearchResult) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
@@ -56,6 +86,28 @@ export async function GET(request: NextRequest) {
           }
         },
       ];
+    }
+
+    if (elasticsearchResult) {
+      if (elasticsearchResult.productIds.length === 0) {
+        return NextResponse.json(
+          {
+            success: true,
+            products: [],
+            count: 0,
+            total: 0,
+          },
+          {
+            headers: {
+              'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+            },
+          }
+        );
+      }
+
+      where.id = {
+        in: elasticsearchResult.productIds,
+      };
     }
 
     // Handle multiple categories (by name or slug)
@@ -139,9 +191,9 @@ export async function GET(request: NextRequest) {
 
     const products = await prisma.product.findMany({
       where,
-      orderBy,
-      skip,
-      take: limit,
+      orderBy: elasticsearchResult ? undefined : orderBy,
+      skip: elasticsearchResult ? 0 : skip,
+      take: elasticsearchResult ? undefined : limit,
       include: {
         reviews: {
           select: {
@@ -163,7 +215,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Get total count for pagination
-    const totalCount = await prisma.product.count({ where });
+    const totalCount = elasticsearchResult
+      ? elasticsearchResult.total
+      : await prisma.product.count({ where });
 
     // If no products found, return empty array
     if (products.length === 0) {
@@ -183,7 +237,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate average rating for each product
-    const productsWithRating = products.map((product: any) => {
+    let productsWithRating = products.map((product: any) => {
       const avgRating =
         product.reviews.length > 0
           ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
@@ -197,6 +251,14 @@ export async function GET(request: NextRequest) {
         reviewCount: reviews.length,
       };
     });
+
+    // Preserve Elasticsearch ranking order when applicable
+    if (elasticsearchResult) {
+      const rankMap = new Map(elasticsearchResult.productIds.map((id, index) => [id, index]));
+      productsWithRating.sort(
+        (a, b) => (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+      );
+    }
 
     // Sort by rating if requested
     if (sort === 'rating') {
