@@ -16,6 +16,7 @@ import ProductRecommendations from '@/components/ProductRecommendations';
 import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
+import ShareProduct from '@/components/ShareProduct';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -472,6 +473,7 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
+
                 {/* Quantity and Add to Cart */}
                 {product.isActive && (!selectedVariant || selectedVariant.isActive !== false) && (
                   <div className="space-y-4">
@@ -523,6 +525,7 @@ export default function ProductDetailPage() {
                         ♥
                       </button>
 
+
                       {/* Notification */}
                       {showNotification && (
                         <div className="absolute bottom-full left-0 right-0 mb-2 bg-success-theme text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
@@ -533,6 +536,15 @@ export default function ProductDetailPage() {
                     </div>
                   </div>
                 )}
+
+              <br></br>  
+              
+              <ShareProduct
+                productName={product.name}
+                productSlug={product.slug}
+                productImage={product.images?.[0]}
+                productPrice={formatPrice(selectedVariant ? selectedVariant.price : product.price)}
+              />
 
                 {/* Tags section commented out
                 {product.tags && product.tags.length > 0 && (
