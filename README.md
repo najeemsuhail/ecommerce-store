@@ -47,3 +47,16 @@ Set these environment variables:
 - `ELASTICSEARCH_USERNAME` and `ELASTICSEARCH_PASSWORD` (optional alternative to API key)
 
 If Elasticsearch is not configured (or unavailable), the API automatically falls back to PostgreSQL-based search.
+
+### Reindex products into Elasticsearch
+
+After setting Elasticsearch env vars, run:
+
+```bash
+npm run es:reindex
+```
+
+This script will:
+- create the Elasticsearch index (if it does not exist)
+- read products from PostgreSQL
+- bulk index them into Elasticsearch
