@@ -332,26 +332,9 @@ function ProductsContent() {
         setTotalProducts(data.total || data.products.length);
         setHasMore(data.products.length > itemsPerLoad);
 
-        if (data.facets && searchTerm.trim()) {
-          const categoryIdByName = new Map(
-            defaultFacets.categories.map((category) => [normalizeCategoryKey(category.name), category.id])
-          );
-
-          setFacets({
-            brands: data.facets.brands || [],
-            categories: (data.facets.categories || []).map((category: { name: string; count: number }) => ({
-              name: category.name,
-              id: categoryIdByName.get(normalizeCategoryKey(category.name)) || category.name,
-              count: category.count,
-            })),
-            priceRange: {
-              min: Number.isFinite(data.facets.priceRange?.min) ? data.facets.priceRange.min : 0,
-              max: Number.isFinite(data.facets.priceRange?.max) ? data.facets.priceRange.max : defaultFacets.priceRange.max,
-            },
-          });
-        } else {
-          setFacets(defaultFacets);
-        }
+        // Temporary: disable dynamic facet updates from search response.
+        // Keep facets stable from default catalog facets.
+        setFacets(defaultFacets);
       }
     } catch (error) {
       if (requestId !== latestFetchRequestId.current) {
