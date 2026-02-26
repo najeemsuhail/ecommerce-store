@@ -14,11 +14,21 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const guestEmail = searchParams.get('guestEmail');
+    const orderedWithinHoursParam = searchParams.get('orderedWithinHours');
+    const orderedWithinHours = orderedWithinHoursParam
+      ? parseInt(orderedWithinHoursParam, 10)
+      : null;
+    const shouldReturnRecentItems =
+      typeof orderedWithinHours === 'number' &&
+      Number.isFinite(orderedWithinHours) &&
+      orderedWithinHours > 0;
 
     let orders;
+    let customerWhere: { userId?: string; guestEmail?: string } | null = null;
 
     if (decoded) {
       // Logged-in user - get their orders
+      customerWhere = { userId: decoded.userId };
       orders = await prisma.order.findMany({
         where: { userId: decoded.userId },
         include: {
@@ -38,6 +48,7 @@ export async function GET(request: NextRequest) {
       });
     } else if (guestEmail) {
       // Guest user - get orders by email
+      customerWhere = { guestEmail };
       orders = await prisma.order.findMany({
         where: { guestEmail },
         include: {
@@ -60,6 +71,86 @@ export async function GET(request: NextRequest) {
         { success: false, error: 'Authentication required or provide guest email' },
         { status: 401 }
       );
+    }
+
+    if (shouldReturnRecentItems && customerWhere) {
+      const cutoffDate = new Date(Date.now() - orderedWithinHours * 60 * 60 * 1000);
+      const recentOrders = await prisma.order.findMany({
+        where: {
+          ...customerWhere,
+          createdAt: {
+            gte: cutoffDate,
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  images: true,
+                  brand: true,
+                  price: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const itemMap = new Map<
+        string,
+        {
+          productId: string;
+          variantId: string | null;
+          name: string;
+          slug: string;
+          image: string | null;
+          brand: string | null;
+          unitPrice: number;
+          orderedQuantity: number;
+          lastOrderedAt: string;
+        }
+      >();
+
+      recentOrders.forEach((order) => {
+        order.items.forEach((item) => {
+          const key = `${item.productId}:${item.variantId || 'default'}`;
+          const existing = itemMap.get(key);
+
+          if (existing) {
+            existing.orderedQuantity += item.quantity;
+            if (new Date(order.createdAt) > new Date(existing.lastOrderedAt)) {
+              existing.lastOrderedAt = order.createdAt.toISOString();
+            }
+            return;
+          }
+
+          itemMap.set(key, {
+            productId: item.product.id,
+            variantId: item.variantId,
+            name: item.product.name,
+            slug: item.product.slug,
+            image: item.product.images?.[0] || null,
+            brand: item.product.brand,
+            unitPrice: item.price || item.product.price,
+            orderedQuantity: item.quantity,
+            lastOrderedAt: order.createdAt.toISOString(),
+          });
+        });
+      });
+
+      return NextResponse.json({
+        success: true,
+        hours: orderedWithinHours,
+        from: cutoffDate.toISOString(),
+        items: Array.from(itemMap.values()),
+        count: itemMap.size,
+        ordersConsidered: recentOrders.length,
+      });
     }
 
     return NextResponse.json({

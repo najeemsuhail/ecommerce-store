@@ -5,6 +5,8 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
 
+const RETURN_WINDOW_HOURS = 48;
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,15 @@ export default function OrdersPage() {
     if (filter === 'all') return true;
     return order.status === filter;
   });
+
+  const isReturnEligible = (order: any) => {
+    if (order.status !== 'delivered') return false;
+    if (order.paymentStatus === 'refund_requested' || order.paymentStatus === 'refunded') return false;
+    const expiresAt = new Date(
+      new Date(order.updatedAt).getTime() + RETURN_WINDOW_HOURS * 60 * 60 * 1000
+    );
+    return new Date() <= expiresAt;
+  };
 
   if (loading) {
     return (
@@ -121,6 +132,10 @@ export default function OrdersPage() {
                             ? 'badge-shipped'
                             : order.status === 'delivered'
                             ? 'badge-delivered'
+                            : order.status === 'return_requested'
+                            ? 'badge-processing'
+                            : order.status === 'returned'
+                            ? 'badge-cancelled'
                             : 'badge-cancelled'
                         }`}
                       >
@@ -165,6 +180,14 @@ export default function OrdersPage() {
                     >
                       View Details
                     </Link>
+                    {isReturnEligible(order) && (
+                      <Link
+                        href={`/dashboard/orders/${order.id}`}
+                        className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium"
+                      >
+                        Return / Refund
+                      </Link>
+                    )}
                     {order.status === 'delivered' && (
                       <button className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium">
                         Reorder

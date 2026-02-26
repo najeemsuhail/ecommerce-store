@@ -10,6 +10,7 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export default function AdminOrders() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [statusFilter]);
+  }, [statusFilter, paymentStatusFilter]);
 
   const fetchOrders = async () => {
     const token = localStorage.getItem('token');
@@ -35,7 +36,12 @@ export default function AdminOrders() {
 
     try {
       let url = '/api/admin/orders';
-      if (statusFilter) url += `?status=${statusFilter}`;
+      const params = new URLSearchParams();
+      if (statusFilter) params.set('status', statusFilter);
+      if (paymentStatusFilter) params.set('paymentStatus', paymentStatusFilter);
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -66,6 +72,61 @@ export default function AdminOrders() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPaymentBadgeClass = (paymentStatus: string) => {
+    if (paymentStatus === 'paid') return 'bg-green-100 text-green-800';
+    if (paymentStatus === 'pending') return 'bg-yellow-100 text-yellow-800';
+    if (paymentStatus === 'refund_requested') return 'bg-orange-100 text-orange-800';
+    if (paymentStatus === 'refunded') return 'bg-blue-100 text-blue-800';
+    return 'bg-red-100 text-red-800';
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    if (status === 'pending') return 'bg-yellow-100 text-yellow-800';
+    if (status === 'processing') return 'bg-blue-100 text-blue-800';
+    if (status === 'shipped') return 'bg-purple-100 text-purple-800';
+    if (status === 'delivered') return 'bg-green-100 text-green-800';
+    if (status === 'return_requested') return 'bg-orange-100 text-orange-800';
+    if (status === 'returned') return 'bg-slate-200 text-slate-800';
+    return 'bg-red-100 text-red-800';
+  };
+
+  const handleResolveRequest = async (order: any, action: 'approve_return' | 'approve_refund' | 'reject') => {
+    if (action === 'reject' && !confirm('Reject this return/refund request?')) return;
+    if (action === 'approve_return' && !confirm('Approve this return request?')) return;
+    if (action === 'approve_refund' && !confirm('Approve this refund request?')) return;
+
+    const baseNotes = order.notes || '';
+    const notePrefix = `[${new Date().toISOString()}] Admin `;
+    let updates: any = {
+      trackingNumber: order.trackingNumber,
+    };
+
+    if (action === 'approve_refund') {
+      updates = {
+        ...updates,
+        status: 'returned',
+        paymentStatus: 'refunded',
+        notes: `${baseNotes}${baseNotes ? '\n' : ''}${notePrefix}approved refund request.`,
+      };
+    } else if (action === 'approve_return') {
+      updates = {
+        ...updates,
+        status: 'returned',
+        paymentStatus: order.paymentStatus === 'refund_requested' ? 'paid' : order.paymentStatus,
+        notes: `${baseNotes}${baseNotes ? '\n' : ''}${notePrefix}approved return request.`,
+      };
+    } else {
+      updates = {
+        ...updates,
+        status: 'delivered',
+        paymentStatus: order.paymentStatus === 'refund_requested' ? 'paid' : order.paymentStatus,
+        notes: `${baseNotes}${baseNotes ? '\n' : ''}${notePrefix}rejected return/refund request.`,
+      };
+    }
+
+    await handleUpdateOrder(order.id, updates);
   };
 
   const handleUpdateOrder = async (orderId: string, updates: any) => {
@@ -138,9 +199,12 @@ export default function AdminOrders() {
           {/* Status Filter */}
           <div className="mb-6 flex gap-2 flex-wrap">
             <button
-              onClick={() => setStatusFilter('')}
+              onClick={() => {
+                setStatusFilter('');
+                setPaymentStatusFilter('');
+              }}
               className={`px-4 py-2 rounded-lg ${
-                statusFilter === ''
+                statusFilter === '' && paymentStatusFilter === ''
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
               }`}
@@ -186,6 +250,32 @@ export default function AdminOrders() {
               }`}
             >
               Delivered
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('return_requested');
+                setPaymentStatusFilter('');
+              }}
+              className={`px-4 py-2 rounded-lg ${
+                statusFilter === 'return_requested' && paymentStatusFilter === ''
+                  ? 'bg-primary-theme text-white-theme'
+                  : 'bg-white border hover:bg-gray-50'
+              }`}
+            >
+              Return Requests
+            </button>
+            <button
+              onClick={() => {
+                setPaymentStatusFilter('refund_requested');
+                setStatusFilter('');
+              }}
+              className={`px-4 py-2 rounded-lg ${
+                paymentStatusFilter === 'refund_requested'
+                  ? 'bg-primary-theme text-white-theme'
+                  : 'bg-white border hover:bg-gray-50'
+              }`}
+            >
+              Refund Requests
             </button>
           </div>
 
@@ -247,41 +337,52 @@ export default function AdminOrders() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            order.paymentStatus === 'paid'
-                              ? 'bg-green-100 text-green-800'
-                              : order.paymentStatus === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
+                          className={`text-xs px-2 py-1 rounded ${getPaymentBadgeClass(order.paymentStatus)}`}
                         >
                           {order.paymentStatus}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            order.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : order.status === 'processing'
-                              ? 'bg-blue-100 text-blue-800'
-                              : order.status === 'shipped'
-                              ? 'bg-purple-100 text-purple-800'
-                              : order.status === 'delivered'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
+                          className={`text-xs px-2 py-1 rounded ${getStatusBadgeClass(order.status)}`}
                         >
                           {order.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => openOrderModal(order)}
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          Manage
-                        </button>
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                          {(order.status === 'return_requested' || order.paymentStatus === 'refund_requested') && (
+                            <>
+                              {order.paymentStatus === 'refund_requested' ? (
+                                <button
+                                  onClick={() => handleResolveRequest(order, 'approve_refund')}
+                                  className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                                >
+                                  Approve Refund
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleResolveRequest(order, 'approve_return')}
+                                  className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                                >
+                                  Approve Return
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleResolveRequest(order, 'reject')}
+                                className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          <button
+                            onClick={() => openOrderModal(order)}
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Manage
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -412,6 +513,8 @@ export default function AdminOrders() {
                     <option value="processing">Processing</option>
                     <option value="shipped">Shipped</option>
                     <option value="delivered">Delivered</option>
+                    <option value="return_requested">Return Requested</option>
+                    <option value="returned">Returned</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
@@ -435,6 +538,7 @@ export default function AdminOrders() {
                     <option value="pending">Pending</option>
                     <option value="paid">Paid</option>
                     <option value="failed">Failed</option>
+                    <option value="refund_requested">Refund Requested</option>
                     <option value="refunded">Refunded</option>
                   </select>
                 </div>

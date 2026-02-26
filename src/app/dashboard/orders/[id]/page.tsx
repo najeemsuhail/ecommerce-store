@@ -10,6 +10,13 @@ export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<any>(null);
+  const [returnEligibility, setReturnEligibility] = useState<{
+    eligible: boolean;
+    reason: string | null;
+    expiresAt: string | null;
+  } | null>(null);
+  const [requestingAction, setRequestingAction] = useState<'return' | 'refund' | null>(null);
+  const [requestMessage, setRequestMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +42,7 @@ export default function OrderDetailPage() {
       const data = await response.json();
       if (data.success) {
         setOrder(data.order);
+        setReturnEligibility(data.returnEligibility || null);
       } else {
         router.push('/dashboard/orders');
       }
@@ -43,6 +51,47 @@ export default function OrderDetailPage() {
       router.push('/dashboard/orders');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestReturnOrRefund = async (requestType: 'return' | 'refund') => {
+    const token = localStorage.getItem('token');
+    const reason = window.prompt(
+      requestType === 'refund'
+        ? 'Enter a short reason for refund request (optional):'
+        : 'Enter a short reason for return request (optional):'
+    );
+
+    if (reason === null) return;
+
+    try {
+      setRequestMessage('');
+      setRequestingAction(requestType);
+
+      const response = await fetch(`/api/orders/${params.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          requestType,
+          reason,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        setRequestMessage(data.error || 'Failed to submit request');
+        return;
+      }
+
+      setRequestMessage(data.message || 'Request submitted successfully');
+      await fetchOrder();
+    } catch (error) {
+      setRequestMessage('Failed to submit request');
+    } finally {
+      setRequestingAction(null);
     }
   };
 
@@ -104,12 +153,59 @@ export default function OrderDetailPage() {
                   ? 'badge-shipped'
                   : order.status === 'delivered'
                   ? 'badge-delivered'
+                  : order.status === 'return_requested'
+                  ? 'badge-processing'
+                  : order.status === 'returned'
+                  ? 'badge-cancelled'
                   : 'badge-cancelled'
               }`}
             >
               {order.status}
             </span>
           </div>
+
+          {requestMessage && (
+            <div className="mt-4 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+              {requestMessage}
+            </div>
+          )}
+
+          {returnEligibility?.eligible && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                onClick={() => handleRequestReturnOrRefund('return')}
+                disabled={requestingAction !== null}
+                className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium disabled:opacity-50"
+              >
+                {requestingAction === 'return' ? 'Submitting...' : 'Request Return'}
+              </button>
+              {order.paymentStatus === 'paid' && (
+                <button
+                  onClick={() => handleRequestReturnOrRefund('refund')}
+                  disabled={requestingAction !== null}
+                  className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium disabled:opacity-50"
+                >
+                  {requestingAction === 'refund' ? 'Submitting...' : 'Request Refund'}
+                </button>
+              )}
+              {returnEligibility.expiresAt && (
+                <p className="text-xs text-gray-600 w-full">
+                  Eligible until{' '}
+                  {new Date(returnEligibility.expiresAt).toLocaleString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              )}
+            </div>
+          )}
+
+          {!returnEligibility?.eligible && order.status === 'delivered' && returnEligibility?.reason && (
+            <p className="mt-4 text-sm text-gray-600">{returnEligibility.reason}</p>
+          )}
 
           {/* Order Status Timeline */}
           <div className="mt-8">

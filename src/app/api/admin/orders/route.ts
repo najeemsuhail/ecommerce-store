@@ -15,11 +15,15 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');
+    const paymentStatus = searchParams.get('paymentStatus');
     const limit = parseInt(searchParams.get('limit') || '50');
 
     const where: any = {};
     if (status) {
       where.status = status;
+    }
+    if (paymentStatus) {
+      where.paymentStatus = paymentStatus;
     }
 
     const orders = await prisma.order.findMany({
