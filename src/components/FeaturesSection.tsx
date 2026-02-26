@@ -27,7 +27,7 @@ export default function FeaturesSection() {
         </svg>
       ),
       title: 'Easy Returns',
-      description: 'Easy return policy',
+      description: '48 hours guarantee',
     },
   ];
 

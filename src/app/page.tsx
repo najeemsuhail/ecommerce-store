@@ -153,7 +153,8 @@ export default function HomePage() {
       <div className="bg-bg-gray">
         <HeroCarousel />
         {/* <StatsSection stats={stats} /> */} {/* Commented out temporarily */}
-        <CategoryCarousel categories={categories} />
+        {/* Shop by Category hidden temporarily */}
+        {false && <CategoryCarousel categories={categories} />}
         <RecentlyViewedSection />
         <FeaturedProductsSection products={featuredProducts} onQuickAdd={handleQuickAdd} />
         {bestSellers.length > 0 && (
