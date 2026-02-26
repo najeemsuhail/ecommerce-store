@@ -493,6 +493,12 @@ function ProductsContent() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
+            {searchTerm.trim() && (
+              <div className="mb-4 text-text-700">
+                Search all result for "{searchTerm}"
+              </div>
+            )}
+
             {/* Active Filters */}
             {(facetFilters.brands.length > 0 ||
               facetFilters.categories.length > 0 ||
