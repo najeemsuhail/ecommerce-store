@@ -119,12 +119,13 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Handle multiple categories (by name or slug)
+    // Handle multiple categories (by id, name, or slug)
     if (categories.length > 0) {
       where.categories = {
         some: {
           category: {
             OR: [
+              { id: { in: categories } },
               { name: { in: categories } },
               { slug: { in: categories } },
             ],

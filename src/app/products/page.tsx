@@ -30,6 +30,8 @@ interface FacetData {
   priceRange: { min: number; max: number };
 }
 
+const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
+
 // Filter Skeleton Component
 function FilterSkeleton() {
   return (
@@ -277,8 +279,10 @@ function ProductsContent() {
         });
       }
       
-      if (facetFilters.categories.length > 0) {
-        facetFilters.categories.forEach((category) => {
+      const categoryFiltersToSend =
+        facetFilters.categoryIds.length > 0 ? facetFilters.categoryIds : facetFilters.categories;
+      if (categoryFiltersToSend.length > 0) {
+        categoryFiltersToSend.forEach((category) => {
           url += `category=${encodeURIComponent(category)}&`;
         });
       }
@@ -330,14 +334,14 @@ function ProductsContent() {
 
         if (data.facets && searchTerm.trim()) {
           const categoryIdByName = new Map(
-            defaultFacets.categories.map((category) => [category.name, category.id])
+            defaultFacets.categories.map((category) => [normalizeCategoryKey(category.name), category.id])
           );
 
           setFacets({
             brands: data.facets.brands || [],
             categories: (data.facets.categories || []).map((category: { name: string; count: number }) => ({
               name: category.name,
-              id: categoryIdByName.get(category.name) || category.name,
+              id: categoryIdByName.get(normalizeCategoryKey(category.name)) || category.name,
               count: category.count,
             })),
             priceRange: {
@@ -579,12 +583,18 @@ function ProductsContent() {
                 {facetFilters.categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() =>
+                    onClick={() => {
+                      const matchedCategory = facets.categories.find(
+                        (c) => normalizeCategoryKey(c.name) === normalizeCategoryKey(category)
+                      );
                       setFacetFilters((prev) => ({
                         ...prev,
                         categories: prev.categories.filter((c) => c !== category),
-                      }))
-                    }
+                        categoryIds: matchedCategory
+                          ? prev.categoryIds.filter((id) => id !== matchedCategory.id)
+                          : prev.categoryIds,
+                      }));
+                    }}
                     className="inline-flex items-center gap-1 bg-primary  px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
                     {category}
