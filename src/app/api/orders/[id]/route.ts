@@ -9,6 +9,14 @@ function getReturnEligibility(order: {
   paymentStatus: string;
   updatedAt: Date;
 }) {
+  if (order.status === 'return_requested' || order.status === 'returned') {
+    return {
+      eligible: false,
+      reason: 'Return already requested for this order.',
+      expiresAt: null as string | null,
+    };
+  }
+
   if (order.status !== 'delivered') {
     return {
       eligible: false,
@@ -22,14 +30,6 @@ function getReturnEligibility(order: {
     return {
       eligible: false,
       reason: `Return window expired (${RETURN_WINDOW_HOURS} hours).`,
-      expiresAt: expiresAt.toISOString(),
-    };
-  }
-
-  if (order.status === 'return_requested' || order.status === 'returned') {
-    return {
-      eligible: false,
-      reason: 'Return already requested for this order.',
       expiresAt: expiresAt.toISOString(),
     };
   }
