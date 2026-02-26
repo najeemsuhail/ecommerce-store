@@ -65,13 +65,19 @@ export default function HomePage() {
       const response = await fetch('/api/admin/categories');
       const data = await response.json();
       if (Array.isArray(data)) {
-        // Get top-level categories (no parent) for home page display
+        // Prefer true parent categories (top-level categories that have children).
+        const parentCategories = data
+          .filter((cat: any) => !cat.parentId && Array.isArray(cat.children) && cat.children.length > 0)
+          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
+
+        // Fallback to top-level categories when no parent categories exist.
         const topLevelCategories = data
           .filter((cat: any) => !cat.parentId)
           .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
+        const categoriesToUse = parentCategories.length > 0 ? parentCategories : topLevelCategories;
         
         // Remove duplicates by name (keep first occurrence)
-        const uniqueCategories = topLevelCategories.filter(
+        const uniqueCategories = categoriesToUse.filter(
           (cat: any, index: number, self: any[]) =>
             index === self.findIndex((c: any) => c.name === cat.name)
         );
