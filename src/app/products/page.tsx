@@ -126,6 +126,15 @@ function ProductsContent() {
   const isFetching = useRef(false);
   const latestFetchRequestId = useRef(0);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const activeFiltersCount =
+    facetFilters.brands.length +
+    facetFilters.categories.length +
+    (facetFilters.isDigital ? 1 : 0) +
+    (facetFilters.isFeatured ? 1 : 0) +
+    ((facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) ? 1 : 0) +
+    (facetFilters.attributes
+      ? Object.values(facetFilters.attributes).reduce((count, values) => count + values.length, 0)
+      : 0);
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -435,7 +444,7 @@ function ProductsContent() {
         productImage={wishlistModal.productImage}
         productSlug={wishlistModal.productSlug}
       />
-      <div className="max-w-7xl mx-auto px-4 py-4 lg:py-8">
+      <div className="w-full lg:w-[90%] mx-auto px-4 py-4 lg:py-8">
     
         {/* Mobile Filter and Sort Bar */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-light-theme border-t border-border-300 p-4 flex z-40">
@@ -462,14 +471,14 @@ function ProductsContent() {
         </div>
 
         {/* Products Layout with Facet Filter */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pb-24 lg:pb-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
           {loading ? (
-            <div className="hidden lg:block lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-4">
               <FilterSkeleton />
             </div>
           ) : products.length > 0 ? (
-            <div className="hidden lg:block lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-4">
               <FacetFilter
                 facets={facets}
                 selectedFilters={facetFilters}
@@ -537,7 +546,7 @@ function ProductsContent() {
           )}
 
           {/* Main Content Area */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-8">
             {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
                 Search all results for "{searchTerm}"
@@ -643,13 +652,24 @@ function ProductsContent() {
               </div>
             )}
 
-            {/* Results Count and Sort - Desktop Only */}
+            {/* Results Count and Sort */}
             {!loading && products.length > 0 && (
-              <div className="mb-6 hidden lg:flex justify-between items-center">
-                <div className="text-text-600">
-                  Showing <span className="font-semibold">{products.length}</span> product{products.length !== 1 ? 's' : ''}
+              <div className="mb-6 flex justify-between items-center gap-4">
+                <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                  <span className="font-semibold text-slate-900">{Math.min(displayedCount, products.length)}</span>
+                  <span>of</span>
+                  <span className="font-semibold text-slate-900">{totalProducts}</span>
+                  <span>products</span>
+                  {activeFiltersCount > 0 && (
+                    <>
+                      <span className="mx-1 h-1 w-1 rounded-full bg-slate-400" />
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                        {activeFiltersCount} filter{activeFiltersCount !== 1 ? 's' : ''}
+                      </span>
+                    </>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="hidden lg:flex items-center gap-2">
                   <label htmlFor="sort" className="text-sm font-medium text-text-700">Sort by:</label>
                   <select
                     id="sort"
@@ -887,8 +907,14 @@ function ProductsContent() {
             
             {/* Results Info */}
             {!loading && totalProducts > 0 && (
-              <div className="mt-6 text-center text-text-600 text-sm">
-                Showing {Math.min(displayedCount, products.length)} of {totalProducts} products
+              <div className="mt-6 flex justify-center">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
+                  <span>Showing</span>
+                  <span className="font-semibold text-slate-900">{Math.min(displayedCount, products.length)}</span>
+                  <span>of</span>
+                  <span className="font-semibold text-slate-900">{totalProducts}</span>
+                  <span>products</span>
+                </div>
               </div>
             )}
           </div>

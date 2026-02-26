@@ -90,7 +90,7 @@ export default function Contact() {
                 aria-label="Chat on WhatsApp"
                 title="Chat on WhatsApp"
               >
-                <FontAwesomeIcon icon={faWhatsapp} className="text-xl" />
+                <FontAwesomeIcon icon={faWhatsapp} className="text-xl" /> Whatsapp
               </a>
             </p>
           </div>
