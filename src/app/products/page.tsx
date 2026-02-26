@@ -124,6 +124,7 @@ function ProductsContent() {
   const { addItem } = useCart();
   const { isInWishlist, groups, createGroup, addItemToGroup, removeItemFromGroup } = useWishlist();
   const isFetching = useRef(false);
+  const latestFetchRequestId = useRef(0);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -252,6 +253,7 @@ function ProductsContent() {
   };
 
   const fetchProducts = async () => {
+    const requestId = ++latestFetchRequestId.current;
     setLoading(true);
     try {
       let url = '/api/products?';
@@ -306,6 +308,12 @@ function ProductsContent() {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
       const data = await response.json();
+
+      // Ignore stale responses from older requests.
+      if (requestId !== latestFetchRequestId.current) {
+        return;
+      }
+
       if (data.success) {
         setProducts(data.products);
         setTotalProducts(data.total || data.products.length);
@@ -333,9 +341,14 @@ function ProductsContent() {
         }
       }
     } catch (error) {
+      if (requestId !== latestFetchRequestId.current) {
+        return;
+      }
       console.error('Failed to fetch products');
     } finally {
-      setLoading(false);
+      if (requestId === latestFetchRequestId.current) {
+        setLoading(false);
+      }
     }
   };
 
