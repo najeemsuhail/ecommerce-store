@@ -58,6 +58,8 @@ export default function SearchAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [focusProducts, setFocusProducts] = useState<ProductSuggestion[]>([]);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -102,6 +104,21 @@ export default function SearchAutocomplete({
     const timer = setTimeout(fetchSuggestions, 300); // Debounce
     return () => clearTimeout(timer);
   }, [query]);
+
+  // Load recent searches once
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('recentSearches');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed.filter((item) => typeof item === 'string').slice(0, 6));
+        }
+      }
+    } catch {
+      setRecentSearches([]);
+    }
+  }, []);
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -165,8 +182,60 @@ export default function SearchAutocomplete({
     onNavigate?.();
   };
 
+  const saveRecentSearch = (term: string) => {
+    const normalized = term.trim();
+    if (!normalized) return;
+
+    const updated = [normalized, ...recentSearches.filter((item) => item.toLowerCase() !== normalized.toLowerCase())].slice(0, 6);
+    setRecentSearches(updated);
+    try {
+      localStorage.setItem('recentSearches', JSON.stringify(updated));
+    } catch {
+      // Ignore localStorage write errors
+    }
+  };
+
+  const fetchFocusSuggestions = async () => {
+    if (focusProducts.length > 0) {
+      setIsOpen(true);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/products?isFeatured=true&limit=6');
+      const data = await response.json();
+      if (data.success && Array.isArray(data.products)) {
+        setFocusProducts(
+          data.products.map((product: any) => ({
+            type: 'product' as const,
+            id: product.id,
+            name: product.name,
+            slug: product.slug,
+            price: product.price,
+            image: product.images?.[0] || null,
+            brand: product.brand || undefined,
+          }))
+        );
+      }
+    } catch {
+      setFocusProducts([]);
+    } finally {
+      setIsOpen(true);
+    }
+  };
+
+  const handleQuickSearch = (term: string) => {
+    if (!term.trim()) return;
+    saveRecentSearch(term);
+    router.push(`/products?search=${encodeURIComponent(term)}`);
+    setIsOpen(false);
+    setQuery('');
+    onNavigate?.();
+  };
+
   const handleSearch = () => {
     if (query.trim()) {
+      saveRecentSearch(query);
       router.push(`/products?search=${encodeURIComponent(query)}`);
       setIsOpen(false);
       setQuery('');
@@ -193,7 +262,13 @@ export default function SearchAutocomplete({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => query && setIsOpen(true)}
+            onFocus={() => {
+              if (query.trim()) {
+                setIsOpen(true);
+              } else {
+                fetchFocusSuggestions();
+              }
+            }}
             className={`flex-1 w-full px-4 py-2.5 pl-12 ${mobile ? 'pr-20' : 'pr-10'} rounded-full bg-transparent focus:outline-none text-sm`}
           />
           {mobile && (
@@ -222,7 +297,7 @@ export default function SearchAutocomplete({
         </div>
 
         {/* Autocomplete Dropdown */}
-        {isOpen && (query || results.totalResults > 0) && (
+        {isOpen && (query || results.totalResults > 0 || focusProducts.length > 0 || recentSearches.length > 0) && (
           <div
             ref={suggestionsRef}
             className="absolute top-full left-0 right-0 mt-2 bg-white border border-border-color rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto"
@@ -236,6 +311,65 @@ export default function SearchAutocomplete({
               </div>
             ) : (
               <>
+                {!query && (
+                  <>
+                    {recentSearches.length > 0 && (
+                      <div className="border-b border-border-color">
+                        <div className="px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light rounded-t-2xl">
+                          Recent Searches
+                        </div>
+                        <div className="px-4 py-3 flex flex-wrap gap-2">
+                          {recentSearches.map((term) => (
+                            <button
+                              key={term}
+                              onClick={() => handleQuickSearch(term)}
+                              className="px-3 py-1.5 bg-bg-light text-text-dark text-xs rounded-full hover:bg-bg-gray transition-colors border border-border-color"
+                            >
+                              {term}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {focusProducts.length > 0 && (
+                      <div className="border-b border-border-color last:border-b-0">
+                        <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                          Popular Products
+                        </div>
+                        {focusProducts.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => handleSelectSuggestion(product)}
+                            className="w-full px-4 py-3 flex gap-3 text-left transition-colors border-b border-border-color last:border-b-0 hover:bg-blue-50"
+                          >
+                            {product.image ? (
+                              <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg overflow-hidden">
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg flex items-center justify-center">
+                                <FontAwesomeIcon icon={faBox} className="w-4 h-4 text-text-lighter" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-text-dark text-sm line-clamp-2">{product.name}</div>
+                              {product.brand && (
+                                <div className="text-xs text-text-lighter mt-1">{product.brand}</div>
+                              )}
+                              <div className="text-sm font-bold text-primary mt-1">{formatPrice(product.price)}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {/* Search All Results - Top */}
                 {query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0) && (
                   <div className="border-b border-border-color bg-bg-light">
