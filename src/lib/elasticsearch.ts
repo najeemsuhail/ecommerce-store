@@ -40,6 +40,18 @@ type ElasticsearchResponse = {
       _source?: ElasticsearchProductHitSource;
     }>;
   };
+  aggregations?: {
+    brands?: {
+      buckets: Array<{ key: string; doc_count: number }>;
+    };
+    categories?: {
+      buckets: Array<{ key: string; doc_count: number }>;
+    };
+    price_stats?: {
+      min: number | null;
+      max: number | null;
+    };
+  };
 };
 
 export async function searchProductIdsFromElasticsearch(options: {
@@ -84,6 +96,25 @@ export async function searchProductIdsFromElasticsearch(options: {
         ],
       },
     },
+    aggs: {
+      brands: {
+        terms: {
+          field: 'brand.keyword',
+          size: 50,
+        },
+      },
+      categories: {
+        terms: {
+          field: 'categoryNames.keyword',
+          size: 50,
+        },
+      },
+      price_stats: {
+        stats: {
+          field: 'price',
+        },
+      },
+    },
   };
 
   const response = await fetch(
@@ -105,9 +136,24 @@ export async function searchProductIdsFromElasticsearch(options: {
   const productIds = data.hits.hits
     .map((hit) => hit._source?.id || hit._source?.productId || hit._id)
     .filter((id): id is string => Boolean(id));
+  const facets = {
+    brands: (data.aggregations?.brands?.buckets || []).map((bucket) => ({
+      name: bucket.key,
+      count: bucket.doc_count,
+    })),
+    categories: (data.aggregations?.categories?.buckets || []).map((bucket) => ({
+      name: bucket.key,
+      count: bucket.doc_count,
+    })),
+    priceRange: {
+      min: data.aggregations?.price_stats?.min ?? 0,
+      max: data.aggregations?.price_stats?.max ?? 0,
+    },
+  };
 
   return {
     productIds,
     total: data.hits.total.value,
+    facets,
   };
 }

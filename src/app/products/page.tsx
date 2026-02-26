@@ -88,6 +88,11 @@ function ProductsContent() {
     categories: [],
     priceRange: { min: 0, max: 100000 },
   });
+  const [defaultFacets, setDefaultFacets] = useState<FacetData>({
+    brands: [],
+    categories: [],
+    priceRange: { min: 0, max: 100000 },
+  });
 
   const [facetFilters, setFacetFilters] = useState<FacetFilters>({
     brands: [],
@@ -216,7 +221,7 @@ function ProductsContent() {
           catData.count = categoryProducts.get(catName)?.size || 0;
         });
 
-        setFacets({
+        const computedFacets = {
           brands: Array.from(brands.entries())
             .map(([name, count]) => ({ name, count }))
             .sort((a, b) => a.name.localeCompare(b.name)),
@@ -224,7 +229,13 @@ function ProductsContent() {
             .map(([name, { id, count }]) => ({ name, id, count }))
             .sort((a, b) => b.count - a.count),
           priceRange: { min: minPrice === Number.MAX_VALUE ? 0 : minPrice, max: maxPrice },
-        });
+        };
+
+        setDefaultFacets(computedFacets);
+        const activeSearch = searchParams.get('search') || searchTerm;
+        if (!activeSearch.trim()) {
+          setFacets(computedFacets);
+        }
 
         // Set initial price range
         setFacetFilters((prev) => ({
@@ -299,6 +310,27 @@ function ProductsContent() {
         setProducts(data.products);
         setTotalProducts(data.total || data.products.length);
         setHasMore(data.products.length > itemsPerLoad);
+
+        if (data.facets && searchTerm.trim()) {
+          const categoryIdByName = new Map(
+            defaultFacets.categories.map((category) => [category.name, category.id])
+          );
+
+          setFacets({
+            brands: data.facets.brands || [],
+            categories: (data.facets.categories || []).map((category: { name: string; count: number }) => ({
+              name: category.name,
+              id: categoryIdByName.get(category.name) || category.name,
+              count: category.count,
+            })),
+            priceRange: {
+              min: Number.isFinite(data.facets.priceRange?.min) ? data.facets.priceRange.min : 0,
+              max: Number.isFinite(data.facets.priceRange?.max) ? data.facets.priceRange.max : defaultFacets.priceRange.max,
+            },
+          });
+        } else {
+          setFacets(defaultFacets);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch products');

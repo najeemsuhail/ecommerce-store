@@ -55,7 +55,15 @@ export async function GET(request: NextRequest) {
       isElasticsearchEnabled() &&
       !hasNonSearchFilters;
 
-    let elasticsearchResult: { productIds: string[]; total: number } | null = null;
+    let elasticsearchResult: {
+      productIds: string[];
+      total: number;
+      facets?: {
+        brands: Array<{ name: string; count: number }>;
+        categories: Array<{ name: string; count: number }>;
+        priceRange: { min: number; max: number };
+      };
+    } | null = null;
 
     if (shouldUseElasticsearch && search) {
       try {
@@ -96,6 +104,7 @@ export async function GET(request: NextRequest) {
             products: [],
             count: 0,
             total: 0,
+            facets: elasticsearchResult.facets || null,
           },
           {
             headers: {
@@ -227,6 +236,7 @@ export async function GET(request: NextRequest) {
           products: [],
           count: 0,
           total: 0,
+          facets: elasticsearchResult?.facets || null,
         },
         {
           headers: {
@@ -271,6 +281,7 @@ export async function GET(request: NextRequest) {
         products: productsWithRating,
         count: productsWithRating.length,
         total: totalCount,
+        facets: elasticsearchResult?.facets || null,
       },
       {
         headers: {
