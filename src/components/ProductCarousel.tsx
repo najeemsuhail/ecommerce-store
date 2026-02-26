@@ -266,38 +266,6 @@ export default function ProductCarousel({
                 </div>
               </Link>
 
-              {/* Mobile action buttons */}
-              {product.isActive !== false && (
-                <div className="flex gap-2 md:hidden items-center p-3 border-t border-border-color">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToCart(product, e);
-                    }}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
-                    title="Add to Cart"
-                  >
-                    Add to Cart
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWishlistClick(product, e);
-                    }}
-                    className={`p-2.5 rounded-lg transition-all ${
-                      isInWishlist(product.id)
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                    title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-
               {/* Card Content - show based on type */}
               {type === 'default' ? (
                 <div className="p-5">
@@ -306,6 +274,36 @@ export default function ProductCarousel({
                       {product.name}
                     </h3>
                   </Link>
+                  {product.isActive !== false && (
+                    <div className="flex gap-2 md:hidden items-center pb-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product, e);
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                        title="Add to Cart"
+                      >
+                        Add to Cart
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWishlistClick(product, e);
+                        }}
+                        className={`p-2.5 rounded-lg transition-all ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500 text-white hover:bg-red-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -353,6 +351,36 @@ export default function ProductCarousel({
                       {product.name}
                     </h3>
                   </Link>
+                  {product.isActive !== false && (
+                    <div className="flex gap-2 md:hidden items-center pt-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product, e);
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                        title="Add to Cart"
+                      >
+                        Add to Cart
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWishlistClick(product, e);
+                        }}
+                        className={`p-2.5 rounded-lg transition-all ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500 text-white hover:bg-red-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                        title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
