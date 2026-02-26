@@ -493,9 +493,9 @@ function ProductsContent() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3">
-            {searchTerm.trim() && (
+            {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
-                Search all result for "{searchTerm}"
+                Search all results for "{searchTerm}"
               </div>
             )}
 

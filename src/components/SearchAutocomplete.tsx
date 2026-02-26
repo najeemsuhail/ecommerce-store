@@ -236,6 +236,21 @@ export default function SearchAutocomplete({
               </div>
             ) : (
               <>
+                {/* Search All Results - Top */}
+                {query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0) && (
+                  <div className="border-b border-border-color bg-bg-light">
+                    <button
+                      onClick={handleSearch}
+                      className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span>Search all results for "{query}"</span>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
                 {/* Products */}
                 {results.products.length > 0 && (
                   <div className="border-b border-border-color last:border-b-0">
@@ -359,20 +374,6 @@ export default function SearchAutocomplete({
                   </div>
                 )}
 
-                {/* View All Results Footer */}
-                {query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0) && (
-                  <div className="border-t border-border-color bg-bg-light rounded-b-2xl">
-                    <button
-                      onClick={handleSearch}
-                      className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span>Search all results for "{query}"</span>
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
               </>
             )}
           </div>
