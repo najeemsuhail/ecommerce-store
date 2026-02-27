@@ -22,7 +22,6 @@ function reportHtml(result: DeodapAvailabilitySyncResult): string {
       <table style="border-collapse: collapse; width: 100%; max-width: 640px;">
         <tbody>
           ${[
-            ['Source', result.source],
             ['Feeds Processed', result.feedsProcessed],
             ['Products Seen In Feeds', result.productsSeenInFeeds],
             ['Unique External IDs In Feeds', result.uniqueExternalIdsInFeeds],
@@ -67,4 +66,3 @@ export async function sendDeodapAvailabilityReportEmail(result: DeodapAvailabili
     return { success: false, error };
   }
 }
-

@@ -19,12 +19,10 @@ type DeodapProductsResponse = {
 
 type SyncOptions = {
   deactivateMissing?: boolean;
-  source?: string;
   urls?: string[];
 };
 
 export type DeodapAvailabilitySyncResult = {
-  source: string;
   feedsProcessed: number;
   productsSeenInFeeds: number;
   uniqueExternalIdsInFeeds: number;
@@ -102,7 +100,6 @@ async function fetchProductsFromFeed(feedUrl: string): Promise<DeodapProduct[]> 
 export async function syncDeodapAvailability(
   options: SyncOptions = {}
 ): Promise<DeodapAvailabilitySyncResult> {
-  const source = options.source || 'deodap';
   const urls = options.urls && options.urls.length > 0 ? options.urls : DEODAP_COLLECTION_FEED_URLS;
   const deactivateMissing = options.deactivateMissing === true;
 
@@ -129,7 +126,6 @@ export async function syncDeodapAvailability(
 
   const dbProducts = await prisma.product.findMany({
     where: {
-      source,
       externalId: { not: null },
     },
     select: {
@@ -189,7 +185,6 @@ export async function syncDeodapAvailability(
   }
 
   return {
-    source,
     feedsProcessed: urls.length,
     productsSeenInFeeds,
     uniqueExternalIdsInFeeds: availabilityByExternalId.size,
