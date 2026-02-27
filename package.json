@@ -9,7 +9,8 @@
     "postinstall": "prisma generate",
     "lint": "eslint",
     "migrate:deploy": "prisma migrate deploy",
-    "es:reindex": "tsx scripts/es-reindex.ts"
+    "es:reindex": "tsx scripts/es-reindex.ts",
+    "sync:deodap-availability": "tsx scripts/sync-deodap-availability.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",

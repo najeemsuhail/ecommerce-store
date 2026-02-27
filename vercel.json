@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/deodap-availability",
+      "schedule": "30 20 * * *"
+    }
+  ]
+}
