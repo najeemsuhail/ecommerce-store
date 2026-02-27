@@ -135,12 +135,12 @@ export default function Footer() {
 
 
           {/* Newsletter */}
-          <div suppressHydrationWarning>
+          <div className="min-w-0 md:col-span-2 lg:col-span-1" suppressHydrationWarning>
             <h3 className="font-bold text-lg mb-6 text-white">Subscribe</h3>
             <p className="text-gray-300 text-sm mb-4">Get exclusive deals and updates delivered to your inbox.</p>
             
             {subscribeMessage && (
-              <div className={`text-xs mb-3 p-2 rounded ${
+              <div className={`text-xs mb-3 p-2 rounded break-words ${
                 subscribeStatus === 'success' 
                   ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
                   : 'bg-red-500/20 text-red-300 border border-red-500/30'
@@ -149,19 +149,19 @@ export default function Footer() {
               </div>
             )}
             
-            <form onSubmit={handleSubscribe} className="flex gap-2">
+            <form onSubmit={handleSubscribe} className="flex flex-col xl:flex-row gap-2">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
                 disabled={subscribeStatus === 'loading'}
-                className="flex-1 px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 min-w-0 w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button 
                 type="submit"
                 disabled={subscribeStatus === 'loading'}
-                className="px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full xl:w-auto px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {subscribeStatus === 'loading' ? '...' : '→'}
               </button>

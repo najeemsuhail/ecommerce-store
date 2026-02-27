@@ -17,6 +17,9 @@ export default function OrderDetailPage() {
   } | null>(null);
   const [requestingAction, setRequestingAction] = useState<'return' | 'refund' | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
+  const [requestMessageType, setRequestMessageType] = useState<'success' | 'error' | null>(null);
+  const [selectedRequestType, setSelectedRequestType] = useState<'return' | 'refund' | null>(null);
+  const [requestReason, setRequestReason] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,18 +57,12 @@ export default function OrderDetailPage() {
     }
   };
 
-  const handleRequestReturnOrRefund = async (requestType: 'return' | 'refund') => {
+  const handleRequestReturnOrRefund = async (requestType: 'return' | 'refund', reason: string) => {
     const token = localStorage.getItem('token');
-    const reason = window.prompt(
-      requestType === 'refund'
-        ? 'Enter a short reason for refund request (optional):'
-        : 'Enter a short reason for return request (optional):'
-    );
-
-    if (reason === null) return;
 
     try {
       setRequestMessage('');
+      setRequestMessageType(null);
       setRequestingAction(requestType);
 
       const response = await fetch(`/api/orders/${params.id}`, {
@@ -83,13 +80,18 @@ export default function OrderDetailPage() {
       const data = await response.json();
       if (!response.ok || !data.success) {
         setRequestMessage(data.error || 'Failed to submit request');
+        setRequestMessageType('error');
         return;
       }
 
       setRequestMessage(data.message || 'Request submitted successfully');
+      setRequestMessageType('success');
+      setSelectedRequestType(null);
+      setRequestReason('');
       await fetchOrder();
     } catch (error) {
       setRequestMessage('Failed to submit request');
+      setRequestMessageType('error');
     } finally {
       setRequestingAction(null);
     }
@@ -165,7 +167,13 @@ export default function OrderDetailPage() {
           </div>
 
           {requestMessage && (
-            <div className="mt-4 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+            <div
+              className={`mt-4 text-sm font-medium rounded-lg px-3 py-2 border ${
+                requestMessageType === 'error'
+                  ? 'text-red-700 bg-red-50 border-red-200'
+                  : 'text-green-700 bg-green-50 border-green-200'
+              }`}
+            >
               {requestMessage}
             </div>
           )}
@@ -173,7 +181,12 @@ export default function OrderDetailPage() {
           {returnEligibility?.eligible && (
             <div className="mt-4 flex flex-wrap gap-3">
               <button
-                onClick={() => handleRequestReturnOrRefund('return')}
+                onClick={() => {
+                  setSelectedRequestType('return');
+                  setRequestReason('');
+                  setRequestMessage('');
+                  setRequestMessageType(null);
+                }}
                 disabled={requestingAction !== null}
                 className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium disabled:opacity-50"
               >
@@ -181,7 +194,12 @@ export default function OrderDetailPage() {
               </button>
               {order.paymentStatus === 'paid' && (
                 <button
-                  onClick={() => handleRequestReturnOrRefund('refund')}
+                  onClick={() => {
+                    setSelectedRequestType('refund');
+                    setRequestReason('');
+                    setRequestMessage('');
+                    setRequestMessageType(null);
+                  }}
                   disabled={requestingAction !== null}
                   className="px-4 py-2 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:text-blue-600 font-medium disabled:opacity-50"
                 >
@@ -200,6 +218,40 @@ export default function OrderDetailPage() {
                   })}
                 </p>
               )}
+            </div>
+          )}
+
+          {selectedRequestType && (
+            <div className="mt-4 border border-blue-200 bg-blue-50 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-semibold text-blue-900">
+                {selectedRequestType === 'refund' ? 'Refund request' : 'Return request'}
+              </p>
+              <textarea
+                value={requestReason}
+                onChange={(e) => setRequestReason(e.target.value)}
+                rows={3}
+                placeholder={`Add a short reason for ${selectedRequestType} (optional)`}
+                className="w-full px-3 py-2 rounded-lg border border-blue-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleRequestReturnOrRefund(selectedRequestType, requestReason.trim())}
+                  disabled={requestingAction !== null}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {requestingAction === selectedRequestType ? 'Submitting...' : 'Submit Request'}
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedRequestType(null);
+                    setRequestReason('');
+                  }}
+                  disabled={requestingAction !== null}
+                  className="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           )}
 
