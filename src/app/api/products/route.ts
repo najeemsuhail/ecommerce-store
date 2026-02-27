@@ -50,10 +50,7 @@ export async function GET(request: NextRequest) {
       Boolean(isFeatured) ||
       attributeFilters.size > 0;
 
-    const shouldUseElasticsearch =
-      Boolean(search) &&
-      isElasticsearchEnabled() &&
-      !hasNonSearchFilters;
+    const shouldUseElasticsearch = Boolean(search) && isElasticsearchEnabled();
 
     let elasticsearchResult: {
       productIds: string[];
@@ -66,11 +63,15 @@ export async function GET(request: NextRequest) {
     } | null = null;
 
     if (shouldUseElasticsearch && search) {
+      // When additional filters are active with a text query, fetch a wider ES window
+      // and apply facet/category/price filtering in Prisma on top of those IDs.
+      const elasticFrom = hasNonSearchFilters ? 0 : skip;
+      const elasticSize = hasNonSearchFilters ? 10000 : limit;
       try {
         elasticsearchResult = await searchProductIdsFromElasticsearch({
           query: search,
-          from: skip,
-          size: limit,
+          from: elasticFrom,
+          size: elasticSize,
         });
       } catch (error) {
         console.error('Elasticsearch product search failed, falling back to database search:', error);
@@ -226,7 +227,9 @@ export async function GET(request: NextRequest) {
 
     // Get total count for pagination
     const totalCount = elasticsearchResult
-      ? elasticsearchResult.total
+      ? hasNonSearchFilters
+        ? products.length
+        : elasticsearchResult.total
       : await prisma.product.count({ where });
 
     // If no products found, return empty array
@@ -276,11 +279,17 @@ export async function GET(request: NextRequest) {
       productsWithRating.sort((a, b) => b.averageRating - a.averageRating);
     }
 
+    // For Elasticsearch + additional filters, paginate after ranking + DB filtering.
+    const finalProducts =
+      elasticsearchResult && hasNonSearchFilters
+        ? productsWithRating.slice(skip, skip + limit)
+        : productsWithRating;
+
     return NextResponse.json(
       {
         success: true,
-        products: productsWithRating,
-        count: productsWithRating.length,
+        products: finalProducts,
+        count: finalProducts.length,
         total: totalCount,
         facets: elasticsearchResult?.facets || null,
       },
