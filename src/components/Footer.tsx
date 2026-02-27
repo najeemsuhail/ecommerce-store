@@ -189,7 +189,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-slate-800 pt-8 text-center">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-            <p className="text-gray-400 text-sm">&copy; 2026 Onlyinka.in All rights reserved.</p>
+            <p className="text-gray-400 text-sm">&copy; 2026 onlyinkani.in All rights reserved.</p>
             <div className="flex gap-6 text-gray-400 text-sm">
               <Link href="/privacy-policy" className="hover:text-blue-400 transition">Privacy Policy</Link>
               <Link href="/terms-of-service" className="hover:text-blue-400 transition">Terms of Service</Link>
