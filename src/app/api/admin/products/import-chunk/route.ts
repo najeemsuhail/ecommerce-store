@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
 import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
+import { Prisma } from '@prisma/client';
 
 interface ImportVariant {
   externalId?: string | number;
@@ -81,6 +82,48 @@ type ImportResults = {
   failed: number;
   errors: Array<{ index: number; name: string; error: string }>;
 };
+
+function isPrismaJsonElement(value: unknown): value is Prisma.InputJsonValue | null {
+  if (value === null) {
+    return true;
+  }
+
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return true;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.every(isPrismaJsonElement);
+  }
+
+  if (typeof value === 'object' && value !== null && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.values(value).every(isPrismaJsonElement);
+  }
+
+  return false;
+}
+
+function toNullableJsonInput(
+  value: unknown
+): Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return Prisma.JsonNull;
+  }
+
+  if (isPrismaJsonElement(value)) {
+    return value;
+  }
+
+  return undefined;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -265,8 +308,8 @@ async function importProduct(
         images: product.images || existingProduct.images,
         videoUrl: product.videoUrl || existingProduct.videoUrl || undefined,
         weight: product.weight || existingProduct.weight || undefined,
-        dimensions: product.dimensions || existingProduct.dimensions || undefined,
-        specifications: product.specifications || existingProduct.specifications || undefined,
+        dimensions: toNullableJsonInput(product.dimensions ?? existingProduct.dimensions),
+        specifications: toNullableJsonInput(product.specifications ?? existingProduct.specifications),
         metaTitle: product.metaTitle || existingProduct.metaTitle || undefined,
         metaDescription: product.metaDescription || existingProduct.metaDescription || undefined,
         isDigital: product.isDigital ?? existingProduct.isDigital,
@@ -295,8 +338,8 @@ async function importProduct(
         images: product.images || [],
         videoUrl: product.videoUrl,
         weight: product.weight,
-        dimensions: product.dimensions,
-        specifications: product.specifications,
+        dimensions: toNullableJsonInput(product.dimensions),
+        specifications: toNullableJsonInput(product.specifications),
         slug: finalSlug,
         metaTitle: product.metaTitle,
         metaDescription: product.metaDescription,
