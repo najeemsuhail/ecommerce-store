@@ -1,0 +1,36 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-8.13.4}
+    container_name: ecommerce-elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=es01
+      - cluster.name=ecommerce-es-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=true
+      - xpack.security.enrollment.enabled=false
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms1g -Xmx1g}
+      - path.repo=/usr/share/elasticsearch/snapshots
+    ports:
+      - "${ES_BIND_HOST:-127.0.0.1}:${ES_PORT:-9200}:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+      - es_snapshots:/usr/share/elasticsearch/snapshots
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "curl -s -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health | grep -q '\"status\"'"
+      ]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+
+volumes:
+  es_data:
+  es_snapshots:

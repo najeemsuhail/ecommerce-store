@@ -48,6 +48,50 @@ Set these environment variables:
 
 If Elasticsearch is not configured (or unavailable), the API automatically falls back to PostgreSQL-based search.
 
+### Self-hosted free setup (production)
+
+This project can use self-hosted Elasticsearch on the free Basic tier.
+
+1. Create your Elasticsearch env file:
+
+```bash
+cp .env.elasticsearch.example .env.elasticsearch
+```
+
+2. Edit `.env.elasticsearch` and set a strong `ELASTIC_PASSWORD`.
+
+3. Start Elasticsearch:
+
+```bash
+docker compose --env-file .env.elasticsearch -f docker-compose.elasticsearch.yml up -d
+```
+
+4. Configure app env (`.env` / `.env.production`):
+
+```env
+ELASTICSEARCH_URL=http://127.0.0.1:9200
+ELASTICSEARCH_INDEX=products
+ELASTICSEARCH_USERNAME=elastic
+ELASTICSEARCH_PASSWORD=your_strong_password
+```
+
+5. Reindex products:
+
+```bash
+npm run es:reindex
+```
+
+6. Verify:
+
+```bash
+curl -u elastic:your_strong_password http://127.0.0.1:9200/_cluster/health?pretty
+```
+
+Production notes:
+- Keep port `9200` private (VPN/VPC/firewall); do not expose publicly.
+- Use HTTPS/TLS if Elasticsearch is accessed across hosts/networks.
+- Keep backups via snapshots (`es_snapshots` volume is mounted for repository path).
+
 ### Reindex products into Elasticsearch
 
 After setting Elasticsearch env vars, run:
