@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
+import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
 
 interface ImportVariant {
   externalId?: string | number;
@@ -31,8 +32,8 @@ interface ImportProduct {
   images?: string[];
   videoUrl?: string;
   weight?: number;
-  dimensions?: any;
-  specifications?: any;
+  dimensions?: unknown;
+  specifications?: unknown;
   metaTitle?: string;
   metaDescription?: string;
   isDigital?: boolean;
@@ -59,8 +60,8 @@ type ExistingProduct = {
   images: string[];
   videoUrl: string | null;
   weight: number | null;
-  dimensions: any;
-  specifications: any;
+  dimensions: unknown;
+  specifications: unknown;
   metaTitle: string | null;
   metaDescription: string | null;
   isDigital: boolean;
@@ -72,6 +73,13 @@ type ExistingProductMaps = {
   bySku: Map<string, ExistingProduct>;
   byExternalId: Map<string, ExistingProduct>;
   bySlug: Map<string, ExistingProduct>;
+};
+
+type ImportResults = {
+  imported: number;
+  updated: number;
+  failed: number;
+  errors: Array<{ index: number; name: string; error: string }>;
 };
 
 export async function POST(request: NextRequest) {
@@ -182,7 +190,6 @@ export async function POST(request: NextRequest) {
         try {
           await importProduct(
             product as ImportProduct,
-            globalIndex,
             results,
             categoryCache,
             attributeCache,
@@ -220,8 +227,7 @@ export async function POST(request: NextRequest) {
 // Helper function to import a single product
 async function importProduct(
   product: ImportProduct,
-  index: number,
-  results: any,
+  results: ImportResults,
   categoryCache: Map<string, CachedCategory>,
   attributeCache: Map<string, CachedAttribute>,
   slugAllocator: SlugAllocator,
@@ -430,6 +436,8 @@ async function importProduct(
       });
     }
   }
+
+  await syncProductToElasticsearch(finalProduct.id);
 }
 
 function toSlug(value: string): string {

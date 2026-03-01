@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
+import { deleteProductsFromElasticsearch } from '@/lib/elasticsearchSync';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +32,8 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    await deleteProductsFromElasticsearch(productIds);
 
     return NextResponse.json({
       success: true,

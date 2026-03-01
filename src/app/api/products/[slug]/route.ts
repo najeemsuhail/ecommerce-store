@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import {
+  deleteProductFromElasticsearch,
+  syncProductToElasticsearch,
+} from '@/lib/elasticsearchSync';
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
@@ -48,7 +52,7 @@ export async function GET(
     // Calculate average rating
     const avgRating =
       product.reviews.length > 0
-        ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
+        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
         : 0;
 
     return NextResponse.json(
@@ -145,6 +149,8 @@ export async function PUT(
       }
     });
 
+    await syncProductToElasticsearch(product.id);
+
     return NextResponse.json({
       success: true,
       product,
@@ -169,6 +175,7 @@ export async function DELETE(
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
       where: { slug },
+      select: { id: true },
     });
 
     if (!existingProduct) {
@@ -181,6 +188,7 @@ export async function DELETE(
     await prisma.product.delete({
       where: { slug },
     });
+    await deleteProductFromElasticsearch(existingProduct.id);
 
     return NextResponse.json({
       success: true,

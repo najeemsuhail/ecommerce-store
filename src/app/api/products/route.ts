@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
+import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
@@ -447,6 +448,8 @@ export async function POST(request: NextRequest) {
         categories: true
       }
     });
+
+    await syncProductToElasticsearch(product.id);
 
     return NextResponse.json({
       success: true,

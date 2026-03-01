@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
+import { deleteProductFromElasticsearch } from '@/lib/elasticsearchSync';
 
 export async function GET(
   request: NextRequest,
@@ -69,9 +70,22 @@ export async function DELETE(
 
     const { id } = await params;
 
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json(
+        { success: false, error: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
     await prisma.product.delete({
       where: { id },
     });
+    await deleteProductFromElasticsearch(existingProduct.id);
 
     return NextResponse.json({
       success: true,
