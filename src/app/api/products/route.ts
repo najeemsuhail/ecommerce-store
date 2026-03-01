@@ -1,8 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
+
+type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: typeof productInclude;
+}>;
+
+type ProductWithRating = Omit<ProductWithRelations, 'reviews'> & {
+  averageRating: number;
+  reviewCount: number;
+};
+
+const productInclude = {
+  reviews: {
+    select: {
+      rating: true,
+    },
+  },
+  categories: {
+    include: {
+      category: true,
+    },
+  },
+  attributes: {
+    include: {
+      attribute: true,
+    },
+  },
+  variants: true,
+} as const;
+
+function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
+  return [
+    { name: { contains: search, mode: 'insensitive' as const } },
+    { description: { contains: search, mode: 'insensitive' as const } },
+    { brand: { contains: search, mode: 'insensitive' as const } },
+    { tags: { has: search } },
+    {
+      categories: {
+        some: {
+          category: {
+            name: { contains: search, mode: 'insensitive' as const },
+          },
+        },
+      },
+    },
+  ];
+}
 
 // GET all products (with search and filter)
 export async function GET(request: NextRequest) {
@@ -34,11 +81,6 @@ export async function GET(request: NextRequest) {
       }
       attributeFilters.get(attrId)!.push(value);
     }
-
-    // Build filter object
-    const where: any = {
-      isActive: true,
-    };
 
     const hasNonSearchFilters =
       categories.length > 0 ||
@@ -78,51 +120,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (search && !elasticsearchResult) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { brand: { contains: search, mode: 'insensitive' } },
-        { tags: { has: search } },
-        // Also search in category names
-        {
-          categories: {
-            some: {
-              category: {
-                name: { contains: search, mode: 'insensitive' }
-              }
-            }
-          }
-        },
-      ];
-    }
+    // Build facet-only filter object (used independently from text search).
+    const facetWhere: Prisma.ProductWhereInput = { isActive: true };
 
-    if (elasticsearchResult) {
-      if (elasticsearchResult.productIds.length === 0) {
-        return NextResponse.json(
-          {
-            success: true,
-            products: [],
-            count: 0,
-            total: 0,
-            facets: elasticsearchResult.facets || null,
-          },
-          {
-            headers: {
-              'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
-            },
-          }
-        );
-      }
-
-      where.id = {
-        in: elasticsearchResult.productIds,
-      };
-    }
-
-    // Handle multiple categories (by id, name, or slug)
     if (categories.length > 0) {
-      where.categories = {
+      facetWhere.categories = {
         some: {
           category: {
             OR: [
@@ -130,14 +132,13 @@ export async function GET(request: NextRequest) {
               { name: { in: categories } },
               { slug: { in: categories } },
             ],
-          }
-        }
+          },
+        },
       };
     }
 
-    // Handle attribute filters
     if (attributeFilters.size > 0) {
-      const attributeConditions = Array.from(attributeFilters.entries()).map(
+      const attributeConditions: Prisma.ProductWhereInput[] = Array.from(attributeFilters.entries()).map(
         ([attrId, values]) => ({
           attributes: {
             some: {
@@ -149,39 +150,37 @@ export async function GET(request: NextRequest) {
           },
         })
       );
-      
-      where.AND = attributeConditions;
+      facetWhere.AND = attributeConditions;
     }
 
-    // Handle multiple brands
     if (brands.length > 0) {
-      where.brand = {
+      facetWhere.brand = {
         in: brands,
       };
     }
 
     if (isDigital === 'true') {
-      where.isDigital = true;
+      facetWhere.isDigital = true;
     } else if (isDigital === 'false') {
-      where.isDigital = false;
+      facetWhere.isDigital = false;
     }
 
     if (minPrice || maxPrice) {
-      where.price = {};
-      if (minPrice) where.price.gte = parseFloat(minPrice);
-      if (maxPrice) where.price.lte = parseFloat(maxPrice);
+      facetWhere.price = {};
+      if (minPrice) facetWhere.price.gte = parseFloat(minPrice);
+      if (maxPrice) facetWhere.price.lte = parseFloat(maxPrice);
     }
 
     if (tag) {
-      where.tags = { has: tag };
+      facetWhere.tags = { has: tag };
     }
 
     if (isFeatured === 'true') {
-      where.isFeatured = true;
+      facetWhere.isFeatured = true;
     }
 
     // Determine sort order
-    let orderBy: any = { createdAt: 'desc' };
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
     switch (sort) {
       case 'price-low':
         orderBy = { price: 'asc' };
@@ -200,37 +199,97 @@ export async function GET(request: NextRequest) {
         orderBy = { createdAt: 'desc' };
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: elasticsearchResult ? undefined : orderBy,
-      skip: elasticsearchResult ? 0 : skip,
-      take: elasticsearchResult ? undefined : limit,
-      include: {
-        reviews: {
-          select: {
-            rating: true,
-          },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-        attributes: {
-          include: {
-            attribute: true,
-          },
-        },
-        variants: true,
-      },
-    });
+    const hasSearch = Boolean(search);
+    const shouldUnionSearchAndFacets = hasSearch && hasNonSearchFilters;
 
-    // Get total count for pagination
-    const totalCount = elasticsearchResult
-      ? hasNonSearchFilters
-        ? products.length
-        : elasticsearchResult.total
-      : await prisma.product.count({ where });
+    let products: ProductWithRelations[] = [];
+    let totalCount = 0;
+
+    if (shouldUnionSearchAndFacets && search) {
+      let searchProducts: ProductWithRelations[] = [];
+
+      if (elasticsearchResult) {
+        if (elasticsearchResult.productIds.length > 0) {
+          searchProducts = await prisma.product.findMany({
+            where: {
+              isActive: true,
+              id: {
+                in: elasticsearchResult.productIds,
+              },
+            },
+            include: productInclude,
+          });
+        }
+      } else {
+        searchProducts = await prisma.product.findMany({
+          where: {
+            isActive: true,
+            OR: buildSearchOrConditions(search),
+          },
+          orderBy,
+          include: productInclude,
+        });
+      }
+
+      const facetProducts = await prisma.product.findMany({
+        where: facetWhere,
+        orderBy,
+        include: productInclude,
+      });
+
+      const mergedById = new Map<string, ProductWithRelations>();
+      for (const product of searchProducts) {
+        mergedById.set(product.id, product);
+      }
+      for (const product of facetProducts) {
+        if (!mergedById.has(product.id)) {
+          mergedById.set(product.id, product);
+        }
+      }
+      products = Array.from(mergedById.values());
+      totalCount = products.length;
+    } else {
+      const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
+
+      if (search && elasticsearchResult) {
+        if (elasticsearchResult.productIds.length === 0) {
+          return NextResponse.json(
+            {
+              success: true,
+              products: [],
+              count: 0,
+              total: 0,
+              facets: elasticsearchResult.facets || null,
+            },
+            {
+              headers: {
+                'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+              },
+            }
+          );
+        }
+
+        combinedWhere.id = {
+          in: elasticsearchResult.productIds,
+        };
+      } else if (search) {
+        combinedWhere.OR = buildSearchOrConditions(search);
+      }
+
+      products = await prisma.product.findMany({
+        where: combinedWhere,
+        orderBy: elasticsearchResult ? undefined : orderBy,
+        skip: elasticsearchResult ? 0 : skip,
+        take: elasticsearchResult ? undefined : limit,
+        include: productInclude,
+      });
+
+      totalCount = elasticsearchResult
+        ? hasNonSearchFilters
+          ? products.length
+          : elasticsearchResult.total
+        : await prisma.product.count({ where: combinedWhere });
+    }
 
     // If no products found, return empty array
     if (products.length === 0) {
@@ -251,10 +310,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate average rating for each product
-    let productsWithRating = products.map((product: any) => {
+    const productsWithRating: ProductWithRating[] = products.map((product) => {
       const avgRating =
         product.reviews.length > 0
-          ? product.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / product.reviews.length
+          ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
           : 0;
       
       const { reviews, ...productData } = product;
@@ -279,9 +338,9 @@ export async function GET(request: NextRequest) {
       productsWithRating.sort((a, b) => b.averageRating - a.averageRating);
     }
 
-    // For Elasticsearch + additional filters, paginate after ranking + DB filtering.
+    // For union mode, paginate after merging/deduping both result sets.
     const finalProducts =
-      elasticsearchResult && hasNonSearchFilters
+      shouldUnionSearchAndFacets
         ? productsWithRating.slice(skip, skip + limit)
         : productsWithRating;
 

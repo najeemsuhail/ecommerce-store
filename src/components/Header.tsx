@@ -302,7 +302,7 @@ export default function Header() {
                     : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
-                Categories
+                Collections
               </Link>
               <Link 
                 href="/blog" 
