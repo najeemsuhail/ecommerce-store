@@ -115,7 +115,7 @@ export default function Header() {
                     : 'text-text-light hover:text-primary'
                 }`}
               >
-                Categories
+                Collections
               </Link>
               <Link 
                 href="/blog" 

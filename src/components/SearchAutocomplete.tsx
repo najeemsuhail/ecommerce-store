@@ -334,7 +334,7 @@ export default function SearchAutocomplete({
 
                     {focusProducts.length > 0 && (
                       <div className="border-b border-border-color last:border-b-0">
-                        <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                        <div className="sticky top-0 z-10 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color flex items-center gap-2">
                           Popular Products
                         </div>
                         {focusProducts.map((product) => (
@@ -388,7 +388,7 @@ export default function SearchAutocomplete({
                 {/* Products */}
                 {results.products.length > 0 && (
                   <div className="border-b border-border-color last:border-b-0">
-                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light rounded-t-2xl flex items-center gap-2">
+                    <div className="sticky top-0 z-10 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color rounded-t-2xl flex items-center gap-2">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z" />
                       </svg>
@@ -441,7 +441,7 @@ export default function SearchAutocomplete({
                 {/* Categories */}
                 {results.categories.length > 0 && (
                   <div className="border-b border-border-color last:border-b-0">
-                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                    <div className="sticky top-0 z-10 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color flex items-center gap-2">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
                       </svg>
@@ -472,7 +472,7 @@ export default function SearchAutocomplete({
                 {/* Tags */}
                 {results.tags.length > 0 && (
                   <div className="border-b border-border-color last:border-b-0">
-                    <div className="sticky top-0 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light flex items-center gap-2">
+                    <div className="sticky top-0 z-10 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color flex items-center gap-2">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5.5 2a1.5 1.5 0 00-1.5 1.5v3H2a1 1 0 000 2h1v2H2a1 1 0 000 2h1v3a1.5 1.5 0 001.5 1.5h3v1a1 1 0 002 0v-1h2v1a1 1 0 002 0v-1h3a1.5 1.5 0 001.5-1.5v-3h1a1 1 0 000-2h-1v-2h1a1 1 0 000-2h-1v-3A1.5 1.5 0 0014.5 2h-9zm0 2h9v9h-9V4z" clipRule="evenodd" />
                       </svg>
