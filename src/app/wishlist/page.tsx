@@ -214,7 +214,7 @@ export default function WishlistPage() {
                         />
                         <button
                           onClick={() => handleSaveRename(group.id)}
-                          className="bg-light-theme text-primary-theme px-3 py-1 rounded text-sm font-bold hover-bg-gray-light"
+                          className="bg-light-theme text-primary-theme px-3 py-1 rounded text-sm font-bold hover:bg-light-gray-theme"
                         >
                           Save
                         </button>

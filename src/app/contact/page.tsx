@@ -63,7 +63,7 @@ export default function Contact() {
       {/* Hero Section */}
       <div className="gradient-primary-accent text-white-theme py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl font-bold mb-4 text-white">📞 Contact Us</h1>
+          <h1 className="text-5xl font-bold mb-4 text-white">Contact Us</h1>
           <p className="text-xl text-white-theme">
             We're here to help! If you have any questions about our products, orders, shipping, or returns, feel free to reach out to us anytime.
           </p>

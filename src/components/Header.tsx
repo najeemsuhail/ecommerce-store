@@ -67,15 +67,6 @@ export default function Header() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [isMounted]);
 
-  const handleAccountClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!isLoggedIn) {
-      router.push('/auth?redirect=/dashboard');
-    } else {
-      router.push('/dashboard');
-    }
-  };
-
   return (
     <nav className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-4">
@@ -176,51 +167,56 @@ export default function Header() {
             </Link>
 
             {/* Account */}
-            <div className="relative">
+            <div
+              className="relative"
+              onMouseEnter={() => setAccountMenuOpen(true)}
+              onMouseLeave={() => setAccountMenuOpen(false)}
+            >
               <button
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
                 className="text-gray-theme hover:text-primary-theme transition-colors cursor-pointer"
                 title={isMounted && isLoggedIn ? 'Account' : 'Login'}
+                aria-haspopup="menu"
+                aria-expanded={accountMenuOpen}
               >
                 <FontAwesomeIcon icon={faUser} className="w-5 h-5" />
               </button>
 
               {/* Account Dropdown Menu */}
               {isMounted && accountMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-light-theme border border-gray-200 rounded-lg shadow-lg z-50">
-                  {!isLoggedIn ? (
-                    <>
+                <div className="absolute right-0 top-full pt-2 w-48 z-50">
+                  <div className="bg-light-theme border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                    {!isLoggedIn ? (
                       <Link
                         href="/auth"
                         onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium border-b border-gray-theme transition-colors"
+                        className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-gray-theme font-medium transition-colors"
                       >
                         Sign In / Sign Up
                       </Link>
-
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setAccountMenuOpen(false)}
-                        className="block w-full text-left px-4 py-3 hover-bg-gray-light text-gray-theme font-medium border-b border-gray-theme transition-colors"
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        onClick={() => {
-                          localStorage.removeItem('token');
-                          setIsLoggedIn(false);
-                          setAccountMenuOpen(false);
-                          router.push('/');
-                        }}
-                        className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-dark-theme font-medium transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-gray-theme font-medium border-b border-gray-200 transition-colors"
+                        >
+                          Dashboard
+                        </Link>
+                        <button
+                          onClick={() => {
+                            localStorage.removeItem('token');
+                            setIsLoggedIn(false);
+                            setAccountMenuOpen(false);
+                            router.push('/');
+                          }}
+                          className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-dark-theme font-medium transition-colors"
+                        >
+                          Logout
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

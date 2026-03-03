@@ -99,7 +99,7 @@ export default function AddToWishlistModal({
               </Link>
               <button
                 onClick={onClose}
-                className="flex-1 border-2 border-gray-theme text-gray-theme px-4 py-2 rounded-lg hover-bg-gray-light font-medium transition-colors"
+                className="flex-1 border-2 border-gray-theme text-gray-theme px-4 py-2 rounded-lg hover:bg-light-gray-theme font-medium transition-colors"
               >
                 Cancel
               </button>
