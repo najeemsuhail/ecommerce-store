@@ -42,20 +42,20 @@ export default function CategoriesPage() {
           <div className="text-center mb-12 md:mb-16">
             <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
               <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                All Categories
+                All collections
               </span>
             </h1>
-            <p className="text-base md:text-xl text-gray-600">Browse all available product categories</p>
+            <p className="text-base md:text-xl text-gray-600">Browse all available product collections</p>
           </div>
 
-          {/* Categories Grid */}
+          {/* Collections Grid */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
-              <p className="text-gray-600">Loading categories...</p>
+              <p className="text-gray-600">Loading collections...</p>
             </div>
           ) : categories.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-gray-600 text-lg">No categories available</p>
+              <p className="text-gray-600 text-lg">No collections available</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

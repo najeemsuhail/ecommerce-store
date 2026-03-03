@@ -74,16 +74,16 @@ export default function CategoryBrowser() {
   );
 
   if (loading) {
-    return <div className="text-center py-4 text-gray-500">Loading categories...</div>;
+    return <div className="text-center py-4 text-gray-500">Loading collections...</div>;
   }
 
   if (categories.length === 0) {
-    return <div className="text-center py-4 text-gray-500">No categories available</div>;
+    return <div className="text-center py-4 text-gray-500">No collections available</div>;
   }
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Categories</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Collections</h3>
       <div className="space-y-1">
         {categories
           .filter((cat) => !cat.parentId)
