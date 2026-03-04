@@ -14,6 +14,10 @@ function isAuthorized(request: NextRequest): boolean {
 
 export async function GET(request: NextRequest) {
   try {
+    if (process.env.CRON_DISABLED === 'true') {
+      return NextResponse.json({ success: true, message: 'Cron is temporarily disabled.' });
+    }
+
     if (!isAuthorized(request)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
