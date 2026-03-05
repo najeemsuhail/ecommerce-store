@@ -346,17 +346,6 @@ export default function ProductDetailPage() {
                     <span className="text-4xl font-bold text-primary-theme">
                       {formatPrice(selectedVariant ? selectedVariant.price : product.price)}
                     </span>
-                    {(selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) && 
-                      (selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) > (selectedVariant ? selectedVariant.price : product.price) && (
-                      <>
-                        <span className="text-xl text-gray-500 line-through">
-                          {formatPrice(selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice)}
-                        </span>
-                        <span className="bg-green-500 text-white px-2 py-1 rounded text-sm font-bold">
-                          Save {formatPrice((selectedVariant ? selectedVariant.comparePrice || product.comparePrice : product.comparePrice) - (selectedVariant ? selectedVariant.price : product.price))}
-                        </span>
-                      </>
-                    )}
                   </div>
                 </div>
 
@@ -446,11 +435,6 @@ export default function ProductDetailPage() {
                               <p className="text-primary-theme font-bold text-sm">
                                 {formatPrice(variant.price)}
                               </p>
-                              {variant.comparePrice && variant.comparePrice > variant.price && (
-                                <p className="text-gray-500 line-through text-xs">
-                                  {formatPrice(variant.comparePrice)}
-                                </p>
-                              )}
                             </div>
                             {variant.isActive === false ? (
                               <p className="text-red-600 text-xs mt-1 font-semibold">Not Available</p>

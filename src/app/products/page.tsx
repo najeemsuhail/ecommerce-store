@@ -826,11 +826,6 @@ function ProductsContent() {
                           <span className="text-2xl font-bold text-primary-theme">
                             {formatPrice(product.price)}
                           </span>
-                          {product.comparePrice && (
-                            <span className="text-sm text-text-500 line-through ml-2">
-                              {formatPrice(product.comparePrice)}
-                            </span>
-                          )}
                         </div>
                         {product.isDigital && (
                           <span className="text-xs bg-primary-light text-primary-theme px-2 py-1 rounded">
