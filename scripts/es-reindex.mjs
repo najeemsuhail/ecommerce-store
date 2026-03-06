@@ -23,6 +23,13 @@ const PRODUCT_INDEX_MAPPING = {
       },
     },
     tags: { type: 'keyword' },
+    categoryIds: { type: 'keyword' },
+    categorySlugs: {
+      type: 'text',
+      fields: {
+        keyword: { type: 'keyword' },
+      },
+    },
     categoryNames: {
       type: 'text',
       fields: {
@@ -156,8 +163,9 @@ async function indexBatch(skip) {
       createdAt: true,
       categories: {
         select: {
+          categoryId: true,
           category: {
-            select: { name: true },
+            select: { name: true, slug: true },
           },
         },
       },
@@ -189,6 +197,8 @@ async function indexBatch(skip) {
         description: product.description,
         brand: product.brand,
         tags: product.tags,
+        categoryIds: product.categories.map((entry) => entry.categoryId),
+        categorySlugs: product.categories.map((entry) => entry.category.slug),
         categoryNames: product.categories.map((entry) => entry.category.name),
         isActive: product.isActive,
         isDigital: product.isDigital,

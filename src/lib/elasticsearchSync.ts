@@ -13,6 +13,8 @@ type ElasticsearchProductSource = {
   description: string;
   brand: string | null;
   tags: string[];
+  categoryIds: string[];
+  categorySlugs: string[];
   categoryNames: string[];
   isActive: boolean;
   isDigital: boolean;
@@ -71,9 +73,11 @@ async function getIndexableProducts(productIds: string[]) {
       createdAt: true,
       categories: {
         select: {
+          categoryId: true,
           category: {
             select: {
               name: true,
+              slug: true,
             },
           },
         },
@@ -88,6 +92,8 @@ async function getIndexableProducts(productIds: string[]) {
     description: product.description,
     brand: product.brand,
     tags: product.tags,
+    categoryIds: product.categories.map((entry) => entry.categoryId),
+    categorySlugs: product.categories.map((entry) => entry.category.slug),
     categoryNames: product.categories.map((entry) => entry.category.name),
     isActive: product.isActive,
     isDigital: product.isDigital,

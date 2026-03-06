@@ -53,7 +53,7 @@ type ApiFacets = {
 
 type ElasticsearchFacets = {
   brands: Array<{ name: string; count: number }>;
-  categories: Array<{ name: string; count: number }>;
+  categories: Array<{ id: string; count: number }>;
   priceRange: { min: number; max: number };
 };
 
@@ -82,12 +82,12 @@ async function normalizeElasticsearchFacets(
     return null;
   }
 
-  const categoryNames = facets.categories.map((category) => category.name);
-  const categoriesByName = new Map<string, { id: string; name: string }>();
-  if (categoryNames.length > 0) {
+  const categoryIds = facets.categories.map((category) => category.id);
+  const categoriesById = new Map<string, { id: string; name: string }>();
+  if (categoryIds.length > 0) {
     const categoryRows = await prisma.category.findMany({
       where: {
-        name: { in: categoryNames },
+        id: { in: categoryIds },
       },
       select: {
         id: true,
@@ -95,15 +95,15 @@ async function normalizeElasticsearchFacets(
       },
     });
     for (const category of categoryRows) {
-      categoriesByName.set(category.name, { id: category.id, name: category.name });
+      categoriesById.set(category.id, { id: category.id, name: category.name });
     }
   }
 
   return {
     brands: facets.brands,
     categories: facets.categories.map((category) => ({
-      name: category.name,
-      id: categoriesByName.get(category.name)?.id || category.name,
+      name: categoriesById.get(category.id)?.name || category.id,
+      id: category.id,
       count: category.count,
     })),
     priceRange: {
@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
       attributeFilters.size > 0;
 
     const hasSearch = Boolean(search);
-    const shouldIncludeFacets = includeFacetsRequested || hasSearch;
+    const shouldIncludeFacets = includeFacetsRequested;
     const shouldTryElasticsearch = isElasticsearchEnabled() && attributeFilters.size === 0;
 
     let elasticsearchResult: {
@@ -277,25 +277,6 @@ export async function GET(request: NextRequest) {
     let responseFacets: ApiFacets | null = null;
 
     if (shouldTryElasticsearch) {
-      // Resolve category ids/slugs/names to category names for Elasticsearch filtering.
-      let categoryNamesForElasticsearch: string[] | undefined;
-      if (categories.length > 0) {
-        const matchedCategories = await prisma.category.findMany({
-          where: {
-            OR: [
-              { id: { in: categories } },
-              { name: { in: categories } },
-              { slug: { in: categories } },
-            ],
-          },
-          select: { name: true },
-        });
-        categoryNamesForElasticsearch =
-          matchedCategories.length > 0
-            ? Array.from(new Set(matchedCategories.map((category) => category.name)))
-            : categories;
-      }
-
       // Keep wide windows only for heavy search+filter use-cases.
       const elasticFrom = hasNonSearchFilters && hasSearch ? 0 : skip;
       const elasticSize = hasNonSearchFilters && hasSearch ? 10000 : limit;
@@ -308,7 +289,9 @@ export async function GET(request: NextRequest) {
           includeFacets: shouldIncludeFacets,
           filters: {
             brands: brands.length > 0 ? brands : undefined,
-            categories: categoryNamesForElasticsearch,
+            categories: categories.length > 0 ? categories : undefined,
+            categoryIds: categories.length > 0 ? categories : undefined,
+            categorySlugs: categories.length > 0 ? categories : undefined,
             isDigital: parsedIsDigital,
             isFeatured: parsedIsFeatured,
             minPrice: parsedMinPrice,

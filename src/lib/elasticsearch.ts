@@ -63,6 +63,8 @@ export async function searchProductIdsFromElasticsearch(options: {
   filters?: {
     brands?: string[];
     categories?: string[];
+    categoryIds?: string[];
+    categorySlugs?: string[];
     isDigital?: boolean;
     isFeatured?: boolean;
     minPrice?: number;
@@ -96,10 +98,37 @@ export async function searchProductIdsFromElasticsearch(options: {
     });
   }
 
-  if (filters.categories && filters.categories.length > 0) {
+  const categoryNames = filters.categories || [];
+  const categoryIds = filters.categoryIds || [];
+  const categorySlugs = filters.categorySlugs || [];
+  if (categoryNames.length > 0 || categoryIds.length > 0 || categorySlugs.length > 0) {
+    const categoryShouldClauses: Array<Record<string, unknown>> = [];
+    if (categoryNames.length > 0) {
+      categoryShouldClauses.push({
+        terms: {
+          'categoryNames.keyword': categoryNames,
+        },
+      });
+    }
+    if (categoryIds.length > 0) {
+      categoryShouldClauses.push({
+        terms: {
+          categoryIds,
+        },
+      });
+    }
+    if (categorySlugs.length > 0) {
+      categoryShouldClauses.push({
+        terms: {
+          'categorySlugs.keyword': categorySlugs,
+        },
+      });
+    }
+
     boolFilters.push({
-      terms: {
-        'categoryNames.keyword': filters.categories,
+      bool: {
+        should: categoryShouldClauses,
+        minimum_should_match: 1,
       },
     });
   }
@@ -210,7 +239,7 @@ export async function searchProductIdsFromElasticsearch(options: {
       },
       categories: {
         terms: {
-          field: 'categoryNames.keyword',
+          field: 'categoryIds',
           size: 50,
         },
       },
@@ -250,7 +279,7 @@ export async function searchProductIdsFromElasticsearch(options: {
       count: bucket.doc_count,
     })),
     categories: (data.aggregations?.categories?.buckets || []).map((bucket) => ({
-      name: bucket.key,
+      id: bucket.key,
       count: bucket.doc_count,
     })),
     priceRange: {
