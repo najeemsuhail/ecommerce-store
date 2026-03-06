@@ -77,6 +77,7 @@ export async function GET(request: NextRequest) {
 
     const fetchIdsFromElasticsearch = async (params: {
       categories?: string[];
+      categoryIds?: string[];
       tags?: string[];
       excludeIds?: string[];
       size: number;
@@ -104,10 +105,26 @@ export async function GET(request: NextRequest) {
           includeFacets: false,
           filters: {
             categories: params.categories,
+            categoryIds: params.categoryIds,
           },
         });
         if (byCategories?.productIds.length) {
           pushIds(byCategories.productIds);
+        }
+      }
+
+      if (ids.length < params.size && params.categoryIds && params.categoryIds.length > 0) {
+        const byCategoryIds = await searchProductIdsFromElasticsearch({
+          from: 0,
+          size: params.size * 3,
+          sort: 'featured-newest',
+          includeFacets: false,
+          filters: {
+            categoryIds: params.categoryIds,
+          },
+        });
+        if (byCategoryIds?.productIds.length) {
+          pushIds(byCategoryIds.productIds);
         }
       }
 
@@ -149,8 +166,12 @@ export async function GET(request: NextRequest) {
           const categoryNames = product.categories
             .map((cat) => cat.category?.name)
             .filter((name): name is string => Boolean(name));
+          const categoryIds = product.categories
+            .map((cat) => cat.categoryId)
+            .filter((id): id is string => Boolean(id));
           const candidateIds = await fetchIdsFromElasticsearch({
             categories: categoryNames,
+            categoryIds,
             tags: product.tags,
             excludeIds: [productId],
             size: limit,

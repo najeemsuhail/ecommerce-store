@@ -191,7 +191,7 @@ export default function ProductRecommendations({
                   </div>
                 )}
 
-                // ...sale badge removed...
+                {/* Sale badge removed */}
 
                 {/* Add to Cart Button on Hover */}
                     <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
@@ -248,7 +248,7 @@ export default function ProductRecommendations({
                   </h3>
                 </Link>
                 {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) && (
-                  <div className="flex gap-2 md:hidden items-center pt-3">
+                  <div className="flex gap-1.5 md:hidden items-stretch pt-3">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -264,14 +264,14 @@ export default function ProductRecommendations({
                         });
                         onAddToCart?.(product);
                       }}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                      className="flex-1 min-w-0 bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-xs leading-none whitespace-nowrap"
                       title="Add to Cart"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`p-2.5 rounded-lg transition-all ${
+                      className={`shrink-0 w-9 h-9 p-0 rounded-lg transition-all flex items-center justify-center ${
                         isInWishlist(product.id)
                           ? 'bg-red-500 text-white hover:bg-red-600'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -325,7 +325,7 @@ export default function ProductRecommendations({
                   </h3>
                 </Link>
                 {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) && (
-                  <div className="flex gap-2 md:hidden items-center pt-3">
+                  <div className="flex gap-1.5 md:hidden items-stretch pt-3">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -341,14 +341,14 @@ export default function ProductRecommendations({
                         });
                         onAddToCart?.(product);
                       }}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                      className="flex-1 min-w-0 bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-xs leading-none whitespace-nowrap"
                       title="Add to Cart"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`p-2.5 rounded-lg transition-all ${
+                      className={`shrink-0 w-9 h-9 p-0 rounded-lg transition-all flex items-center justify-center ${
                         isInWishlist(product.id)
                           ? 'bg-red-500 text-white hover:bg-red-600'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'

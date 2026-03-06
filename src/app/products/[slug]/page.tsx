@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
@@ -10,13 +11,90 @@ import Layout from '@/components/Layout';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
-import ReviewForm from '@/components/ReviewForm';
 import { formatPrice } from '@/lib/currency';
-import ProductRecommendations from '@/components/ProductRecommendations';
 import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 import ShareProduct from '@/components/ShareProduct';
+
+const ReviewForm = dynamic(() => import('@/components/ReviewForm'), {
+  loading: () => <div className="h-28 rounded-lg bg-gray-100 animate-pulse" />,
+});
+
+const ProductRecommendations = dynamic(() => import('@/components/ProductRecommendations'), {
+  loading: () => (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="h-72 rounded-lg bg-gray-100 animate-pulse" />
+      ))}
+    </div>
+  ),
+});
+
+interface ProductVariant {
+  id: string;
+  name: string;
+  price: number;
+  stock: number | null;
+  isActive: boolean;
+}
+
+interface ProductCategoryLink {
+  categoryId: string;
+  category?: {
+    id?: string;
+    name?: string;
+  } | null;
+}
+
+interface ProductReview {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  user?: {
+    name?: string | null;
+  } | null;
+}
+
+interface ProductDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  images: string[];
+  videoUrl?: string | null;
+  isDigital: boolean;
+  isActive: boolean;
+  stock: number | null;
+  weight?: number | null;
+  brand?: string | null;
+  specifications?: Record<string, unknown> | null;
+  tags?: string[];
+  averageRating: number;
+  reviewCount: number;
+  variants: ProductVariant[];
+  categories: ProductCategoryLink[];
+  reviews: ProductReview[];
+}
+
+interface ProductApiResponse {
+  success: boolean;
+  product?: ProductDetail;
+}
+
+interface CartItemPayload {
+  productId: string;
+  variantId?: string;
+  variantName?: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+  slug: string;
+  isDigital: boolean;
+  weight?: number;
+}
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -24,16 +102,17 @@ export default function ProductDetailPage() {
   const { addItem, totalItems } = useCart();
   const { isInWishlist } = useWishlist();
   const { addToRecentlyViewed } = useRecentlyViewed();
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [deferredSectionsReady, setDeferredSectionsReady] = useState(false);
 
   useEffect(() => {
     if (params.slug) {
@@ -41,13 +120,36 @@ export default function ProductDetailPage() {
     }
   }, [params.slug]);
 
+  useEffect(() => {
+    const anchor = document.getElementById('deferred-sections-anchor');
+    if (!anchor) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDeferredSectionsReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px 0px' }
+    );
+
+    observer.observe(anchor);
+    return () => observer.disconnect();
+  }, [product?.id]);
+
   const fetchProduct = async () => {
     try {
       const response = await fetch(`/api/products/${params.slug}`, {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
-      const data = await response.json();
+      const data: ProductApiResponse = await response.json();
       if (data.success) {
+        if (!data.product) {
+          router.push('/products');
+          return;
+        }
+
         setProduct(data.product);
         // Track this product as viewed
         addToRecentlyViewed({
@@ -58,7 +160,7 @@ export default function ProductDetailPage() {
           price: data.product.price,
           viewedAt: Date.now(),
           isDigital: data.product.isDigital,
-          weight: data.product.weight,
+          weight: data.product.weight ?? undefined,
           isActive: data.product.isActive,
         });
         // Set first variant as default if variants exist
@@ -99,7 +201,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product) return;
 
-    const cartItem: any = {
+    const cartItem: CartItemPayload = {
       productId: product.id,
       name: product.name,
       price: selectedVariant ? selectedVariant.price : product.price,
@@ -331,7 +433,7 @@ export default function ProductDetailPage() {
                 {product.categories && product.categories.length > 0 && (
                   <div className="mb-4">
                     <span className="text-gray-600">Categories: </span>
-                    {product.categories.map((cat: any, idx: number) => (
+                    {product.categories.map((cat: ProductCategoryLink, idx: number) => (
                       <span key={cat.category?.id || cat.categoryId} className="inline-block text-sm text-primary-theme font-medium mr-2">
                         {cat.category?.name || cat.categoryId}
                         {idx < product.categories.length - 1 && ','}
@@ -400,7 +502,7 @@ export default function ProductDetailPage() {
                     <h3 className="font-semibold text-lg mb-2">Specifications</h3>
                     <div className="bg-gray-50 rounded p-4 space-y-2">
                       {Object.entries(product.specifications).map(
-                        ([key, value]: [string, any]) => (
+                        ([key, value]: [string, unknown]) => (
                           <div key={key} className="flex justify-between">
                             <span className="text-gray-600">{key}:</span>
                             <span className="font-semibold">
@@ -418,7 +520,7 @@ export default function ProductDetailPage() {
                   <div className="mb-6">
                     <h3 className="font-semibold text-lg mb-3">Variants</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      {product.variants.map((variant: any) => (
+                      {product.variants.map((variant: ProductVariant) => (
                         <button
                           key={variant.id}
                           onClick={() => setSelectedVariant(variant)}
@@ -550,6 +652,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
+          <div id="deferred-sections-anchor" className="h-1 w-full" />
+          {deferredSectionsReady ? (
+            <>
           {/* Product Recommendations */}
         {product && (
           <div className="mt-16 pt-12 border-t border-gray-200">
@@ -592,7 +697,7 @@ export default function ProductDetailPage() {
               <div>
                 <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
                 <div className="space-y-4">
-                {product.reviews.map((review: any) => (
+                {product.reviews.map((review: ProductReview) => (
                   <div key={review.id} className="bg-light-theme rounded-lg shadow p-6">
                     <div className="flex items-center gap-4 mb-2">
                       <div className="flex text-yellow-400">
@@ -616,6 +721,13 @@ export default function ProductDetailPage() {
               </div>
             )}
           </div>
+            </>
+          ) : (
+            <div className="mt-12 space-y-6">
+              <div className="h-72 rounded-lg bg-gray-100 animate-pulse" />
+              <div className="h-48 rounded-lg bg-gray-100 animate-pulse" />
+            </div>
+          )}
         </div>
 
 

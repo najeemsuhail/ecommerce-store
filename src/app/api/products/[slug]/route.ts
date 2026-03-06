@@ -12,35 +12,79 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { slug } = await params;
 
-    const product = await prisma.product.findUnique({
-      where: { slug },
-      include: {
-        variants: {
-          orderBy: { createdAt: 'asc' },
-        },
-        categories: {
-          include: { category: true },
-        },
-        attributes: {
-          include: { attribute: true },
-        },
-        reviews: {
-          take: 10, // Limit to first 10 reviews
-          include: {
-            user: {
-              select: {
-                name: true,
-                email: true,
+    const [product, reviewStats] = await Promise.all([
+      prisma.product.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          price: true,
+          images: true,
+          videoUrl: true,
+          isDigital: true,
+          isActive: true,
+          stock: true,
+          weight: true,
+          brand: true,
+          specifications: true,
+          tags: true,
+          variants: {
+            orderBy: { createdAt: 'asc' },
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              stock: true,
+              isActive: true,
+            },
+          },
+          categories: {
+            select: {
+              categoryId: true,
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          reviews: {
+            take: 10, // Limit to first 10 reviews for UI list
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              rating: true,
+              comment: true,
+              user: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
         },
-      },
-    });
+      }),
+      prisma.review.aggregate({
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          id: true,
+        },
+        where: {
+          product: {
+            slug,
+          },
+        },
+      }),
+    ]);
 
     if (!product) {
       return NextResponse.json(
@@ -49,11 +93,8 @@ export async function GET(
       );
     }
 
-    // Calculate average rating
-    const avgRating =
-      product.reviews.length > 0
-        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-        : 0;
+    const avgRating = reviewStats._avg.rating ?? 0;
+    const reviewCount = reviewStats._count.id ?? 0;
 
     return NextResponse.json(
       {
@@ -61,13 +102,14 @@ export async function GET(
         product: {
           ...product,
           averageRating: Math.round(avgRating * 10) / 10,
-          reviewCount: product.reviews.length,
+          reviewCount,
         },
       },
       {
         headers: {
           'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
           'X-Product-Source': 'database',
+          'X-Response-Time-ms': String(Date.now() - startTime),
         },
       }
     );

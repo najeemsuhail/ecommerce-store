@@ -154,6 +154,8 @@ function ProductsContent() {
   const latestFetchRequestId = useRef(0);
   const latestFacetRequestId = useRef(0);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const resultsTopRef = useRef<HTMLDivElement>(null);
+  const hasInitializedListingRef = useRef(false);
   const activeFiltersCount =
     facetFilters.brands.length +
     facetFilters.categories.length +
@@ -184,6 +186,12 @@ function ProductsContent() {
 
   // Fetch products when filters/sort/search change
   useEffect(() => {
+    if (hasInitializedListingRef.current) {
+      resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      hasInitializedListingRef.current = true;
+    }
+
     setHasMore(true);
     fetchProducts(0, false);
   }, [facetFilters, sortBy, searchTerm]);
@@ -523,7 +531,7 @@ function ProductsContent() {
           )}
 
           {/* Main Content Area */}
-          <div className="lg:col-span-8">
+          <div ref={resultsTopRef} className="lg:col-span-8">
             {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
                 Search all results for &quot;{searchTerm}&quot;
