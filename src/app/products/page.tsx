@@ -358,7 +358,7 @@ function ProductsContent() {
       quantity: 1,
       image: product.images?.[0],
       slug: product.slug,
-      isDigital: product.isDigital,
+      isDigital: product.isDigital ?? false,
       weight: product.weight || undefined,
     });
     setNotification({
