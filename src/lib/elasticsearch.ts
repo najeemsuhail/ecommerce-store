@@ -55,9 +55,20 @@ type ElasticsearchResponse = {
 };
 
 export async function searchProductIdsFromElasticsearch(options: {
-  query: string;
+  query?: string;
   from?: number;
   size?: number;
+  sort?: 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating';
+  includeFacets?: boolean;
+  filters?: {
+    brands?: string[];
+    categories?: string[];
+    isDigital?: boolean;
+    isFeatured?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    tag?: string;
+  };
 }) {
   if (!ELASTICSEARCH_URL) {
     return null;
@@ -65,38 +76,122 @@ export async function searchProductIdsFromElasticsearch(options: {
 
   const from = options.from || 0;
   const size = options.size || 12;
+  const query = options.query?.trim() || '';
+  const filters = options.filters || {};
+  const includeFacets = options.includeFacets !== false;
+  const boolFilters: Array<Record<string, unknown>> = [
+    {
+      term: {
+        isActive: true,
+      },
+    },
+  ];
 
-  const body = {
+  if (filters.brands && filters.brands.length > 0) {
+    boolFilters.push({
+      terms: {
+        'brand.keyword': filters.brands,
+      },
+    });
+  }
+
+  if (filters.categories && filters.categories.length > 0) {
+    boolFilters.push({
+      terms: {
+        'categoryNames.keyword': filters.categories,
+      },
+    });
+  }
+
+  if (typeof filters.isDigital === 'boolean') {
+    boolFilters.push({
+      term: {
+        isDigital: filters.isDigital,
+      },
+    });
+  }
+
+  if (typeof filters.isFeatured === 'boolean') {
+    boolFilters.push({
+      term: {
+        isFeatured: filters.isFeatured,
+      },
+    });
+  }
+
+  if (typeof filters.minPrice === 'number' || typeof filters.maxPrice === 'number') {
+    const range: { gte?: number; lte?: number } = {};
+    if (typeof filters.minPrice === 'number') {
+      range.gte = filters.minPrice;
+    }
+    if (typeof filters.maxPrice === 'number') {
+      range.lte = filters.maxPrice;
+    }
+    boolFilters.push({
+      range: {
+        price: range,
+      },
+    });
+  }
+
+  if (filters.tag) {
+    boolFilters.push({
+      term: {
+        'tags.keyword': filters.tag,
+      },
+    });
+  }
+
+  const sort =
+    options.sort === 'price-low'
+      ? [{ price: { order: 'asc' } }]
+      : options.sort === 'price-high'
+      ? [{ price: { order: 'desc' } }]
+      : options.sort === 'newest' || options.sort === 'popular' || options.sort === 'rating'
+      ? [{ createdAt: { order: 'desc' } }]
+      : query
+      ? [{ _score: { order: 'desc' } }]
+      : [{ createdAt: { order: 'desc' } }];
+
+  const body: Record<string, unknown> = {
     from,
     size,
     query: {
       bool: {
-        must: [
-          {
-            multi_match: {
-              query: options.query,
-              fields: [
-                'name^5',
-                'description^2',
-                'brand^2',
-                'tags^3',
-                'categoryNames^2',
+        ...(query
+          ? {
+              must: [
+                {
+                  multi_match: {
+                    query,
+                    fields: [
+                      'name^5',
+                      'description^2',
+                      'brand^2',
+                      'tags^3',
+                      'categoryNames^2',
+                    ],
+                    fuzziness: 'AUTO',
+                    operator: 'and',
+                  },
+                },
               ],
-              fuzziness: 'AUTO',
-              operator: 'and',
-            },
-          },
-        ],
-        filter: [
-          {
-            term: {
-              isActive: true,
-            },
-          },
-        ],
+            }
+          : {
+              must: [
+                {
+                  match_all: {},
+                },
+              ],
+            }),
+        filter: boolFilters,
       },
     },
-    aggs: {
+    sort,
+  };
+
+  if (includeFacets) {
+    body.aggs = {
       brands: {
         terms: {
           field: 'brand.keyword',
@@ -114,18 +209,21 @@ export async function searchProductIdsFromElasticsearch(options: {
           field: 'price',
         },
       },
-    },
-  };
+    };
+  }
 
-  const response = await fetch(
-    `${ELASTICSEARCH_URL.replace(/\/$/, '')}/${ELASTICSEARCH_INDEX}/_search`,
-    {
-      method: 'POST',
-      headers: buildHeaders(),
-      body: JSON.stringify(body),
-      cache: 'no-store',
-    }
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1500);
+
+  const response = await fetch(`${ELASTICSEARCH_URL.replace(/\/$/, '')}/${ELASTICSEARCH_INDEX}/_search`, {
+    method: 'POST',
+    headers: buildHeaders(),
+    body: JSON.stringify(body),
+    cache: 'no-store',
+    signal: controller.signal,
+  }).finally(() => {
+    clearTimeout(timeout);
+  });
 
   if (!response.ok) {
     const errorText = await response.text();

@@ -83,6 +83,12 @@ export async function GET(request: NextRequest) {
       attributeFilters.get(attrId)!.push(value);
     }
 
+    const parsedMinPrice = minPrice ? parseFloat(minPrice) : undefined;
+    const parsedMaxPrice = maxPrice ? parseFloat(maxPrice) : undefined;
+    const parsedIsDigital =
+      isDigital === 'true' ? true : isDigital === 'false' ? false : undefined;
+    const parsedIsFeatured = isFeatured === 'true' ? true : undefined;
+
     const hasNonSearchFilters =
       categories.length > 0 ||
       brands.length > 0 ||
@@ -93,7 +99,8 @@ export async function GET(request: NextRequest) {
       Boolean(isFeatured) ||
       attributeFilters.size > 0;
 
-    const shouldUseElasticsearch = Boolean(search) && isElasticsearchEnabled();
+    const hasSearch = Boolean(search);
+    const shouldTryElasticsearch = isElasticsearchEnabled() && attributeFilters.size === 0;
 
     let elasticsearchResult: {
       productIds: string[];
@@ -105,16 +112,45 @@ export async function GET(request: NextRequest) {
       };
     } | null = null;
 
-    if (shouldUseElasticsearch && search) {
-      // When additional filters are active with a text query, fetch a wider ES window
-      // and apply facet/category/price filtering in Prisma on top of those IDs.
-      const elasticFrom = hasNonSearchFilters ? 0 : skip;
-      const elasticSize = hasNonSearchFilters ? 10000 : limit;
+    if (shouldTryElasticsearch) {
+      // Resolve category ids/slugs/names to category names for Elasticsearch filtering.
+      let categoryNamesForElasticsearch: string[] | undefined;
+      if (categories.length > 0) {
+        const matchedCategories = await prisma.category.findMany({
+          where: {
+            OR: [
+              { id: { in: categories } },
+              { name: { in: categories } },
+              { slug: { in: categories } },
+            ],
+          },
+          select: { name: true },
+        });
+        categoryNamesForElasticsearch =
+          matchedCategories.length > 0
+            ? Array.from(new Set(matchedCategories.map((category) => category.name)))
+            : categories;
+      }
+
+      // Keep wide windows only for heavy search+filter use-cases.
+      const elasticFrom = hasNonSearchFilters && hasSearch ? 0 : skip;
+      const elasticSize = hasNonSearchFilters && hasSearch ? 10000 : limit;
       try {
         elasticsearchResult = await searchProductIdsFromElasticsearch({
-          query: search,
+          query: search || undefined,
           from: elasticFrom,
           size: elasticSize,
+          sort: sort as 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating',
+          includeFacets: hasSearch,
+          filters: {
+            brands: brands.length > 0 ? brands : undefined,
+            categories: categoryNamesForElasticsearch,
+            isDigital: parsedIsDigital,
+            isFeatured: parsedIsFeatured,
+            minPrice: parsedMinPrice,
+            maxPrice: parsedMaxPrice,
+            tag: tag || undefined,
+          },
         });
       } catch (error) {
         console.error('Elasticsearch product search failed, falling back to database search:', error);
@@ -168,8 +204,8 @@ export async function GET(request: NextRequest) {
 
     if (minPrice || maxPrice) {
       facetWhere.price = {};
-      if (minPrice) facetWhere.price.gte = parseFloat(minPrice);
-      if (maxPrice) facetWhere.price.lte = parseFloat(maxPrice);
+      if (typeof parsedMinPrice === 'number') facetWhere.price.gte = parsedMinPrice;
+      if (typeof parsedMaxPrice === 'number') facetWhere.price.lte = parsedMaxPrice;
     }
 
     if (tag) {
@@ -200,7 +236,6 @@ export async function GET(request: NextRequest) {
         orderBy = { createdAt: 'desc' };
     }
 
-    const hasSearch = Boolean(search);
     const shouldUnionSearchAndFacets = hasSearch && hasNonSearchFilters;
 
     let products: ProductWithRelations[] = [];
@@ -252,7 +287,7 @@ export async function GET(request: NextRequest) {
     } else {
       const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
 
-      if (search && elasticsearchResult) {
+      if (elasticsearchResult) {
         if (elasticsearchResult.productIds.length === 0) {
           return NextResponse.json(
             {
@@ -286,9 +321,7 @@ export async function GET(request: NextRequest) {
       });
 
       totalCount = elasticsearchResult
-        ? hasNonSearchFilters
-          ? products.length
-          : elasticsearchResult.total
+        ? elasticsearchResult.total
         : await prisma.product.count({ where: combinedWhere });
     }
 

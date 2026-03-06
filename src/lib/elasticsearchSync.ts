@@ -15,7 +15,10 @@ type ElasticsearchProductSource = {
   tags: string[];
   categoryNames: string[];
   isActive: boolean;
+  isDigital: boolean;
+  isFeatured: boolean;
   price: number;
+  createdAt: string;
 };
 
 function isSyncEnabled() {
@@ -62,7 +65,10 @@ async function getIndexableProducts(productIds: string[]) {
       brand: true,
       tags: true,
       isActive: true,
+      isDigital: true,
+      isFeatured: true,
       price: true,
+      createdAt: true,
       categories: {
         select: {
           category: {
@@ -84,7 +90,10 @@ async function getIndexableProducts(productIds: string[]) {
     tags: product.tags,
     categoryNames: product.categories.map((entry) => entry.category.name),
     isActive: product.isActive,
+    isDigital: product.isDigital,
+    isFeatured: product.isFeatured,
     price: product.price,
+    createdAt: product.createdAt.toISOString(),
   }));
 }
 
