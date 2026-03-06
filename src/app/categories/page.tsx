@@ -4,6 +4,14 @@ import prisma from '@/lib/prisma';
 
 export const revalidate = 300;
 
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
+
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
     where: { parentId: null },
@@ -13,8 +21,12 @@ export default async function CategoriesPage() {
       slug: true,
       imageUrl: true,
     },
-    orderBy: { name: 'asc' },
+    orderBy: { createdAt: 'desc' },
   });
+
+  const shuffledCategories = [...categories].sort(
+    (a, b) => hashString(a.id) - hashString(b.id)
+  );
 
   return (
     <Layout>
@@ -35,7 +47,7 @@ export default async function CategoriesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {categories.map((category, index) => (
+              {shuffledCategories.map((category, index) => (
                 <Link
                   key={category.id}
                   href={`/products?category=${encodeURIComponent(category.name)}`}
