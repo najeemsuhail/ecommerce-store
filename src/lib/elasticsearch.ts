@@ -58,7 +58,7 @@ export async function searchProductIdsFromElasticsearch(options: {
   query?: string;
   from?: number;
   size?: number;
-  sort?: 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating';
+  sort?: 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating' | 'featured-newest';
   includeFacets?: boolean;
   filters?: {
     brands?: string[];
@@ -68,6 +68,7 @@ export async function searchProductIdsFromElasticsearch(options: {
     minPrice?: number;
     maxPrice?: number;
     tag?: string;
+    tags?: string[];
   };
 }) {
   if (!ELASTICSEARCH_URL) {
@@ -141,12 +142,21 @@ export async function searchProductIdsFromElasticsearch(options: {
       },
     });
   }
+  if (filters.tags && filters.tags.length > 0) {
+    boolFilters.push({
+      terms: {
+        'tags.keyword': filters.tags,
+      },
+    });
+  }
 
   const sort =
     options.sort === 'price-low'
       ? [{ price: { order: 'asc' } }]
       : options.sort === 'price-high'
       ? [{ price: { order: 'desc' } }]
+      : options.sort === 'featured-newest'
+      ? [{ isFeatured: { order: 'desc' } }, { createdAt: { order: 'desc' } }]
       : options.sort === 'newest' || options.sort === 'popular' || options.sort === 'rating'
       ? [{ createdAt: { order: 'desc' } }]
       : query

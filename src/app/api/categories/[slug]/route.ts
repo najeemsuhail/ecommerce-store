@@ -48,6 +48,7 @@ export async function GET(
         id: category.id,
         name: category.name,
         slug: category.slug,
+        imageUrl: category.imageUrl,
         parentId: category.parentId,
         parent: category.parent,
         children: category.children,

@@ -18,7 +18,11 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    return NextResponse.json(attributes);
+    return NextResponse.json(attributes, {
+      headers: {
+        'X-Attribute-Source': 'database',
+      },
+    });
   } catch (error) {
     console.error('Error fetching attributes:', error);
     return NextResponse.json(
@@ -53,9 +57,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(attribute, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating attribute:', error);
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2002') {
       return NextResponse.json(
         { error: 'Attribute slug already exists for this category' },
         { status: 400 }

@@ -41,7 +41,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { name, slug, parentId } = await req.json();
+    const { name, slug, parentId, imageUrl } = await req.json();
 
     // Check for duplicate name at the same hierarchy level (excluding current category)
     const existingCategory = await prisma.category.findFirst({
@@ -64,7 +64,8 @@ export async function PUT(
       data: {
         name,
         slug,
-        parentId: parentId || null
+        parentId: parentId || null,
+        imageUrl: imageUrl || null,
       },
       include: {
         parent: true,
@@ -73,15 +74,15 @@ export async function PUT(
     });
 
     return NextResponse.json(category);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating category:', error);
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2002') {
       return NextResponse.json(
         { error: 'Category slug already exists' },
         { status: 400 }
       );
     }
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2025') {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
@@ -108,9 +109,9 @@ export async function DELETE(
       { message: 'Category deleted successfully' },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting category:', error);
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2025') {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }

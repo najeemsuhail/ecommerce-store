@@ -30,6 +30,33 @@ interface FacetData {
   priceRange: { min: number; max: number };
 }
 
+interface ProductCategoryEntry {
+  categoryId?: string;
+  id?: string;
+  name?: string;
+  category?: {
+    id?: string;
+    name?: string;
+    slug?: string;
+  };
+}
+
+interface ProductListItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  slug: string;
+  images?: string[];
+  isDigital?: boolean;
+  isActive?: boolean;
+  isFeatured?: boolean;
+  weight?: number;
+  averageRating?: number;
+  reviewCount?: number;
+  categories?: ProductCategoryEntry[];
+}
+
 const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
 
 // Filter Skeleton Component
@@ -76,13 +103,12 @@ function FilterSkeleton() {
 // Separate component that uses useSearchParams
 function ProductsContent() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const itemsPerLoad = 12;
-  const [displayedCount, setDisplayedCount] = useState(itemsPerLoad);
   const [totalProducts, setTotalProducts] = useState(0);
   const [facets, setFacets] = useState<FacetData>({
     brands: [],
@@ -162,16 +188,16 @@ function ProductsContent() {
 
   // Fetch filtered products when filters change
   useEffect(() => {
-    setDisplayedCount(itemsPerLoad); // Reset to initial load
     setProducts([]); // Clear products
-    fetchProducts();
+    setHasMore(true);
+    fetchProducts(0, false);
   }, [facetFilters, sortBy, searchTerm]);
   
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && displayedCount < totalProducts) {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
           loadMore();
         }
       },
@@ -183,7 +209,7 @@ function ProductsContent() {
     }
 
     return () => observer.disconnect();
-  }, [hasMore, loadingMore, displayedCount, totalProducts]);
+  }, [hasMore, loadingMore, loading, products.length, totalProducts]);
 
   const fetchAllProducts = async () => {
     try {
@@ -214,59 +240,69 @@ function ProductsContent() {
     }
   };
 
-  const fetchProducts = async () => {
-    const requestId = ++latestFetchRequestId.current;
-    setLoading(true);
-    try {
-      let url = '/api/products?';
-      
-      if (searchTerm) {
-        url += `search=${encodeURIComponent(searchTerm)}&`;
-      }
-      
-      if (facetFilters.brands.length > 0) {
-        facetFilters.brands.forEach((brand) => {
-          url += `brand=${encodeURIComponent(brand)}&`;
-        });
-      }
-      
-      const categoryFiltersToSend =
-        facetFilters.categoryIds.length > 0 ? facetFilters.categoryIds : facetFilters.categories;
-      if (categoryFiltersToSend.length > 0) {
-        categoryFiltersToSend.forEach((category) => {
-          url += `category=${encodeURIComponent(category)}&`;
-        });
-      }
-      
-      if (facetFilters.attributes && Object.keys(facetFilters.attributes).length > 0) {
-        Object.entries(facetFilters.attributes).forEach(([attrId, values]) => {
-          values.forEach((value) => {
-            url += `attribute=${encodeURIComponent(attrId)}&value=${encodeURIComponent(value)}&`;
-          });
-        });
-      }
-      
-      if (facetFilters.priceRange.min > 0) {
-        url += `minPrice=${facetFilters.priceRange.min}&`;
-      }
-      
-      if (facetFilters.priceRange.max < facets.priceRange.max) {
-        url += `maxPrice=${facetFilters.priceRange.max}&`;
-      }
-      
-      if (facetFilters.isDigital !== undefined) {
-        url += `isDigital=${facetFilters.isDigital}&`;
-      }
-      
-      if (facetFilters.isFeatured !== undefined) {
-        url += `isFeatured=${facetFilters.isFeatured}&`;
-      }
+  const buildProductsUrl = (skip: number, limit: number, includeFacets: boolean) => {
+    let url = '/api/products?';
 
-      // Add sort parameter
-      url += `sort=${sortBy}&`;
-      
-      // Fetch with large limit to get all filtered products
-      url += `skip=0&limit=10000`;
+    if (searchTerm) {
+      url += `search=${encodeURIComponent(searchTerm)}&`;
+    }
+
+    if (facetFilters.brands.length > 0) {
+      facetFilters.brands.forEach((brand) => {
+        url += `brand=${encodeURIComponent(brand)}&`;
+      });
+    }
+
+    const categoryFiltersToSend =
+      facetFilters.categoryIds.length > 0 ? facetFilters.categoryIds : facetFilters.categories;
+    if (categoryFiltersToSend.length > 0) {
+      categoryFiltersToSend.forEach((category) => {
+        url += `category=${encodeURIComponent(category)}&`;
+      });
+    }
+
+    if (facetFilters.attributes && Object.keys(facetFilters.attributes).length > 0) {
+      Object.entries(facetFilters.attributes).forEach(([attrId, values]) => {
+        values.forEach((value) => {
+          url += `attribute=${encodeURIComponent(attrId)}&value=${encodeURIComponent(value)}&`;
+        });
+      });
+    }
+
+    if (facetFilters.priceRange.min > 0) {
+      url += `minPrice=${facetFilters.priceRange.min}&`;
+    }
+
+    if (facetFilters.priceRange.max < facets.priceRange.max) {
+      url += `maxPrice=${facetFilters.priceRange.max}&`;
+    }
+
+    if (facetFilters.isDigital !== undefined) {
+      url += `isDigital=${facetFilters.isDigital}&`;
+    }
+
+    if (facetFilters.isFeatured !== undefined) {
+      url += `isFeatured=${facetFilters.isFeatured}&`;
+    }
+
+    if (includeFacets) {
+      url += 'includeFacets=true&';
+    }
+
+    url += `sort=${sortBy}&skip=${skip}&limit=${limit}`;
+    return url;
+  };
+
+  const fetchProducts = async (skip = 0, append = false) => {
+    const requestId = ++latestFetchRequestId.current;
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
+    try {
+      const url = buildProductsUrl(skip, itemsPerLoad, !append);
 
       const response = await fetch(url, {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
@@ -279,13 +315,18 @@ function ProductsContent() {
       }
 
       if (data.success) {
-        setProducts(data.products);
+        setProducts((prev) => (append ? [...prev, ...data.products] : data.products));
         setTotalProducts(data.total || data.products.length);
-        setHasMore(data.products.length > itemsPerLoad);
+        const loadedCount = append ? skip + data.products.length : data.products.length;
+        setHasMore(loadedCount < (data.total || loadedCount));
 
-        // Temporary: disable dynamic facet updates from search response.
-        // Keep facets stable from default catalog facets.
-        setFacets(defaultFacets);
+        if (!append) {
+          if (data.facets) {
+            setFacets(data.facets);
+          } else {
+            setFacets(defaultFacets);
+          }
+        }
       }
     } catch (error) {
       if (requestId !== latestFetchRequestId.current) {
@@ -294,27 +335,21 @@ function ProductsContent() {
       console.error('Failed to fetch products');
     } finally {
       if (requestId === latestFetchRequestId.current) {
-        setLoading(false);
+        if (append) {
+          setLoadingMore(false);
+        } else {
+          setLoading(false);
+        }
       }
     }
   };
 
   const loadMore = async () => {
-    setLoadingMore(true);
-    try {
-      // Add a small delay to show loading state and create smooth experience
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const newCount = displayedCount + itemsPerLoad;
-      setDisplayedCount(newCount);
-      setHasMore(newCount < totalProducts);
-    } catch (error) {
-      console.error('Failed to load more products');
-    } finally {
-      setLoadingMore(false);
-    }
+    if (loadingMore || loading || !hasMore) return;
+    await fetchProducts(products.length, true);
   };
 
-  const handleAddToCart = (product: any, e: React.MouseEvent) => {
+  const handleAddToCart = (product: ProductListItem, e: React.MouseEvent) => {
     e.preventDefault();
     addItem({
       productId: product.id,
@@ -332,7 +367,7 @@ function ProductsContent() {
     });
   };
 
-  const handleWishlistToggle = (product: any, e: React.MouseEvent) => {
+  const handleWishlistToggle = (product: ProductListItem, e: React.MouseEvent) => {
     e.preventDefault();
     
     if (isInWishlist(product.id)) {
@@ -487,7 +522,7 @@ function ProductsContent() {
           <div className="lg:col-span-8">
             {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
-                Search all results for "{searchTerm}"
+                Search all results for &quot;{searchTerm}&quot;
               </div>
             )}
 
@@ -600,7 +635,7 @@ function ProductsContent() {
             {!loading && products.length > 0 && (
               <div className="mb-6 flex justify-between items-center gap-4">
                 <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                  <span className="font-semibold text-slate-900">{Math.min(displayedCount, products.length)}</span>
+                  <span className="font-semibold text-slate-900">{products.length}</span>
                   <span>of</span>
                   <span className="font-semibold text-slate-900">{totalProducts}</span>
                   <span>products</span>
@@ -694,7 +729,7 @@ function ProductsContent() {
             {/* Products Grid */}
             {!loading && products.length > 0 && (
               <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.slice(0, displayedCount).map((product, index) => (
+                {products.map((product, index) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
@@ -722,7 +757,6 @@ function ProductsContent() {
                           Featured
                         </span>
                       )}
-                      // ...sale badge removed...
                       {product.isActive && (
                         <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-2">
                           <button
@@ -754,7 +788,7 @@ function ProductsContent() {
                       {product.categories && Array.isArray(product.categories) && product.categories.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           <span className="text-xs font-semibold text-text-600">Categories:</span>
-                          {product.categories.map((cat: any) => (
+                          {product.categories.map((cat: ProductCategoryEntry) => (
                             <span key={cat.categoryId || cat.id} className="bg-bg-200 text-text-700 px-2 py-1 rounded text-xs">
                               {cat.category?.name || cat.name || cat.categoryId}
                             </span>
@@ -828,7 +862,7 @@ function ProductsContent() {
             )}
 
             {/* Infinite Scroll Trigger */}
-            {displayedCount < totalProducts && (
+            {hasMore && (
               <div ref={observerTarget} className="mt-12 py-8 text-center">
                 <div className="flex flex-col items-center gap-3">
                   {loadingMore && (
@@ -849,7 +883,7 @@ function ProductsContent() {
               <div className="mt-6 flex justify-center">
                 <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 shadow-sm">
                   <span>Showing</span>
-                  <span className="font-semibold text-slate-900">{Math.min(displayedCount, products.length)}</span>
+                  <span className="font-semibold text-slate-900">{products.length}</span>
                   <span>of</span>
                   <span className="font-semibold text-slate-900">{totalProducts}</span>
                   <span>products</span>

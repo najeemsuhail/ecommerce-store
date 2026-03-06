@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const categories = await prisma.category.findMany({
       include: {
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, slug, parentId } = await req.json();
+    const { name, slug, parentId, imageUrl } = await req.json();
 
     if (!name || !slug) {
       return NextResponse.json(
@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         slug,
-        parentId: parentId || null
+        parentId: parentId || null,
+        imageUrl: imageUrl || null,
       },
       include: {
         parent: true,
@@ -63,9 +64,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(category, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating category:', error);
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === 'P2002') {
       return NextResponse.json(
         { error: 'Category slug already exists' },
         { status: 400 }

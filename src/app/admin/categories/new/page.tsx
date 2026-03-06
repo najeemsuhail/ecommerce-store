@@ -9,6 +9,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
   parentId: string | null;
   children?: Category[];
 }
@@ -18,7 +19,8 @@ export default function NewCategoryPage() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    parentId: ''
+    parentId: '',
+    imageUrl: '',
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,7 +71,8 @@ export default function NewCategoryPage() {
         body: JSON.stringify({
           name: formData.name,
           slug: formData.slug,
-          parentId: formData.parentId || null
+          parentId: formData.parentId || null,
+          imageUrl: formData.imageUrl || null,
         })
       });
 
@@ -79,8 +82,8 @@ export default function NewCategoryPage() {
       }
 
       router.push('/admin/categories');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create category');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create category');
     } finally {
       setLoading(false);
     }
@@ -136,6 +139,19 @@ export default function NewCategoryPage() {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., electronics"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Category Image URL (Optional)
+            </label>
+            <input
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com/category-image.jpg"
             />
           </div>
 

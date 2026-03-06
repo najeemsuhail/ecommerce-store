@@ -9,6 +9,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
   parentId: string | null;
   children?: Category[];
 }
@@ -21,7 +22,8 @@ export default function EditCategoryPage() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    parentId: ''
+    parentId: '',
+    imageUrl: '',
   });
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,7 +50,8 @@ export default function EditCategoryPage() {
       setFormData({
         name: category.name,
         slug: category.slug,
-        parentId: category.parentId || ''
+        parentId: category.parentId || '',
+        imageUrl: category.imageUrl || '',
       });
       setAllCategories(allCats);
     } catch (err) {
@@ -89,7 +92,8 @@ export default function EditCategoryPage() {
         body: JSON.stringify({
           name: formData.name,
           slug: formData.slug,
-          parentId: formData.parentId || null
+          parentId: formData.parentId || null,
+          imageUrl: formData.imageUrl || null,
         })
       });
 
@@ -99,8 +103,8 @@ export default function EditCategoryPage() {
       }
 
       router.push('/admin/categories');
-    } catch (err: any) {
-      setError(err.message || 'Failed to update category');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to update category');
     } finally {
       setLoading(false);
     }
@@ -164,6 +168,19 @@ export default function EditCategoryPage() {
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., electronics"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Category Image URL (Optional)
+            </label>
+            <input
+              type="url"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://example.com/category-image.jpg"
             />
           </div>
 
