@@ -550,7 +550,36 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Reviews Section */}
+          {/* Product Recommendations */}
+        {product && (
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto px-4">
+              <ProductRecommendations 
+                productId={product.id}
+                limit={4}
+                title="Similar Products You May Like"
+                showTitle={true}
+                className="mb-8"
+                onAddToCart={(product) => {
+                  addItem({
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    image: product.images?.[0],
+                    slug: product.slug,
+                    isDigital: product.isDigital || false,
+                    weight: product.weight || undefined,
+                  });
+                  setNotificationMessage(`${product.name} added to cart!`);
+                  setShowNotification(true);
+                }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Reviews Section */}
           <div className="mt-12">
             {/* Review Form */}
             <ReviewForm 
@@ -589,35 +618,7 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* Product Recommendations */}
-        {product && (
-          <div className="mt-16 pt-12 border-t border-gray-200">
-            <div className="max-w-7xl mx-auto px-4">
-              <ProductRecommendations 
-                productId={product.id}
-                limit={4}
-                title="Similar Products You May Like"
-                showTitle={true}
-                className="mb-8"
-                onAddToCart={(product) => {
-                  addItem({
-                    productId: product.id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: 1,
-                    image: product.images?.[0],
-                    slug: product.slug,
-                    isDigital: product.isDigital || false,
-                    weight: product.weight || undefined,
-                  });
-                  setNotificationMessage(`${product.name} added to cart!`);
-                  setShowNotification(true);
-                }}
-              />
-            </div>
-          </div>
-        )}
-        
+
         {/* Notifications */}
         <AddToCartNotification 
           isVisible={showNotification}
@@ -639,3 +640,4 @@ export default function ProductDetailPage() {
     </Layout>
   );
 }
+

@@ -819,13 +819,13 @@ function ProductsContent() {
                         )}
                       </div>
 
-                      {product.averageRating > 0 && (
+                      {(product.averageRating ?? 0) > 0 && (
                         <div className="flex items-center gap-1 mb-3 text-sm">
                           <span className="text-yellow-400">
-                            {'★'.repeat(Math.round(product.averageRating))}
+                            {'★'.repeat(Math.round(product.averageRating ?? 0))}
                           </span>
                           <span className="text-text-600">
-                            ({product.reviewCount})
+                            ({product.reviewCount ?? 0})
                           </span>
                         </div>
                       )}
@@ -947,3 +947,4 @@ export default function ProductsPage() {
     </Layout>
   );
 }
+
