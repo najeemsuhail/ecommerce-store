@@ -6,33 +6,44 @@ import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
-type ProductWithRelations = Prisma.ProductGetPayload<{
-  include: typeof productInclude;
+const productListSelect = {
+  id: true,
+  name: true,
+  description: true,
+  price: true,
+  comparePrice: true,
+  isDigital: true,
+  stock: true,
+  images: true,
+  slug: true,
+  isActive: true,
+  isFeatured: true,
+  brand: true,
+  tags: true,
+  weight: true,
+  createdAt: true,
+  categories: {
+    select: {
+      categoryId: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  },
+} as const;
+
+type ProductListRow = Prisma.ProductGetPayload<{
+  select: typeof productListSelect;
 }>;
 
-type ProductWithRating = Omit<ProductWithRelations, 'reviews'> & {
+type ProductWithRating = ProductListRow & {
   averageRating: number;
   reviewCount: number;
 };
-
-const productInclude = {
-  reviews: {
-    select: {
-      rating: true,
-    },
-  },
-  categories: {
-    include: {
-      category: true,
-    },
-  },
-  attributes: {
-    include: {
-      attribute: true,
-    },
-  },
-  variants: true,
-} as const;
 
 function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
   return [
@@ -54,6 +65,15 @@ function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
 
 // GET all products (with search and filter)
 export async function GET(request: NextRequest) {
+  const startedAt = Date.now();
+  let searchSource: 'elasticsearch' | 'database' = 'database';
+
+  const buildResponseHeaders = () => ({
+    'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+    'X-Search-Source': searchSource,
+    'X-Response-Time-ms': String(Date.now() - startedAt),
+  });
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search');
@@ -152,6 +172,9 @@ export async function GET(request: NextRequest) {
             tag: tag || undefined,
           },
         });
+        if (elasticsearchResult) {
+          searchSource = 'elasticsearch';
+        }
       } catch (error) {
         console.error('Elasticsearch product search failed, falling back to database search:', error);
       }
@@ -238,11 +261,11 @@ export async function GET(request: NextRequest) {
 
     const shouldUnionSearchAndFacets = hasSearch && hasNonSearchFilters;
 
-    let products: ProductWithRelations[] = [];
+    let products: ProductListRow[] = [];
     let totalCount = 0;
 
     if (shouldUnionSearchAndFacets && search) {
-      let searchProducts: ProductWithRelations[] = [];
+      let searchProducts: ProductListRow[] = [];
 
       if (elasticsearchResult) {
         if (elasticsearchResult.productIds.length > 0) {
@@ -253,7 +276,7 @@ export async function GET(request: NextRequest) {
                 in: elasticsearchResult.productIds,
               },
             },
-            include: productInclude,
+            select: productListSelect,
           });
         }
       } else {
@@ -263,17 +286,17 @@ export async function GET(request: NextRequest) {
             OR: buildSearchOrConditions(search),
           },
           orderBy,
-          include: productInclude,
+          select: productListSelect,
         });
       }
 
       const facetProducts = await prisma.product.findMany({
         where: facetWhere,
         orderBy,
-        include: productInclude,
+        select: productListSelect,
       });
 
-      const mergedById = new Map<string, ProductWithRelations>();
+      const mergedById = new Map<string, ProductListRow>();
       for (const product of searchProducts) {
         mergedById.set(product.id, product);
       }
@@ -298,9 +321,7 @@ export async function GET(request: NextRequest) {
               facets: elasticsearchResult.facets || null,
             },
             {
-              headers: {
-                'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
-              },
+              headers: buildResponseHeaders(),
             }
           );
         }
@@ -317,7 +338,7 @@ export async function GET(request: NextRequest) {
         orderBy: elasticsearchResult ? undefined : orderBy,
         skip: elasticsearchResult ? 0 : skip,
         take: elasticsearchResult ? undefined : limit,
-        include: productInclude,
+        select: productListSelect,
       });
 
       totalCount = elasticsearchResult
@@ -336,26 +357,37 @@ export async function GET(request: NextRequest) {
           facets: elasticsearchResult?.facets || null,
         },
         {
-          headers: {
-            'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
-          },
+          headers: buildResponseHeaders(),
         }
       );
     }
 
-    // Calculate average rating for each product
+    const productIds = products.map((product) => product.id);
+    const ratingGroups = productIds.length
+      ? await prisma.review.groupBy({
+          by: ['productId'],
+          where: {
+            productId: { in: productIds },
+          },
+          _avg: { rating: true },
+          _count: { rating: true },
+        })
+      : [];
+    const ratingMap = new Map(
+      ratingGroups.map((group) => [
+        group.productId,
+        {
+          averageRating: Math.round((group._avg.rating ?? 0) * 10) / 10,
+          reviewCount: group._count.rating,
+        },
+      ])
+    );
     const productsWithRating: ProductWithRating[] = products.map((product) => {
-      const avgRating =
-        product.reviews.length > 0
-          ? product.reviews.reduce((sum, r) => sum + r.rating, 0) / product.reviews.length
-          : 0;
-      
-      const { reviews, ...productData } = product;
-      
+      const rating = ratingMap.get(product.id);
       return {
-        ...productData,
-        averageRating: Math.round(avgRating * 10) / 10,
-        reviewCount: reviews.length,
+        ...product,
+        averageRating: rating?.averageRating ?? 0,
+        reviewCount: rating?.reviewCount ?? 0,
       };
     });
 
@@ -387,9 +419,7 @@ export async function GET(request: NextRequest) {
         facets: elasticsearchResult?.facets || null,
       },
       {
-        headers: {
-          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
-        },
+        headers: buildResponseHeaders(),
       }
     );
   } catch (error) {
