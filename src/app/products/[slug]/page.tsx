@@ -581,7 +581,7 @@ export default function ProductDetailPage() {
                               Math.min(
                                 product.isDigital 
                                   ? 999 
-                                  : (selectedVariant ? selectedVariant.stock : product.stock),
+                                  : (selectedVariant?.stock ?? product.stock ?? 999),
                                 quantity + 1
                               )
                             )
