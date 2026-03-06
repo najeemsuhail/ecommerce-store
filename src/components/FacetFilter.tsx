@@ -67,6 +67,12 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
   };
 
   const fetchAttributes = useCallback(async () => {
+    if (!SHOW_ATTRIBUTES_SECTION) {
+      setAttributes([]);
+      setAttributesLoading(false);
+      return;
+    }
+
     try {
       setAttributesLoading(true);
       const attributeMap = new Map<string, Attribute>(); // Deduplicate by NAME

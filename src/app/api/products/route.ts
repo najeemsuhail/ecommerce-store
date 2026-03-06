@@ -45,6 +45,18 @@ type ProductWithRating = ProductListRow & {
   reviewCount: number;
 };
 
+type ApiFacets = {
+  brands: Array<{ name: string; count: number }>;
+  categories: Array<{ name: string; id: string; count: number }>;
+  priceRange: { min: number; max: number };
+};
+
+type ElasticsearchFacets = {
+  brands: Array<{ name: string; count: number }>;
+  categories: Array<{ name: string; count: number }>;
+  priceRange: { min: number; max: number };
+};
+
 function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
   return [
     { name: { contains: search, mode: 'insensitive' as const } },
@@ -61,6 +73,139 @@ function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
       },
     },
   ];
+}
+
+async function normalizeElasticsearchFacets(
+  facets: ElasticsearchFacets | null | undefined
+): Promise<ApiFacets | null> {
+  if (!facets) {
+    return null;
+  }
+
+  const categoryNames = facets.categories.map((category) => category.name);
+  const categoriesByName = new Map<string, { id: string; name: string }>();
+  if (categoryNames.length > 0) {
+    const categoryRows = await prisma.category.findMany({
+      where: {
+        name: { in: categoryNames },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+    for (const category of categoryRows) {
+      categoriesByName.set(category.name, { id: category.id, name: category.name });
+    }
+  }
+
+  return {
+    brands: facets.brands,
+    categories: facets.categories.map((category) => ({
+      name: category.name,
+      id: categoriesByName.get(category.name)?.id || category.name,
+      count: category.count,
+    })),
+    priceRange: {
+      min: facets.priceRange.min ?? 0,
+      max: facets.priceRange.max ?? 0,
+    },
+  };
+}
+
+function buildFacetsFromProducts(products: ProductListRow[]): ApiFacets {
+  const brands = new Map<string, number>();
+  const categories = new Map<string, { id: string; count: number }>();
+  let minPrice = Number.MAX_VALUE;
+  let maxPrice = 0;
+
+  for (const product of products) {
+    if (product.brand) {
+      brands.set(product.brand, (brands.get(product.brand) || 0) + 1);
+    }
+
+    for (const productCategory of product.categories || []) {
+      const categoryName = productCategory.category?.name || productCategory.categoryId;
+      const categoryId = productCategory.category?.id || productCategory.categoryId;
+      const existing = categories.get(categoryName);
+      if (existing) {
+        existing.count += 1;
+      } else {
+        categories.set(categoryName, { id: categoryId, count: 1 });
+      }
+    }
+
+    if (typeof product.price === 'number') {
+      minPrice = Math.min(minPrice, product.price);
+      maxPrice = Math.max(maxPrice, product.price);
+    }
+  }
+
+  return {
+    brands: Array.from(brands.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    categories: Array.from(categories.entries())
+      .map(([name, value]) => ({ name, id: value.id, count: value.count }))
+      .sort((a, b) => b.count - a.count),
+    priceRange: {
+      min: minPrice === Number.MAX_VALUE ? 0 : minPrice,
+      max: maxPrice,
+    },
+  };
+}
+
+async function buildDatabaseFacets(where: Prisma.ProductWhereInput): Promise<ApiFacets> {
+  const [brandGroups, priceAggregate, categoryGroups] = await Promise.all([
+    prisma.product.groupBy({
+      by: ['brand'],
+      where: {
+        ...where,
+        brand: { not: null },
+      },
+      _count: { brand: true },
+    }),
+    prisma.product.aggregate({
+      where,
+      _min: { price: true },
+      _max: { price: true },
+    }),
+    prisma.productCategory.groupBy({
+      by: ['categoryId'],
+      where: {
+        product: where,
+      },
+      _count: { categoryId: true },
+    }),
+  ]);
+
+  const categoryIds = categoryGroups.map((group) => group.categoryId);
+  const categoryRows =
+    categoryIds.length > 0
+      ? await prisma.category.findMany({
+          where: { id: { in: categoryIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const categoryMap = new Map(categoryRows.map((category) => [category.id, category.name]));
+
+  return {
+    brands: brandGroups
+      .filter((group) => Boolean(group.brand))
+      .map((group) => ({ name: group.brand as string, count: group._count.brand }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    categories: categoryGroups
+      .map((group) => ({
+        id: group.categoryId,
+        name: categoryMap.get(group.categoryId) || group.categoryId,
+        count: group._count.categoryId,
+      }))
+      .sort((a, b) => b.count - a.count),
+    priceRange: {
+      min: priceAggregate._min.price ?? 0,
+      max: priceAggregate._max.price ?? 0,
+    },
+  };
 }
 
 // GET all products (with search and filter)
@@ -84,6 +229,7 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice');
     const tag = searchParams.get('tag');
     const isFeatured = searchParams.get('isFeatured');
+    const includeFacetsRequested = searchParams.get('includeFacets') === 'true';
     const sort = searchParams.get('sort') || 'newest';
     const skip = parseInt(searchParams.get('skip') || '0');
     const limit = parseInt(searchParams.get('limit') || '12');
@@ -120,17 +266,15 @@ export async function GET(request: NextRequest) {
       attributeFilters.size > 0;
 
     const hasSearch = Boolean(search);
+    const shouldIncludeFacets = includeFacetsRequested || hasSearch;
     const shouldTryElasticsearch = isElasticsearchEnabled() && attributeFilters.size === 0;
 
     let elasticsearchResult: {
       productIds: string[];
       total: number;
-      facets?: {
-        brands: Array<{ name: string; count: number }>;
-        categories: Array<{ name: string; count: number }>;
-        priceRange: { min: number; max: number };
-      };
+      facets?: ElasticsearchFacets;
     } | null = null;
+    let responseFacets: ApiFacets | null = null;
 
     if (shouldTryElasticsearch) {
       // Resolve category ids/slugs/names to category names for Elasticsearch filtering.
@@ -161,7 +305,7 @@ export async function GET(request: NextRequest) {
           from: elasticFrom,
           size: elasticSize,
           sort: sort as 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating',
-          includeFacets: hasSearch,
+          includeFacets: shouldIncludeFacets,
           filters: {
             brands: brands.length > 0 ? brands : undefined,
             categories: categoryNamesForElasticsearch,
@@ -174,6 +318,9 @@ export async function GET(request: NextRequest) {
         });
         if (elasticsearchResult) {
           searchSource = 'elasticsearch';
+          if (shouldIncludeFacets) {
+            responseFacets = await normalizeElasticsearchFacets(elasticsearchResult.facets);
+          }
         }
       } catch (error) {
         console.error('Elasticsearch product search failed, falling back to database search:', error);
@@ -307,6 +454,10 @@ export async function GET(request: NextRequest) {
       }
       products = Array.from(mergedById.values());
       totalCount = products.length;
+
+      if (shouldIncludeFacets && !responseFacets) {
+        responseFacets = buildFacetsFromProducts(products);
+      }
     } else {
       const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
 
@@ -318,7 +469,7 @@ export async function GET(request: NextRequest) {
               products: [],
               count: 0,
               total: 0,
-              facets: elasticsearchResult.facets || null,
+              facets: responseFacets,
             },
             {
               headers: buildResponseHeaders(),
@@ -344,6 +495,10 @@ export async function GET(request: NextRequest) {
       totalCount = elasticsearchResult
         ? elasticsearchResult.total
         : await prisma.product.count({ where: combinedWhere });
+
+      if (shouldIncludeFacets && !responseFacets) {
+        responseFacets = await buildDatabaseFacets(combinedWhere);
+      }
     }
 
     // If no products found, return empty array
@@ -354,7 +509,7 @@ export async function GET(request: NextRequest) {
           products: [],
           count: 0,
           total: 0,
-          facets: elasticsearchResult?.facets || null,
+          facets: responseFacets,
         },
         {
           headers: buildResponseHeaders(),
@@ -416,7 +571,7 @@ export async function GET(request: NextRequest) {
         products: finalProducts,
         count: finalProducts.length,
         total: totalCount,
-        facets: elasticsearchResult?.facets || null,
+        facets: responseFacets,
       },
       {
         headers: buildResponseHeaders(),

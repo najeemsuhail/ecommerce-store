@@ -77,7 +77,6 @@ function FilterSkeleton() {
 function ProductsContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<any[]>([]);
-  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -188,61 +187,13 @@ function ProductsContent() {
 
   const fetchAllProducts = async () => {
     try {
-      // Fetch all products (with high limit) to calculate accurate facets
-      const response = await fetch('/api/products?limit=10000', {
+      // Fetch facets from API (ES-first with DB fallback)
+      const response = await fetch('/api/products?includeFacets=true&limit=1&skip=0', {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
       const data = await response.json();
-      if (data.success) {
-        setAllProducts(data.products);
-        
-        // Extract facets from all products
-        const brands = new Map<string, number>();
-        const categories = new Map<string, { id: string; count: number }>();
-        let minPrice = Number.MAX_VALUE;
-        let maxPrice = 0;
-
-        // Track which products are in which categories to avoid duplicate counting
-        const categoryProducts = new Map<string, Set<string>>();
-        
-        data.products.forEach((p: any) => {
-          if (p.brand) {
-            brands.set(p.brand, (brands.get(p.brand) || 0) + 1);
-          }
-          // Collect categories from the many-to-many relationship
-          if (p.categories && Array.isArray(p.categories)) {
-            p.categories.forEach((cat: any) => {
-              const categoryName = cat.category?.name || cat.categoryId;
-              const categoryId = cat.category?.id || cat.categoryId;
-              if (!categories.has(categoryName)) {
-                categories.set(categoryName, { id: categoryId, count: 0 });
-                categoryProducts.set(categoryName, new Set());
-              }
-              // Add product ID to track unique products per category
-              categoryProducts.get(categoryName)!.add(p.id);
-            });
-          }
-          if (p.price) {
-            minPrice = Math.min(minPrice, p.price);
-            maxPrice = Math.max(maxPrice, p.price);
-          }
-        });
-        
-        // Update category counts with unique product counts
-        categories.forEach((catData, catName) => {
-          catData.count = categoryProducts.get(catName)?.size || 0;
-        });
-
-        const computedFacets = {
-          brands: Array.from(brands.entries())
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => a.name.localeCompare(b.name)),
-          categories: Array.from(categories.entries())
-            .map(([name, { id, count }]) => ({ name, id, count }))
-            .sort((a, b) => b.count - a.count),
-          priceRange: { min: minPrice === Number.MAX_VALUE ? 0 : minPrice, max: maxPrice },
-        };
-
+      if (data.success && data.facets) {
+        const computedFacets: FacetData = data.facets;
         setDefaultFacets(computedFacets);
         const activeSearch = searchParams.get('search') || searchTerm;
         if (!activeSearch.trim()) {
@@ -254,7 +205,7 @@ function ProductsContent() {
           ...prev,
           priceRange: {
             min: prev.priceRange.min,
-            max: maxPrice,
+            max: computedFacets.priceRange.max,
           },
         }));
       }
