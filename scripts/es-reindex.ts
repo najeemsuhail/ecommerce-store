@@ -11,6 +11,33 @@ const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD;
 
 const BATCH_SIZE = 200;
 
+const PRODUCT_INDEX_MAPPING = {
+  properties: {
+    id: { type: 'keyword' },
+    productId: { type: 'keyword' },
+    name: { type: 'text' },
+    description: { type: 'text' },
+    brand: {
+      type: 'text',
+      fields: {
+        keyword: { type: 'keyword' },
+      },
+    },
+    tags: { type: 'keyword' },
+    categoryNames: {
+      type: 'text',
+      fields: {
+        keyword: { type: 'keyword' },
+      },
+    },
+    isActive: { type: 'boolean' },
+    isDigital: { type: 'boolean' },
+    isFeatured: { type: 'boolean' },
+    price: { type: 'float' },
+    createdAt: { type: 'date' },
+  },
+} as const;
+
 function buildHeaders(contentType: string) {
   const headers: Record<string, string> = {
     'Content-Type': contentType,
@@ -45,6 +72,18 @@ async function ensureIndex() {
   });
 
   if (existsResponse.ok) {
+    // Ensure newer fields are present even for existing indexes.
+    const mappingResponse = await fetch(`${indexUrl}/_mapping`, {
+      method: 'PUT',
+      headers: buildHeaders('application/json'),
+      body: JSON.stringify(PRODUCT_INDEX_MAPPING),
+    });
+    if (!mappingResponse.ok) {
+      const errorText = await mappingResponse.text();
+      throw new Error(
+        `Failed updating index mapping for "${ELASTICSEARCH_INDEX}": ${mappingResponse.status} ${errorText}`
+      );
+    }
     return;
   }
 
@@ -59,18 +98,7 @@ async function ensureIndex() {
     method: 'PUT',
     headers: buildHeaders('application/json'),
     body: JSON.stringify({
-      mappings: {
-        properties: {
-          id: { type: 'keyword' },
-          productId: { type: 'keyword' },
-          name: { type: 'text' },
-          description: { type: 'text' },
-          brand: { type: 'text' },
-          tags: { type: 'keyword' },
-          categoryNames: { type: 'text' },
-          isActive: { type: 'boolean' },
-        },
-      },
+      mappings: PRODUCT_INDEX_MAPPING,
     }),
   });
 
@@ -94,6 +122,10 @@ async function indexBatch(skip: number) {
       brand: true,
       tags: true,
       isActive: true,
+      isDigital: true,
+      isFeatured: true,
+      price: true,
+      createdAt: true,
       categories: {
         select: {
           category: {
@@ -131,6 +163,10 @@ async function indexBatch(skip: number) {
         tags: product.tags,
         categoryNames: product.categories.map((entry) => entry.category.name),
         isActive: product.isActive,
+        isDigital: product.isDigital,
+        isFeatured: product.isFeatured,
+        price: product.price,
+        createdAt: product.createdAt.toISOString(),
       })
     );
   }
