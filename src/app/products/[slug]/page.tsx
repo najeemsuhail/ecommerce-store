@@ -179,12 +179,14 @@ export default function ProductDetailPage() {
   };
 
   const handlePrevImage = () => {
+    if (!product || !product.images || product.images.length === 0) return;
     setSelectedImage((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
+    if (!product || !product.images || product.images.length === 0) return;
     setSelectedImage((prev) =>
       prev === product.images.length - 1 ? 0 : prev + 1
     );
