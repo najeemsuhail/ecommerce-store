@@ -6,6 +6,7 @@ import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib
 // Uses PostgreSQL full-text search for better results with thousands of products
 export async function GET(request: NextRequest) {
   try {
+    let autocompleteSource: 'elasticsearch' | 'database' = 'database';
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('q');
     const limit = parseInt(searchParams.get('limit') || '8');
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
                 (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
             )
             .map((product) => ({ ...product, rank: 100 - (rankMap.get(product.id) ?? 100) }));
+          autocompleteSource = 'elasticsearch';
         }
       } catch (error) {
         console.error('Elasticsearch autocomplete search failed, falling back to database search:', error);
@@ -189,13 +191,20 @@ export async function GET(request: NextRequest) {
       name: tag,
     }));
 
-    return NextResponse.json({
-      success: true,
-      products: productSuggestions,
-      categories: categorySuggestions,
-      tags: tagSuggestions,
-      totalResults: productSuggestions.length + categorySuggestions.length + tagSuggestions.length,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        products: productSuggestions,
+        categories: categorySuggestions,
+        tags: tagSuggestions,
+        totalResults: productSuggestions.length + categorySuggestions.length + tagSuggestions.length,
+      },
+      {
+        headers: {
+          'X-Autocomplete-Source': autocompleteSource,
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching autocomplete suggestions:', error);
     return NextResponse.json(

@@ -65,6 +65,23 @@ async function ensureIndex() {
   const baseUrl = getBaseUrl();
   const indexUrl = `${baseUrl}/${ELASTICSEARCH_INDEX}`;
 
+  async function createIndex() {
+    const createResponse = await fetch(indexUrl, {
+      method: 'PUT',
+      headers: buildHeaders('application/json'),
+      body: JSON.stringify({
+        mappings: PRODUCT_INDEX_MAPPING,
+      }),
+    });
+
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+      throw new Error(
+        `Failed creating index "${ELASTICSEARCH_INDEX}": ${createResponse.status} ${errorText}`
+      );
+    }
+  }
+
   const existsResponse = await fetch(indexUrl, {
     method: 'HEAD',
     headers: buildHeaders('application/json'),
@@ -79,9 +96,34 @@ async function ensureIndex() {
 
     if (!mappingResponse.ok) {
       const errorText = await mappingResponse.text();
-      throw new Error(
-        `Failed updating index mapping for "${ELASTICSEARCH_INDEX}": ${mappingResponse.status} ${errorText}`
+      const isImmutableTypeConflict =
+        mappingResponse.status === 400 &&
+        errorText.includes('cannot be changed from type');
+
+      if (!isImmutableTypeConflict) {
+        throw new Error(
+          `Failed updating index mapping for "${ELASTICSEARCH_INDEX}": ${mappingResponse.status} ${errorText}`
+        );
+      }
+
+      // Elasticsearch field types are immutable; recreate index with the correct mapping.
+      console.log(
+        `Mapping conflict detected for "${ELASTICSEARCH_INDEX}". Recreating index with latest mapping...`
       );
+
+      const deleteResponse = await fetch(indexUrl, {
+        method: 'DELETE',
+        headers: buildHeaders('application/json'),
+      });
+
+      if (!deleteResponse.ok) {
+        const deleteErrorText = await deleteResponse.text();
+        throw new Error(
+          `Failed deleting conflicted index "${ELASTICSEARCH_INDEX}": ${deleteResponse.status} ${deleteErrorText}`
+        );
+      }
+
+      await createIndex();
     }
     return;
   }
@@ -93,20 +135,7 @@ async function ensureIndex() {
     );
   }
 
-  const createResponse = await fetch(indexUrl, {
-    method: 'PUT',
-    headers: buildHeaders('application/json'),
-    body: JSON.stringify({
-      mappings: PRODUCT_INDEX_MAPPING,
-    }),
-  });
-
-  if (!createResponse.ok) {
-    const errorText = await createResponse.text();
-    throw new Error(
-      `Failed creating index "${ELASTICSEARCH_INDEX}": ${createResponse.status} ${errorText}`
-    );
-  }
+  await createIndex();
 }
 
 async function indexBatch(skip) {
@@ -244,4 +273,3 @@ run()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
