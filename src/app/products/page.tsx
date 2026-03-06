@@ -450,7 +450,7 @@ function ProductsContent() {
         {/* Products Layout with Facet Filter */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
-          {loading ? (
+          {loading && products.length === 0 ? (
             <div className="hidden lg:block lg:col-span-4">
               <FilterSkeleton />
             </div>
