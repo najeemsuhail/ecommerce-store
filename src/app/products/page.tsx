@@ -182,13 +182,16 @@ function ProductsContent() {
     }
   }, [searchParams]);
 
-  // Fetch filtered products when filters change
+  // Fetch products when filters/sort/search change
   useEffect(() => {
-    setProducts([]); // Clear products
     setHasMore(true);
     fetchProducts(0, false);
-    fetchFacets(0);
   }, [facetFilters, sortBy, searchTerm]);
+
+  // Fetch facets separately (sort does not affect facet counts)
+  useEffect(() => {
+    fetchFacets(0);
+  }, [facetFilters, searchTerm]);
   
   // Infinite scroll observer
   useEffect(() => {
@@ -223,13 +226,19 @@ function ProductsContent() {
         const computedFacets: FacetData = data.facets;
         setDefaultFacets(computedFacets);
         setFacets(computedFacets);
-        setFacetFilters((prev) => ({
-          ...prev,
-          priceRange: {
-            min: prev.priceRange.min,
-            max: computedFacets.priceRange.max,
-          },
-        }));
+        setFacetFilters((prev) => {
+          if (prev.priceRange.max === computedFacets.priceRange.max) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            priceRange: {
+              min: prev.priceRange.min,
+              max: computedFacets.priceRange.max,
+            },
+          };
+        });
       }
     } catch (error) {
       if (requestId !== latestFacetRequestId.current) {
@@ -627,7 +636,7 @@ function ProductsContent() {
             )}
 
             {/* Results Count and Sort */}
-            {!loading && products.length > 0 && (
+            {products.length > 0 && (
               <div className="mb-6 flex justify-between items-center gap-4">
                 <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
                   <span className="font-semibold text-slate-900">{products.length}</span>
@@ -662,7 +671,7 @@ function ProductsContent() {
             )}
 
             {/* Loading */}
-            {loading && (
+            {loading && products.length === 0 && (
               <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {[...Array(12)].map((_, i) => (
                   <div key={i} className="bg-light-theme rounded-lg shadow overflow-hidden">
@@ -722,7 +731,7 @@ function ProductsContent() {
             )}
 
             {/* Products Grid */}
-            {!loading && products.length > 0 && (
+            {products.length > 0 && (
               <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((product, index) => (
                   <Link
