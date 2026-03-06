@@ -152,6 +152,7 @@ function ProductsContent() {
   const { isInWishlist, groups, createGroup, addItemToGroup, removeItemFromGroup } = useWishlist();
   const isFetching = useRef(false);
   const latestFetchRequestId = useRef(0);
+  const latestFacetRequestId = useRef(0);
   const observerTarget = useRef<HTMLDivElement>(null);
   const activeFiltersCount =
     facetFilters.brands.length +
@@ -181,16 +182,12 @@ function ProductsContent() {
     }
   }, [searchParams]);
 
-  // Fetch all products once for facets
-  useEffect(() => {
-    fetchAllProducts();
-  }, []);
-
   // Fetch filtered products when filters change
   useEffect(() => {
     setProducts([]); // Clear products
     setHasMore(true);
     fetchProducts(0, false);
+    fetchFacets(0);
   }, [facetFilters, sortBy, searchTerm]);
   
   // Infinite scroll observer
@@ -211,22 +208,21 @@ function ProductsContent() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, loading, products.length, totalProducts]);
 
-  const fetchAllProducts = async () => {
+  const fetchFacets = async (skip = 0) => {
+    const requestId = ++latestFacetRequestId.current;
     try {
-      // Fetch facets from API (ES-first with DB fallback)
-      const response = await fetch('/api/products?includeFacets=true&limit=1&skip=0', {
-        next: { revalidate: 300 }, // Revalidate every 5 minutes
+      const url = `${buildProductsUrl(skip, 0, true)}&facetsOnly=true`;
+      const response = await fetch(url, {
+        next: { revalidate: 300 },
       });
       const data = await response.json();
+      if (requestId !== latestFacetRequestId.current) {
+        return;
+      }
       if (data.success && data.facets) {
         const computedFacets: FacetData = data.facets;
         setDefaultFacets(computedFacets);
-        const activeSearch = searchParams.get('search') || searchTerm;
-        if (!activeSearch.trim()) {
-          setFacets(computedFacets);
-        }
-
-        // Set initial price range
+        setFacets(computedFacets);
         setFacetFilters((prev) => ({
           ...prev,
           priceRange: {
@@ -236,7 +232,10 @@ function ProductsContent() {
         }));
       }
     } catch (error) {
-      console.error('Failed to fetch all products');
+      if (requestId !== latestFacetRequestId.current) {
+        return;
+      }
+      console.error('Failed to fetch facets');
     }
   };
 
@@ -302,7 +301,7 @@ function ProductsContent() {
     }
 
     try {
-      const url = buildProductsUrl(skip, itemsPerLoad, !append);
+      const url = buildProductsUrl(skip, itemsPerLoad, false);
 
       const response = await fetch(url, {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
@@ -320,12 +319,8 @@ function ProductsContent() {
         const loadedCount = append ? skip + data.products.length : data.products.length;
         setHasMore(loadedCount < (data.total || loadedCount));
 
-        if (!append) {
-          if (data.facets) {
-            setFacets(data.facets);
-          } else {
-            setFacets(defaultFacets);
-          }
+        if (!append && !data.facets) {
+          setFacets(defaultFacets);
         }
       }
     } catch (error) {

@@ -230,6 +230,7 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag');
     const isFeatured = searchParams.get('isFeatured');
     const includeFacetsRequested = searchParams.get('includeFacets') === 'true';
+    const facetsOnlyRequested = searchParams.get('facetsOnly') === 'true';
     const sort = searchParams.get('sort') || 'newest';
     const skip = parseInt(searchParams.get('skip') || '0');
     const limit = parseInt(searchParams.get('limit') || '12');
@@ -266,7 +267,7 @@ export async function GET(request: NextRequest) {
       attributeFilters.size > 0;
 
     const hasSearch = Boolean(search);
-    const shouldIncludeFacets = includeFacetsRequested;
+    const shouldIncludeFacets = includeFacetsRequested || facetsOnlyRequested;
     const shouldTryElasticsearch = isElasticsearchEnabled() && attributeFilters.size === 0;
 
     let elasticsearchResult: {
@@ -279,7 +280,7 @@ export async function GET(request: NextRequest) {
     if (shouldTryElasticsearch) {
       // Keep wide windows only for heavy search+filter use-cases.
       const elasticFrom = hasNonSearchFilters && hasSearch ? 0 : skip;
-      const elasticSize = hasNonSearchFilters && hasSearch ? 10000 : limit;
+      const elasticSize = facetsOnlyRequested ? 0 : hasNonSearchFilters && hasSearch ? 10000 : limit;
       try {
         elasticsearchResult = await searchProductIdsFromElasticsearch({
           query: search || undefined,
@@ -387,6 +388,51 @@ export async function GET(request: NextRequest) {
       case 'newest':
       default:
         orderBy = { createdAt: 'desc' };
+    }
+
+    if (facetsOnlyRequested) {
+      const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
+      if (elasticsearchResult) {
+        if (elasticsearchResult.productIds.length > 0) {
+          combinedWhere.id = { in: elasticsearchResult.productIds };
+        } else {
+          return NextResponse.json(
+            {
+              success: true,
+              products: [],
+              count: 0,
+              total: 0,
+              facets: responseFacets,
+            },
+            {
+              headers: buildResponseHeaders(),
+            }
+          );
+        }
+      } else if (search) {
+        combinedWhere.OR = buildSearchOrConditions(search);
+      }
+
+      const totalCount = elasticsearchResult
+        ? elasticsearchResult.total
+        : await prisma.product.count({ where: combinedWhere });
+
+      if (shouldIncludeFacets && !responseFacets) {
+        responseFacets = await buildDatabaseFacets(combinedWhere);
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          products: [],
+          count: 0,
+          total: totalCount,
+          facets: responseFacets,
+        },
+        {
+          headers: buildResponseHeaders(),
+        }
+      );
     }
 
     const shouldUnionSearchAndFacets = hasSearch && hasNonSearchFilters;
