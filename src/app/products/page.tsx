@@ -57,6 +57,12 @@ interface ProductListItem {
   categories?: ProductCategoryEntry[];
 }
 
+interface CategoryHierarchyItem {
+  id: string;
+  name: string;
+  parentId: string | null;
+}
+
 const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
 
 // Filter Skeleton Component
@@ -120,6 +126,8 @@ function ProductsContent() {
     categories: [],
     priceRange: { min: 0, max: 100000 },
   });
+  const [stableCategoryFacets, setStableCategoryFacets] = useState<FacetData['categories']>([]);
+  const [categoryHierarchy, setCategoryHierarchy] = useState<CategoryHierarchyItem[]>([]);
 
   const [facetFilters, setFacetFilters] = useState<FacetFilters>({
     brands: [],
@@ -210,6 +218,35 @@ function ProductsContent() {
   useEffect(() => {
     fetchFacets(0);
   }, [facetFilters, searchTerm]);
+
+  useEffect(() => {
+    const fetchCategoryHierarchy = async () => {
+      try {
+        const response = await fetch('/api/admin/categories', {
+          next: { revalidate: 300 },
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!Array.isArray(data)) return;
+        const normalized: CategoryHierarchyItem[] = data
+          .filter((category: { id?: string; name?: string }) => Boolean(category?.id && category?.name))
+          .map((category: { id: string; name: string; parentId?: string | null }) => ({
+            id: category.id,
+            name: category.name,
+            parentId: category.parentId ?? null,
+          }));
+        setCategoryHierarchy(normalized);
+      } catch {
+        // If this fails, facet filter gracefully falls back to flat categories.
+      }
+    };
+    fetchCategoryHierarchy();
+  }, []);
+
+  // Reset stable categories when search context changes.
+  useEffect(() => {
+    setStableCategoryFacets([]);
+  }, [searchTerm]);
   
   // Infinite scroll observer
   useEffect(() => {
@@ -267,6 +304,9 @@ function ProductsContent() {
         const computedFacets: FacetData = data.facets;
         setDefaultFacets(computedFacets);
         setFacets(computedFacets);
+        if (stableCategoryFacets.length === 0 && Array.isArray(computedFacets.categories) && computedFacets.categories.length > 0) {
+          setStableCategoryFacets(computedFacets.categories);
+        }
         setFacetFilters((prev) => {
           if (prev.priceRange.max === computedFacets.priceRange.max) {
             return prev;
@@ -499,6 +539,8 @@ function ProductsContent() {
             <div className="hidden lg:block lg:col-span-4">
               <FacetFilter
                 facets={facets}
+                categoryOptions={stableCategoryFacets}
+                categoryHierarchy={categoryHierarchy}
                 selectedFilters={facetFilters}
                 onFilterChange={setFacetFilters}
               />
@@ -529,6 +571,8 @@ function ProductsContent() {
                 <div className="p-4">
                   <FacetFilter
                     facets={facets}
+                    categoryOptions={stableCategoryFacets}
+                    categoryHierarchy={categoryHierarchy}
                     selectedFilters={facetFilters}
                     onFilterChange={(filters) => {
                       setFacetFilters(filters);
@@ -593,7 +637,7 @@ function ProductsContent() {
                   <button
                     key={category}
                     onClick={() => {
-                      const matchedCategory = facets.categories.find(
+                      const matchedCategory = (stableCategoryFacets.length > 0 ? stableCategoryFacets : facets.categories).find(
                         (c) => normalizeCategoryKey(c.name) === normalizeCategoryKey(category)
                       );
                       setFacetFilters((prev) => ({

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp, faX } from '@fortawesome/free-solid-svg-icons';
 import { formatPrice } from '@/lib/currency';
@@ -34,11 +34,19 @@ interface FacetData {
 
 interface FacetFilterProps {
   facets: FacetData;
+  categoryOptions?: { name: string; id: string; count: number }[];
+  categoryHierarchy?: { id: string; name: string; parentId?: string | null }[];
   selectedFilters: FacetFilters;
   onFilterChange: (filters: FacetFilters) => void;
 }
 
-export default function FacetFilter({ facets, selectedFilters, onFilterChange }: FacetFilterProps) {
+export default function FacetFilter({
+  facets,
+  categoryOptions,
+  categoryHierarchy,
+  selectedFilters,
+  onFilterChange,
+}: FacetFilterProps) {
   const SHOW_ATTRIBUTES_SECTION = false; // Temporary toggle
   const [expandedSections, setExpandedSections] = useState({
     brands: true,
@@ -50,6 +58,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [attributesLoading, setAttributesLoading] = useState(true);
   const [expandedAttrs, setExpandedAttrs] = useState<Set<string>>(new Set());
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState<Set<string>>(new Set());
 
   const [priceInput, setPriceInput] = useState({
     min: selectedFilters.priceRange?.min ?? 0,
@@ -254,6 +263,72 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
     selectedFilters.isFeatured ||
     selectedFilters.priceRange.min > 0 ||
     selectedFilters.priceRange.max < facets.priceRange.max;
+  const visibleCategories =
+    categoryOptions && categoryOptions.length > 0 ? categoryOptions : facets.categories;
+  const categoryCountById = useMemo(
+    () => new Map(visibleCategories.map((category) => [category.id, category.count])),
+    [visibleCategories]
+  );
+  const hierarchyMap = useMemo(() => {
+    const normalized =
+      Array.isArray(categoryHierarchy) && categoryHierarchy.length > 0
+        ? categoryHierarchy.map((category) => ({
+            id: category.id,
+            name: category.name,
+            parentId: category.parentId ?? null,
+          }))
+        : visibleCategories.map((category) => ({
+            id: category.id,
+            name: category.name,
+            parentId: null,
+          }));
+    return new Map(normalized.map((category) => [category.id, category]));
+  }, [categoryHierarchy, visibleCategories]);
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, Array<{ id: string; name: string; parentId: string | null }>>();
+    for (const category of hierarchyMap.values()) {
+      if (!category.parentId) continue;
+      const existing = map.get(category.parentId) || [];
+      existing.push(category);
+      map.set(category.parentId, existing);
+    }
+    for (const children of map.values()) {
+      children.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return map;
+  }, [hierarchyMap]);
+  const rootCategories = useMemo(() => {
+    const roots = Array.from(hierarchyMap.values()).filter((category) => !category.parentId);
+    roots.sort((a, b) => a.name.localeCompare(b.name));
+    return roots;
+  }, [hierarchyMap]);
+
+  const toggleCategoryExpand = (categoryId: string) => {
+    setExpandedCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!selectedFilters.categoryIds.length) return;
+    setExpandedCategoryIds((prev) => {
+      const next = new Set(prev);
+      for (const categoryId of selectedFilters.categoryIds) {
+        let current = hierarchyMap.get(categoryId);
+        while (current?.parentId) {
+          next.add(current.parentId);
+          current = hierarchyMap.get(current.parentId);
+        }
+      }
+      return next;
+    });
+  }, [selectedFilters.categoryIds, hierarchyMap]);
 
   return (
     <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20 overflow-y-auto max-h-[calc(100vh-120px)] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent" style={{ contain: 'layout' }}>
@@ -341,23 +416,63 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
         </button>
         {expandedSections.categories && (
           <div className="mt-4 space-y-3">
-            {facets?.categories && Array.isArray(facets.categories) ? (
-              facets.categories.map((category) => (
-                <label key={category.id} className="flex items-center justify-between gap-3 cursor-pointer hover:text-primary-theme">
-                <span className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={selectedFilters.categories.includes(category.name)}
-                  onChange={() => handleCategoryChange(category.name, category.id)}
-                  className="w-4 h-4 rounded border-gray-300"
-                />
-                <span className="text-gray-700 min-w-0 break-words">{category.name}</span>
-                </span>
-                <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 flex-shrink-0">
-                  {category.count}
-                </span>
-              </label>
-            ))
+            {rootCategories.length > 0 ? (
+              rootCategories.map((category) => {
+                const children = childrenByParent.get(category.id) || [];
+                const isExpanded = expandedCategoryIds.has(category.id);
+                const count = categoryCountById.get(category.id) ?? 0;
+                return (
+                  <div key={category.id} className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="flex items-center gap-3 cursor-pointer hover:text-primary-theme min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedFilters.categoryIds.includes(category.id)}
+                          onChange={() => handleCategoryChange(category.name, category.id)}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        <span className="text-gray-700 min-w-0 break-words">{category.name}</span>
+                      </label>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                          {count}
+                        </span>
+                        {children.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleCategoryExpand(category.id)}
+                            className="text-gray-500 hover:text-gray-800"
+                            aria-label={isExpanded ? 'Collapse subcategories' : 'Expand subcategories'}
+                          >
+                            <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {isExpanded && children.length > 0 && (
+                      <div className="ml-6 space-y-2 border-l border-gray-200 pl-3">
+                        {children.map((child) => (
+                          <label key={child.id} className="flex items-center justify-between gap-3 cursor-pointer hover:text-primary-theme">
+                            <span className="flex items-center gap-3 min-w-0">
+                              <input
+                                type="checkbox"
+                                checked={selectedFilters.categoryIds.includes(child.id)}
+                                onChange={() => handleCategoryChange(child.name, child.id)}
+                                className="w-4 h-4 rounded border-gray-300"
+                              />
+                              <span className="text-gray-700 min-w-0 break-words">{child.name}</span>
+                            </span>
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 flex-shrink-0">
+                              {categoryCountById.get(child.id) ?? 0}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             ) : null}
           </div>
         )}
@@ -514,7 +629,7 @@ export default function FacetFilter({ facets, selectedFilters, onFilterChange }:
             ))}
             {selectedFilters.categories.map((category) => {
               // Find the category ID from facets
-              const categoryObj = facets?.categories?.find((c) => c.name === category);
+              const categoryObj = visibleCategories?.find((c) => c.name === category);
               const categoryId = categoryObj?.id || '';
               
               return (

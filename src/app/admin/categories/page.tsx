@@ -15,6 +15,14 @@ interface Category {
   _count: { products: number };
 }
 
+interface ApiCategoryRow {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+  _count?: { products?: number };
+}
+
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +37,35 @@ export default function CategoriesPage() {
     try {
       const res = await fetch('/api/admin/categories');
       if (!res.ok) throw new Error('Failed to fetch categories');
-      const data = await res.json();
-      setCategories(data);
+      const data: ApiCategoryRow[] = await res.json();
+
+      // Build tree from flat rows so each node keeps its own _count.
+      const categoryMap = new Map<string, Category>();
+      for (const row of data) {
+        categoryMap.set(row.id, {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          parentId: row.parentId,
+          children: [],
+          _count: { products: row._count?.products ?? 0 },
+        });
+      }
+
+      for (const category of categoryMap.values()) {
+        if (category.parentId && categoryMap.has(category.parentId)) {
+          categoryMap.get(category.parentId)!.children.push(category);
+        }
+      }
+
+      const sortTree = (nodes: Category[]) => {
+        nodes.sort((a, b) => a.name.localeCompare(b.name));
+        nodes.forEach((node) => sortTree(node.children));
+      };
+
+      const roots = Array.from(categoryMap.values()).filter((cat) => !cat.parentId);
+      sortTree(roots);
+      setCategories(roots);
       // Auto-expand all parent categories
       const autoExpanded = new Set<string>();
       const expandAll = (cats: Category[]) => {
@@ -41,7 +76,7 @@ export default function CategoriesPage() {
           }
         });
       };
-      expandAll(data);
+      expandAll(roots);
       setExpandedIds(autoExpanded);
     } catch (err) {
       setError('Failed to load categories');
@@ -53,7 +88,11 @@ export default function CategoriesPage() {
 
   const toggleExpand = (id: string) => {
     const newExpanded = new Set(expandedIds);
-    newExpanded.has(id) ? newExpanded.delete(id) : newExpanded.add(id);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
     setExpandedIds(newExpanded);
   };
 
@@ -158,9 +197,7 @@ export default function CategoriesPage() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow border overflow-hidden">
-            {categories
-              .filter((cat) => !cat.parentId)
-              .map((cat) => renderCategory(cat))}
+            {categories.map((cat) => renderCategory(cat))}
           </div>
         )}
       </div>
