@@ -4,8 +4,8 @@ export function getOrderConfirmationEmail(order: any) {
   const itemsList = order.items
     .map(
       (item: any) => {
-        const priceFormatted = formatPrice(item.price).replace('₹', ''); // Remove symbol for email context
-        const totalFormatted = formatPrice(item.quantity * item.price).replace('₹', '');
+        const priceFormatted = formatPrice(item.price).replace('₹', '').trim();
+        const totalFormatted = formatPrice(item.quantity * item.price).replace('₹', '').trim();
         return `<tr>
           <td style="padding: 10px; border-bottom: 1px solid #eee;">
             ${item.product.name}
@@ -14,10 +14,10 @@ export function getOrderConfirmationEmail(order: any) {
             ${item.quantity}
           </td>
           <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
-            ₹${priceFormatted}
+            &#8377;${priceFormatted}
           </td>
           <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">
-            ₹${totalFormatted}
+            &#8377;${totalFormatted}
           </td>
         </tr>`;
       }
@@ -31,101 +31,145 @@ export function getOrderConfirmationEmail(order: any) {
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Order Confirmation</title>
-    </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-        <h1 style="color: white; margin: 0;">Order Confirmed! 🎉</h1>
-      </div>
-      
-      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-        <p style="font-size: 16px; margin-bottom: 20px;">
-          Hi ${order.user?.name || order.guestName || 'Customer'},
-        </p>
-        
-        <p style="font-size: 16px; margin-bottom: 20px;">
-          Thank you for your order! We've received your payment and are processing your order.
-        </p>
-        
-        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          <h2 style="color: #667eea; margin-top: 0;">Order Details</h2>
-          <p style="margin: 5px 0;"><strong>Order ID:</strong> <span style="font-family: monospace;">${order.id}</span></p>
-          <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}</p>
-          <p style="margin: 5px 0;"><strong>Payment Status:</strong> <span style="color: #10b981;">Paid</span></p>
-        </div>
-        
-        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          <h2 style="color: #667eea; margin-top: 0;">Order Items</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #f3f4f6;">
-                <th style="padding: 10px; text-align: left;">Item</th>
-                <th style="padding: 10px; text-align: center;">Qty</th>
-                <th style="padding: 10px; text-align: right;">Price</th>
-                <th style="padding: 10px; text-align: right;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsList}
-            </tbody>
-          </table>
-          
-          <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <span>Subtotal:</span>
-              <span>${formatPrice(order.total - order.shippingCost)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-              <span>Shipping:</span>
-              <span>${formatPrice(order.shippingCost)}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #667eea;">
-              <span>Total:</span>
-              <span>${formatPrice(order.total)}</span>
-            </div>
-          </div>
-        </div>
-        
-        ${
-          order.shippingAddress
-            ? `
-        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          <h2 style="color: #667eea; margin-top: 0;">Shipping Address</h2>
-          <p style="margin: 5px 0;">${order.shippingAddress.name}</p>
-          <p style="margin: 5px 0;">${order.shippingAddress.address}</p>
-          <p style="margin: 5px 0;">${order.shippingAddress.city}, ${order.shippingAddress.postalCode}</p>
-          <p style="margin: 5px 0;">${order.shippingAddress.country}</p>
-          <p style="margin: 5px 0;">Phone: ${order.shippingAddress.phone}</p>
-        </div>
-        `
-            : ''
+      <style>
+        @media only screen and (max-width: 600px) {
+          .email-wrapper {
+            width: 100% !important;
+          }
+          .email-padding {
+            padding: 16px !important;
+          }
+          .email-header {
+            padding: 20px 16px !important;
+          }
+          .mobile-text {
+            font-size: 14px !important;
+          }
+          .mobile-table th,
+          .mobile-table td {
+            padding: 8px 6px !important;
+            font-size: 12px !important;
+          }
+          .mobile-button {
+            display: block !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+            padding: 12px 16px !important;
+          }
+          .mobile-break {
+            word-break: break-all !important;
+          }
         }
-        
-        <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-          <p style="margin: 0; font-size: 14px;">
-            <strong>📦 What's Next?</strong><br>
-            We'll send you another email once your order ships with tracking information.
-          </p>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/orders/track?id=${order.id}&email=${order.guestEmail || order.user?.email}" 
-             style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-            Track Your Order
-          </a>
-        </div>
-        
-        <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-          Questions? Contact us at contact@yourstore.com
-        </p>
-      </div>
-      
-      <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
-        <p>© 2025 onlyinkani.in. All rights reserved.</p>
-      </div>
+      </style>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #eef2f7;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #eef2f7;">
+        <tr>
+          <td align="center" style="padding: 16px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="email-wrapper" style="width: 600px; max-width: 600px; background: #f9f9f9; border-radius: 10px; overflow: hidden;">
+              <tr>
+                <td class="email-header" style="background: #667eea; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 28px; line-height: 1.3;">Order Confirmed!</h1>
+                </td>
+              </tr>
+              <tr>
+                <td class="email-padding" style="padding: 30px;">
+                  <p class="mobile-text" style="font-size: 16px; margin-bottom: 20px;">
+                    Hi ${order.user?.name || order.guestName || 'Customer'},
+                  </p>
+
+                  <p class="mobile-text" style="font-size: 16px; margin-bottom: 20px;">
+                    Thank you for your order! We've received your payment and are processing your order.
+                  </p>
+
+                  <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #667eea; margin-top: 0;">Order Details</h2>
+                    <p style="margin: 5px 0;"><strong>Order ID:</strong> <span class="mobile-break" style="font-family: monospace;">${order.id}</span></p>
+                    <p style="margin: 5px 0;"><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}</p>
+                    <p style="margin: 5px 0;"><strong>Payment Status:</strong> <span style="color: #10b981;">Paid</span></p>
+                  </div>
+
+                  <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #667eea; margin-top: 0;">Order Items</h2>
+                    <table class="mobile-table" style="width: 100%; border-collapse: collapse;">
+                      <thead>
+                        <tr style="background: #f3f4f6;">
+                          <th style="padding: 10px; text-align: left;">Item</th>
+                          <th style="padding: 10px; text-align: center;">Qty</th>
+                          <th style="padding: 10px; text-align: right;">Price</th>
+                          <th style="padding: 10px; text-align: right;">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${itemsList}
+                      </tbody>
+                    </table>
+
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee;">
+                      <tr>
+                        <td style="padding: 4px 0; text-align: left;">Subtotal:</td>
+                        <td style="padding: 4px 0; text-align: right;">${formatPrice(order.total - order.shippingCost)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 4px 0; text-align: left;">Shipping:</td>
+                        <td style="padding: 4px 0; text-align: right;">${formatPrice(order.shippingCost)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0 0; text-align: left; font-size: 18px; font-weight: bold; color: #667eea;">Total:</td>
+                        <td style="padding: 8px 0 0; text-align: right; font-size: 18px; font-weight: bold; color: #667eea;">${formatPrice(order.total)}</td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  ${
+                    order.shippingAddress
+                      ? `
+                  <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #667eea; margin-top: 0;">Shipping Address</h2>
+                    <p style="margin: 5px 0;">${order.shippingAddress.name}</p>
+                    <p style="margin: 5px 0;">${order.shippingAddress.address}</p>
+                    <p style="margin: 5px 0;">${order.shippingAddress.city}, ${order.shippingAddress.postalCode}</p>
+                    <p style="margin: 5px 0;">${order.shippingAddress.country}</p>
+                    <p style="margin: 5px 0;">Phone: ${order.shippingAddress.phone}</p>
+                  </div>
+                  `
+                      : ''
+                  }
+
+                  <div style="background: #e0e7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 14px;">
+                      <strong>What&apos;s Next?</strong><br>
+                      We&apos;ll send you another email once your order ships with tracking information.
+                    </p>
+                  </div>
+
+                  <div style="text-align: center; margin-top: 30px;">
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/orders/track?id=${order.id}&guestEmail=${encodeURIComponent(order.guestEmail || order.user?.email || '')}"
+                       class="mobile-button"
+                       style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                      Track Your Order
+                    </a>
+                  </div>
+
+                  <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
+                    Questions? Contact us at contact@yourstore.com
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 16px; text-align: center; font-size: 12px; color: #999;">
+                  <p style="margin: 0;">&copy; 2025 onlyinkani.in. All rights reserved.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </body>
     </html>
   `;
@@ -182,7 +226,7 @@ export function getOrderShippedEmail(order: any) {
           ${
             order.trackingNumber
               ? `
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/orders/track?id=${order.id}&email=${order.guestEmail || order.user?.email}" 
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/orders/track?id=${order.id}&guestEmail=${encodeURIComponent(order.guestEmail || order.user?.email || '')}" 
              style="display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">
             Track Package
           </a>
@@ -534,3 +578,4 @@ export function getAdminNewOrderEmail(order: any) {
     </html>
   `;
 }
+

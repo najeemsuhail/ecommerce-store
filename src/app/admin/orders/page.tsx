@@ -194,16 +194,17 @@ export default function AdminOrders() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <h1 className="text-3xl font-bold mb-6">Orders Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">Orders Management</h1>
 
           {/* Status Filter */}
-          <div className="mb-6 flex gap-2 flex-wrap">
+          <div className="mb-6 overflow-x-auto">
+            <div className="flex gap-2 min-w-max pb-1">
             <button
               onClick={() => {
                 setStatusFilter('');
                 setPaymentStatusFilter('');
               }}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === '' && paymentStatusFilter === ''
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -213,7 +214,7 @@ export default function AdminOrders() {
             </button>
             <button
               onClick={() => setStatusFilter('pending')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'pending'
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -223,7 +224,7 @@ export default function AdminOrders() {
             </button>
             <button
               onClick={() => setStatusFilter('processing')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'processing'
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -233,7 +234,7 @@ export default function AdminOrders() {
             </button>
             <button
               onClick={() => setStatusFilter('shipped')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'shipped'
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -243,7 +244,7 @@ export default function AdminOrders() {
             </button>
             <button
               onClick={() => setStatusFilter('delivered')}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'delivered'
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -256,7 +257,7 @@ export default function AdminOrders() {
                 setStatusFilter('return_requested');
                 setPaymentStatusFilter('');
               }}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'return_requested' && paymentStatusFilter === ''
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -269,7 +270,7 @@ export default function AdminOrders() {
                 setPaymentStatusFilter('refund_requested');
                 setStatusFilter('');
               }}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 paymentStatusFilter === 'refund_requested'
                   ? 'bg-primary-theme text-white-theme'
                   : 'bg-white border hover:bg-gray-50'
@@ -277,6 +278,7 @@ export default function AdminOrders() {
             >
               Refund Requests
             </button>
+            </div>
           </div>
 
           {/* Orders Table */}
@@ -284,7 +286,8 @@ export default function AdminOrders() {
             <div className="text-center py-12">Loading...</div>
           ) : (
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              <table className="w-full">
+              <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[900px]">
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -388,6 +391,78 @@ export default function AdminOrders() {
                   ))}
                 </tbody>
               </table>
+              </div>
+
+              <div className="md:hidden divide-y">
+                {orders.map((order) => (
+                  <div key={order.id} className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs text-gray-500">Order ID</p>
+                        <p className="text-sm font-mono break-all">{order.id}</p>
+                      </div>
+                      <p className="text-sm font-semibold whitespace-nowrap">â‚¹{order.total}</p>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-sm">
+                        {order.user?.name || order.guestName || 'Guest'}
+                      </p>
+                      <p className="text-xs text-gray-500 break-all">
+                        {order.user?.email || order.guestEmail}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span>{new Date(order.createdAt).toLocaleDateString('en-IN')}</span>
+                      <span>{order.items.length} items</span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <span className={`text-xs px-2 py-1 rounded ${getPaymentBadgeClass(order.paymentStatus)}`}>
+                        {order.paymentStatus}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded ${getStatusBadgeClass(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {(order.status === 'return_requested' || order.paymentStatus === 'refund_requested') && (
+                        <>
+                          {order.paymentStatus === 'refund_requested' ? (
+                            <button
+                              onClick={() => handleResolveRequest(order, 'approve_refund')}
+                              className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                            >
+                              Approve Refund
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleResolveRequest(order, 'approve_return')}
+                              className="text-xs px-2 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+                            >
+                              Approve Return
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleResolveRequest(order, 'reject')}
+                            className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => openOrderModal(order)}
+                        className="text-blue-600 hover:underline text-sm"
+                      >
+                        Manage
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               {orders.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
@@ -401,11 +476,11 @@ export default function AdminOrders() {
         {/* Order Management Modal */}
         {showModal && selectedOrder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-              <div className="flex justify-between items-start mb-6">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 md:p-6">
+              <div className="flex justify-between items-start gap-3 mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold">Order Details</h2>
-                  <p className="text-sm text-gray-600 font-mono">
+                  <h2 className="text-xl md:text-2xl font-bold">Order Details</h2>
+                  <p className="text-xs md:text-sm text-gray-600 font-mono break-all">
                     {selectedOrder.id}
                   </p>
                 </div>
@@ -420,11 +495,11 @@ export default function AdminOrders() {
               {/* Customer Info */}
               <div className="mb-6 p-4 bg-gray-50 rounded">
                 <h3 className="font-semibold mb-2">Customer Information</h3>
-                <p className="text-sm">
+                <p className="text-sm break-words">
                   <strong>Name:</strong>{' '}
                   {selectedOrder.user?.name || selectedOrder.guestName}
                 </p>
-                <p className="text-sm">
+                <p className="text-sm break-all">
                   <strong>Email:</strong>{' '}
                   {selectedOrder.user?.email || selectedOrder.guestEmail}
                 </p>
@@ -449,7 +524,7 @@ export default function AdminOrders() {
                 <h3 className="font-semibold mb-3">Order Items</h3>
                 <div className="space-y-2">
                   {selectedOrder.items.map((item: any) => (
-                    <div key={item.id} className="flex gap-3 items-center border-b pb-2">
+                    <div key={item.id} className="flex flex-col sm:flex-row gap-3 sm:items-center border-b pb-2">
                       <div className="w-16 h-16 bg-gray-200 rounded flex-shrink-0">
                         {item.product.images?.[0] && (
                           <img
@@ -547,7 +622,7 @@ export default function AdminOrders() {
                   <label className="block text-sm font-medium mb-1">
                     Tracking Number
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       defaultValue={selectedOrder.trackingNumber || ''}
@@ -565,7 +640,7 @@ export default function AdminOrders() {
                           notes: selectedOrder.notes,
                         });
                       }}
-                      className="btn-sm-primary"
+                      className="btn-sm-primary w-full sm:w-auto"
                     >
                       Save
                     </button>

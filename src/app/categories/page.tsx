@@ -46,7 +46,7 @@ export default async function CategoriesPage() {
               <p className="text-gray-600 text-lg">No collections available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {shuffledCategories.map((category, index) => (
                 <Link
                   key={category.id}

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
+import { getDeliveryEstimateMessage } from '@/lib/deliveryEstimate';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -121,6 +122,8 @@ export default function OrderDetailPage() {
     }));
   };
 
+  const deliveryEstimateMessage = getDeliveryEstimateMessage(order);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -165,6 +168,12 @@ export default function OrderDetailPage() {
               {order.status}
             </span>
           </div>
+
+          {deliveryEstimateMessage && (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900">
+              <strong>Delivery estimate:</strong> {deliveryEstimateMessage}
+            </div>
+          )}
 
           {requestMessage && (
             <div

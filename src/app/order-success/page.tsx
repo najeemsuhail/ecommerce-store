@@ -6,6 +6,7 @@ import Layout from '@/components/Layout';
 import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import { formatPrice } from '@/lib/currency';
+import { getDeliveryEstimateMessage } from '@/lib/deliveryEstimate';
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
@@ -14,24 +15,25 @@ function OrderSuccessContent() {
   const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
-    if (orderId) {
-      fetchOrder();
-    }
+    if (!orderId) return;
+
+    const run = async () => {
+      try {
+        const response = await fetch(`/api/orders/${orderId}`);
+        const data = await response.json();
+        if (data.success) {
+          setOrder(data.order);
+        }
+      } catch {
+        console.error('Failed to fetch order');
+      }
+    };
+
+    run();
   }, [orderId]);
 
-  const fetchOrder = async () => {
-    try {
-      const response = await fetch(`/api/orders/${orderId}`);
-      const data = await response.json();
-      if (data.success) {
-        setOrder(data.order);
-      }
-    } catch (error) {
-      console.error('Failed to fetch order');
-    }
-  };
-
   const isCOD = paymentMethod === 'cod' || order?.paymentMethod === 'cod';
+  const deliveryEstimateMessage = getDeliveryEstimateMessage(order);
 
   return (
     <Layout>
@@ -89,6 +91,14 @@ function OrderSuccessContent() {
                     {order.items?.length || 0}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {deliveryEstimateMessage && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+                <p className="text-sm text-blue-900">
+                  <span className="font-semibold">Delivery estimate:</span> {deliveryEstimateMessage}
+                </p>
               </div>
             )}
 
