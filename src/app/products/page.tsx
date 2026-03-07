@@ -176,6 +176,7 @@ function ProductsContent() {
       ? Object.values(facetFilters.attributes).reduce((count, values) => count + values.length, 0)
       : 0);
   const isRefreshingResults = loading && products.length > 0;
+  const isNoResultsState = !loading && products.length === 0;
   const hasActiveFilters =
     facetFilters.brands.length > 0 ||
     facetFilters.categories.length > 0 ||
@@ -532,11 +533,11 @@ function ProductsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
           {loading && products.length === 0 ? (
-            <div className="hidden lg:block lg:col-span-4">
+            <div className="hidden lg:block lg:col-span-3">
               <FilterSkeleton />
             </div>
           ) : products.length > 0 ? (
-            <div className="hidden lg:block lg:col-span-4">
+            <div className="hidden lg:block lg:col-span-3">
               <FacetFilter
                 facets={facets}
                 categoryOptions={stableCategoryFacets}
@@ -608,7 +609,10 @@ function ProductsContent() {
           )}
 
           {/* Main Content Area */}
-          <div ref={resultsTopRef} className="lg:col-span-8">
+          <div
+            ref={resultsTopRef}
+            className={isNoResultsState ? 'lg:col-span-12' : 'lg:col-span-9'}
+          >
             {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
                 Search all results for &quot;{searchTerm}&quot;
@@ -793,9 +797,9 @@ function ProductsContent() {
             )}
 
             {/* No Results */}
-            {!loading && products.length === 0 && (
+            {isNoResultsState && (
               <div className="space-y-6">
-                <div className="text-center py-10 bg-light-theme rounded-lg shadow">
+                <div className="text-center py-14 md:py-20 bg-light-theme rounded-lg shadow">
                   <svg className="w-16 h-16 text-text-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
