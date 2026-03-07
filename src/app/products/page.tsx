@@ -130,6 +130,8 @@ function ProductsContent() {
   });
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [popularProducts, setPopularProducts] = useState<ProductListItem[]>([]);
+  const [popularProductsLoading, setPopularProductsLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
@@ -165,6 +167,14 @@ function ProductsContent() {
     (facetFilters.attributes
       ? Object.values(facetFilters.attributes).reduce((count, values) => count + values.length, 0)
       : 0);
+  const isRefreshingResults = loading && products.length > 0;
+  const hasActiveFilters =
+    facetFilters.brands.length > 0 ||
+    facetFilters.categories.length > 0 ||
+    Boolean(facetFilters.isDigital) ||
+    Boolean(facetFilters.isFeatured) ||
+    facetFilters.priceRange.min > 0 ||
+    facetFilters.priceRange.max < facets.priceRange.max;
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -218,6 +228,29 @@ function ProductsContent() {
 
     return () => observer.disconnect();
   }, [hasMore, loadingMore, loading, products.length, totalProducts]);
+
+  const fetchPopularProducts = useCallback(async () => {
+    setPopularProductsLoading(true);
+    try {
+      const response = await fetch('/api/products?sort=popular&limit=8', {
+        next: { revalidate: 300 },
+      });
+      const data = await response.json();
+      if (data.success && Array.isArray(data.products)) {
+        setPopularProducts(data.products.slice(0, 8));
+      }
+    } catch {
+      console.error('Failed to fetch popular products');
+    } finally {
+      setPopularProductsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading && products.length === 0 && popularProducts.length === 0 && !popularProductsLoading) {
+      fetchPopularProducts();
+    }
+  }, [loading, products.length, popularProducts.length, popularProductsLoading, fetchPopularProducts]);
 
   const fetchFacets = async (skip = 0) => {
     const requestId = ++latestFacetRequestId.current;
@@ -539,12 +572,7 @@ function ProductsContent() {
             )}
 
             {/* Active Filters */}
-            {(facetFilters.brands.length > 0 ||
-              facetFilters.categories.length > 0 ||
-              facetFilters.isDigital ||
-              facetFilters.isFeatured ||
-              facetFilters.priceRange.min > 0 ||
-              facetFilters.priceRange.max < facets.priceRange.max) && (
+            {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2 mb-6">
                 {facetFilters.brands.map((brand) => (
                   <button
@@ -651,6 +679,12 @@ function ProductsContent() {
                   <span>of</span>
                   <span className="font-semibold text-slate-900">{totalProducts}</span>
                   <span>products</span>
+                  {isRefreshingResults && (
+                    <>
+                      <span className="mx-1 h-1 w-1 rounded-full bg-slate-400" />
+                      <span className="text-xs font-semibold text-slate-600">Updating...</span>
+                    </>
+                  )}
                   {activeFiltersCount > 0 && (
                     <>
                       <span className="mx-1 h-1 w-1 rounded-full bg-slate-400" />
@@ -716,40 +750,123 @@ function ProductsContent() {
 
             {/* No Results */}
             {!loading && products.length === 0 && (
-              <div className="text-center py-12 bg-light-theme rounded-lg shadow">
-                <svg className="w-16 h-16 text-text-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-xl text-text-600 mb-4">No products found</p>
-                <button
-                  onClick={() =>
-                    setFacetFilters({
-                      brands: [],
-                      categories: [],
-                      categoryIds: [],
-                      priceRange: { min: 0, max: facets.priceRange.max },
-                      attributes: {},
-                    })
-                  }
-                  className="text-primary-theme hover:underline"
-                >
-                  Clear filters
-                </button>
+              <div className="space-y-6">
+                <div className="text-center py-10 bg-light-theme rounded-lg shadow">
+                  <svg className="w-16 h-16 text-text-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-xl text-text-700 font-semibold mb-2">
+                    No exact matches right now
+                  </p>
+                  <p className="text-text-500 mb-5">
+                    Try broadening your filters or explore popular products below.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button
+                      onClick={() => {
+                        setFacetFilters({
+                          brands: [],
+                          categories: [],
+                          categoryIds: [],
+                          priceRange: { min: 0, max: facets.priceRange.max },
+                          isDigital: undefined,
+                          isFeatured: undefined,
+                          attributes: {},
+                        });
+                      }}
+                      className="btn-primary-theme px-5 py-2 rounded-lg font-semibold"
+                    >
+                      Clear filters
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSortBy('newest');
+                        setFacetFilters({
+                          brands: [],
+                          categories: [],
+                          categoryIds: [],
+                          priceRange: { min: 0, max: facets.priceRange.max },
+                          isDigital: undefined,
+                          isFeatured: undefined,
+                          attributes: {},
+                        });
+                      }}
+                      className="bg-bg-200 text-text-900 px-5 py-2 rounded-lg font-semibold hover:bg-bg-300 transition-colors"
+                    >
+                      Browse all products
+                    </button>
+                  </div>
+                </div>
+
+                {(popularProductsLoading || popularProducts.length > 0) && (
+                  <section className="bg-light-theme rounded-lg shadow p-4 md:p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-text-900">Popular Products</h3>
+                      <button
+                        onClick={fetchPopularProducts}
+                        className="text-sm text-primary-theme hover:underline"
+                      >
+                        Refresh picks
+                      </button>
+                    </div>
+
+                    {popularProductsLoading ? (
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[...Array(4)].map((_, i) => (
+                          <div key={i} className="rounded-lg border border-border-200 p-3 animate-pulse">
+                            <div className="aspect-square bg-gray-200 rounded mb-3" />
+                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+                            <div className="h-4 bg-gray-200 rounded w-1/2" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {popularProducts.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={`/products/${item.slug}`}
+                            className="rounded-lg border border-border-200 p-3 hover:shadow-md transition-shadow"
+                          >
+                            <div className="aspect-square bg-bg-200 rounded mb-3 overflow-hidden">
+                              {item.images?.[0] ? (
+                                <img
+                                  src={item.images[0]}
+                                  alt={item.name}
+                                  className="h-full w-full object-contain"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center text-text-400 text-sm">
+                                  No image
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-text-900 line-clamp-2 mb-1">{item.name}</p>
+                            <p className="text-sm font-semibold text-primary-theme">{formatPrice(item.price)}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
               </div>
             )}
 
             {/* Products Grid */}
             {products.length > 0 && (
-              <div className="grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {products.map((product, index) => (
-                  <Link
-                    key={product.id}
-                    href={`/products/${product.slug}`}
-                    className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group animate-fadeIn"
-                    style={{
-                      animationDelay: `${(index % itemsPerLoad) * 50}ms`,
-                    }}
-                  >
+              <div className="relative">
+                <div className={`grid grid-cols-2 grid-rows-2 md:grid-cols-2 md:grid-rows-none lg:grid-cols-3 xl:grid-cols-4 gap-6 ${isRefreshingResults ? 'pointer-events-none opacity-70' : ''}`}>
+                  {products.map((product, index) => (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug}`}
+                      className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group animate-fadeIn"
+                      style={{
+                        animationDelay: `${(index % itemsPerLoad) * 50}ms`,
+                      }}
+                    >
                     {/* Product Image */}
                     <div className="relative aspect-square bg-bg-200 overflow-hidden">
                       {product.images?.[0] ? (
@@ -868,8 +985,17 @@ function ProductsContent() {
                         </div>
                       )}
                     </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+                {isRefreshingResults && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/40 backdrop-blur-[1px]">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                      Updating products...
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
