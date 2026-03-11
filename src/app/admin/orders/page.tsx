@@ -15,6 +15,12 @@ export default function AdminOrders() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [orderForm, setOrderForm] = useState({
+    status: '',
+    paymentStatus: '',
+    trackingNumber: '',
+    notes: '',
+  });
 
   useEffect(() => {
     fetchOrders();
@@ -146,6 +152,7 @@ export default function AdminOrders() {
       const data = await response.json();
       if (data.success) {
         alert('Order updated successfully');
+        setSelectedOrder((prev: any) => (prev ? { ...prev, ...updates } : prev));
         setShowModal(false);
         fetchOrders();
       } else {
@@ -158,6 +165,12 @@ export default function AdminOrders() {
 
   const openOrderModal = (order: any) => {
     setSelectedOrder(order);
+    setOrderForm({
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      trackingNumber: order.trackingNumber || '',
+      notes: order.notes || '',
+    });
     setShowModal(true);
   };
 
@@ -585,15 +598,13 @@ export default function AdminOrders() {
                     Order Status
                   </label>
                   <select
-                    defaultValue={selectedOrder.status}
-                    onChange={(e) => {
-                      handleUpdateOrder(selectedOrder.id, {
+                    value={orderForm.status}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
                         status: e.target.value,
-                        paymentStatus: selectedOrder.paymentStatus,
-                        trackingNumber: selectedOrder.trackingNumber,
-                        notes: selectedOrder.notes,
-                      });
-                    }}
+                      }))
+                    }
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="pending">Pending</option>
@@ -612,15 +623,13 @@ export default function AdminOrders() {
                     Payment Status
                   </label>
                   <select
-                    defaultValue={selectedOrder.paymentStatus}
-                    onChange={(e) => {
-                      handleUpdateOrder(selectedOrder.id, {
-                        status: selectedOrder.status,
+                    value={orderForm.paymentStatus}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
                         paymentStatus: e.target.value,
-                        trackingNumber: selectedOrder.trackingNumber,
-                        notes: selectedOrder.notes,
-                      });
-                    }}
+                      }))
+                    }
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="pending">Pending</option>
@@ -635,29 +644,18 @@ export default function AdminOrders() {
                   <label className="block text-sm font-medium mb-1">
                     Tracking Number
                   </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="text"
-                      defaultValue={selectedOrder.trackingNumber || ''}
-                      placeholder="Enter tracking number"
-                      id="trackingNumber"
-                      className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={() => {
-                        const input = document.getElementById('trackingNumber') as HTMLInputElement;
-                        handleUpdateOrder(selectedOrder.id, {
-                          status: selectedOrder.status,
-                          paymentStatus: selectedOrder.paymentStatus,
-                          trackingNumber: input.value,
-                          notes: selectedOrder.notes,
-                        });
-                      }}
-                      className="btn-sm-primary w-full sm:w-auto"
-                    >
-                      Save
-                    </button>
-                  </div>
+                  <input
+                    type="text"
+                    value={orderForm.trackingNumber}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        trackingNumber: e.target.value,
+                      }))
+                    }
+                    placeholder="Enter tracking number"
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
 
                 <div>
@@ -665,30 +663,34 @@ export default function AdminOrders() {
                     Admin Notes
                   </label>
                   <textarea
-                    defaultValue={selectedOrder.notes || ''}
+                    value={orderForm.notes}
+                    onChange={(e) =>
+                      setOrderForm((prev) => ({
+                        ...prev,
+                        notes: e.target.value,
+                      }))
+                    }
                     placeholder="Add internal notes..."
                     rows={3}
-                    id="notes"
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
-                  <button
-                    onClick={() => {
-                      const textarea = document.getElementById('notes') as HTMLTextAreaElement;
-                      handleUpdateOrder(selectedOrder.id, {
-                        status: selectedOrder.status,
-                        paymentStatus: selectedOrder.paymentStatus,
-                        trackingNumber: selectedOrder.trackingNumber,
-                        notes: textarea.value,
-                      });
-                    }}
-                    className="mt-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold"
-                  >
-                    Save Notes
-                  </button>
                 </div>
               </div>
 
               <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() =>
+                    handleUpdateOrder(selectedOrder.id, {
+                      status: orderForm.status,
+                      paymentStatus: orderForm.paymentStatus,
+                      trackingNumber: orderForm.trackingNumber,
+                      notes: orderForm.notes,
+                    })
+                  }
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold"
+                >
+                  Save Changes
+                </button>
                 <button
                   onClick={() => setShowModal(false)}
                   className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"

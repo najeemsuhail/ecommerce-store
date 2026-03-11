@@ -82,7 +82,7 @@ export default function WishlistPage() {
       price: item.price || 0,
       quantity: 1,
       image: item.image,
-      slug: item.slug,
+      slug: item.slug || '',
       isDigital: false,
     });
     setNotification({
