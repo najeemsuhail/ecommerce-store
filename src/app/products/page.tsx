@@ -63,6 +63,15 @@ interface CategoryHierarchyItem {
   parentId: string | null;
 }
 
+interface CategoryApiItem {
+  id: string;
+  name: string;
+  parentId?: string | null;
+  _count?: {
+    products?: number;
+  };
+}
+
 const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
 
 // Filter Skeleton Component
@@ -229,25 +238,28 @@ function ProductsContent() {
         if (!response.ok) return;
         const data = await response.json();
         if (!Array.isArray(data)) return;
-        const normalized: CategoryHierarchyItem[] = data
-          .filter((category: { id?: string; name?: string }) => Boolean(category?.id && category?.name))
-          .map((category: { id: string; name: string; parentId?: string | null }) => ({
-            id: category.id,
-            name: category.name,
-            parentId: category.parentId ?? null,
-          }));
+        const normalizedData = data.filter(
+          (category: CategoryApiItem) => Boolean(category?.id && category?.name)
+        ) as CategoryApiItem[];
+        const normalized: CategoryHierarchyItem[] = normalizedData.map((category) => ({
+          id: category.id,
+          name: category.name,
+          parentId: category.parentId ?? null,
+        }));
+        const stableCategories = normalizedData.map((category) => ({
+          id: category.id,
+          name: category.name,
+          count: category._count?.products ?? 0,
+        }));
+
         setCategoryHierarchy(normalized);
+        setStableCategoryFacets(stableCategories);
       } catch {
         // If this fails, facet filter gracefully falls back to flat categories.
       }
     };
     fetchCategoryHierarchy();
   }, []);
-
-  // Reset stable categories when search context changes.
-  useEffect(() => {
-    setStableCategoryFacets([]);
-  }, [searchTerm]);
   
   // Infinite scroll observer
   useEffect(() => {
@@ -305,9 +317,6 @@ function ProductsContent() {
         const computedFacets: FacetData = data.facets;
         setDefaultFacets(computedFacets);
         setFacets(computedFacets);
-        if (stableCategoryFacets.length === 0 && Array.isArray(computedFacets.categories) && computedFacets.categories.length > 0) {
-          setStableCategoryFacets(computedFacets.categories);
-        }
         setFacetFilters((prev) => {
           if (prev.priceRange.max === computedFacets.priceRange.max) {
             return prev;
