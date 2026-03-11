@@ -59,16 +59,19 @@ export interface ProductMetadata {
 }
 
 export const getProductMetadataBySlug = cache(async (slug: string): Promise<ProductMetadata | null> => {
-  return prisma.product.findUnique({
-    where: { slug },
-    select: {
-      name: true,
-      description: true,
-      metaTitle: true,
-      metaDescription: true,
-      images: true,
-    },
-  });
+  const product = await getProductDetailBySlug(slug);
+
+  if (!product) {
+    return null;
+  }
+
+  return {
+    name: product.name,
+    description: product.description,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
+    images: product.images,
+  };
 });
 
 export const getProductDetailBySlug = cache(async (slug: string): Promise<ProductDetail | null> => {
