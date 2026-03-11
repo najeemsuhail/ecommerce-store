@@ -75,12 +75,11 @@ export default async function CategoriesPage() {
                     </div>
                   )}
 
-                  <div className="relative px-4 py-8 md:px-8 md:py-12 text-center flex flex-col items-center justify-center min-h-28 md:min-h-32">
-                    <h3 className="font-bold text-base md:text-lg lg:text-2xl text-white group-hover:scale-105 transition-transform duration-300 line-clamp-3">
+                  <div className="relative min-h-28 md:min-h-32 flex items-end">
+                    <div className="w-full px-4 py-4 md:px-6 md:py-5 bg-gradient-to-t from-black/75 via-black/35 to-transparent">
+                      <h3 className="font-bold text-base md:text-lg lg:text-2xl text-white group-hover:scale-105 transition-transform duration-300 line-clamp-3 text-center">
                       {category.name}
-                    </h3>
-                    <div className="mt-2 md:mt-4 text-white/80 group-hover:text-white transition-colors text-xs md:text-sm font-semibold">
-                      Browse -&gt;
+                      </h3>
                     </div>
                   </div>
 

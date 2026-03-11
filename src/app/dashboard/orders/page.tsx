@@ -4,6 +4,11 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
+import {
+  formatOrderStatus,
+  getOrderStatusBadgeClass,
+  ORDER_STATUS_FILTERS,
+} from '@/lib/orderStatus';
 
 const RETURN_WINDOW_HOURS = 48;
 
@@ -75,7 +80,7 @@ export default function OrdersPage() {
 
           {/* Filter Tabs */}
           <div className="flex gap-2 mb-6 overflow-x-auto">
-            {['all', 'pending', 'processing', 'shipped', 'delivered'].map((status) => (
+            {ORDER_STATUS_FILTERS.map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -85,7 +90,7 @@ export default function OrdersPage() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {status === 'all' ? 'All Orders' : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? 'All Orders' : formatOrderStatus(status)}
               </button>
             ))}
           </div>
@@ -123,23 +128,9 @@ export default function OrdersPage() {
                     <div className="text-right">
                       <p className="font-bold text-lg">{formatPrice(order.total)}</p>
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${
-                          order.status === 'pending'
-                            ? 'badge-pending'
-                            : order.status === 'processing'
-                            ? 'badge-processing'
-                            : order.status === 'shipped'
-                            ? 'badge-shipped'
-                            : order.status === 'delivered'
-                            ? 'badge-delivered'
-                            : order.status === 'return_requested'
-                            ? 'badge-processing'
-                            : order.status === 'returned'
-                            ? 'badge-cancelled'
-                            : 'badge-cancelled'
-                        }`}
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold mt-1 ${getOrderStatusBadgeClass(order.status)}`}
                       >
-                        {order.status}
+                        {formatOrderStatus(order.status)}
                       </span>
                     </div>
                   </div>

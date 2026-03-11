@@ -1,25 +1,17 @@
 import { Metadata } from 'next';
+import { getProductDetailBySlug } from '@/lib/productDetail';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 type Props = {
-  params: Promise<{ slug: string }>;  // ← Promise now
+  params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
-async function fetchProduct(slug: string) {
-  try {
-    const url = `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/products/${encodeURIComponent(slug)}`;
-    const res = await fetch(url, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.product ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;  // ← await here
-  const product = await fetchProduct(slug);
+  const { slug } = await params;
+  const product = await getProductDetailBySlug(slug);
 
   const title = product?.metaTitle || product?.name || 'Product';
   const description =

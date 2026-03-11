@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { formatOrderStatus } from '@/lib/orderStatus';
 
 export default function AdminOrders() {
   const router = useRouter();
@@ -86,6 +87,7 @@ export default function AdminOrders() {
     if (status === 'pending') return 'bg-yellow-100 text-yellow-800';
     if (status === 'processing') return 'bg-blue-100 text-blue-800';
     if (status === 'shipped') return 'bg-purple-100 text-purple-800';
+    if (status === 'out_for_delivery') return 'bg-indigo-100 text-indigo-800';
     if (status === 'delivered') return 'bg-green-100 text-green-800';
     if (status === 'return_requested') return 'bg-orange-100 text-orange-800';
     if (status === 'returned') return 'bg-slate-200 text-slate-800';
@@ -243,6 +245,16 @@ export default function AdminOrders() {
               Shipped
             </button>
             <button
+              onClick={() => setStatusFilter('out_for_delivery')}
+              className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
+                statusFilter === 'out_for_delivery'
+                  ? 'bg-primary-theme text-white-theme'
+                  : 'bg-white border hover:bg-gray-50'
+              }`}
+            >
+              Out for Delivery
+            </button>
+            <button
               onClick={() => setStatusFilter('delivered')}
               className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap ${
                 statusFilter === 'delivered'
@@ -349,7 +361,7 @@ export default function AdminOrders() {
                         <span
                           className={`text-xs px-2 py-1 rounded ${getStatusBadgeClass(order.status)}`}
                         >
-                          {order.status}
+                          {formatOrderStatus(order.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -423,7 +435,7 @@ export default function AdminOrders() {
                         {order.paymentStatus}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded ${getStatusBadgeClass(order.status)}`}>
-                        {order.status}
+                        {formatOrderStatus(order.status)}
                       </span>
                     </div>
 
@@ -587,6 +599,7 @@ export default function AdminOrders() {
                     <option value="pending">Pending</option>
                     <option value="processing">Processing</option>
                     <option value="shipped">Shipped</option>
+                    <option value="out_for_delivery">Out for Delivery</option>
                     <option value="delivered">Delivered</option>
                     <option value="return_requested">Return Requested</option>
                     <option value="returned">Returned</option>

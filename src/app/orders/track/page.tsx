@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { formatPrice } from '@/lib/currency';
+import { formatOrderStatus } from '@/lib/orderStatus';
 
 interface TrackOrderItem {
   id: string;
@@ -109,7 +110,7 @@ function OrderTrackContent() {
                   </p>
                   <p>
                     <span className="text-gray-600">Status:</span>{' '}
-                    <span className="capitalize font-semibold">{order.status}</span>
+                    <span className="font-semibold">{formatOrderStatus(order.status)}</span>
                   </p>
                   <p>
                     <span className="text-gray-600">Payment:</span>{' '}

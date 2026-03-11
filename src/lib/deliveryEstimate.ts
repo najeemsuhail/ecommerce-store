@@ -2,6 +2,7 @@ const LOCALE = 'en-IN';
 
 export const DELIVERY_ESTIMATE_DAYS = {
   shipped: { min: 2, max: 5 },
+  out_for_delivery: { min: 0, max: 1 },
   default: { min: 3, max: 7 },
 } as const;
 
@@ -66,8 +67,13 @@ export function getDeliveryEstimateMessage(order: DeliveryEstimateOrderLike | nu
     return `Estimated delivery: ${formatShortDate(etaStart)} - ${formatShortDate(etaEnd)}`;
   }
 
+  if (order.status === 'out_for_delivery') {
+    const etaStart = addDays(updatedAt, DELIVERY_ESTIMATE_DAYS.out_for_delivery.min);
+    const etaEnd = addDays(updatedAt, DELIVERY_ESTIMATE_DAYS.out_for_delivery.max);
+    return `Out for delivery. Estimated arrival: ${formatShortDate(etaStart)} - ${formatShortDate(etaEnd)}`;
+  }
+
   const etaStart = addDays(createdAt, DELIVERY_ESTIMATE_DAYS.default.min);
   const etaEnd = addDays(createdAt, DELIVERY_ESTIMATE_DAYS.default.max);
   return `Estimated delivery: ${formatShortDate(etaStart)} - ${formatShortDate(etaEnd)}`;
 }
-

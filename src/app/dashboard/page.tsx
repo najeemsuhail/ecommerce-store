@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
+import { formatOrderStatus, getOrderStatusBadgeClass } from '@/lib/orderStatus';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -45,7 +46,9 @@ export default function DashboardPage() {
       if (data.success) {
         setStats({
           totalOrders: data.orders.length,
-          pendingOrders: data.orders.filter((o: any) => o.status === 'pending' || o.status === 'processing').length,
+          pendingOrders: data.orders.filter((o: any) =>
+            ['pending', 'processing', 'shipped', 'out_for_delivery'].includes(o.status)
+          ).length,
           completedOrders: data.orders.filter((o: any) => o.status === 'delivered').length,
         });
         setRecentOrders(data.orders.slice(0, 5));
@@ -185,19 +188,9 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        order.status === 'pending'
-                          ? 'badge-pending'
-                          : order.status === 'processing'
-                          ? 'badge-processing'
-                          : order.status === 'shipped'
-                          ? 'badge-shipped'
-                          : order.status === 'delivered'
-                          ? 'badge-delivered'
-                          : 'badge-cancelled'
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getOrderStatusBadgeClass(order.status)}`}
                     >
-                      {order.status}
+                      {formatOrderStatus(order.status)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">

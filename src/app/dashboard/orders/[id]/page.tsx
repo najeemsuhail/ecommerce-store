@@ -6,6 +6,11 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
 import { getDeliveryEstimateMessage } from '@/lib/deliveryEstimate';
+import {
+  formatOrderStatus,
+  getOrderStatusBadgeClass,
+  getOrderStatusTimeline,
+} from '@/lib/orderStatus';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -112,17 +117,8 @@ export default function OrderDetailPage() {
     return null;
   }
 
-  const getStatusSteps = () => {
-    const steps = ['pending', 'processing', 'shipped', 'delivered'];
-    const currentIndex = steps.indexOf(order.status);
-    return steps.map((step, index) => ({
-      name: step,
-      completed: index <= currentIndex,
-      current: index === currentIndex,
-    }));
-  };
-
   const deliveryEstimateMessage = getDeliveryEstimateMessage(order);
+  const statusSteps = getOrderStatusTimeline(order.status);
 
   return (
     <DashboardLayout>
@@ -149,23 +145,9 @@ export default function OrderDetailPage() {
               </p>
             </div>
             <span
-              className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                order.status === 'pending'
-                  ? 'badge-pending'
-                  : order.status === 'processing'
-                  ? 'badge-processing'
-                  : order.status === 'shipped'
-                  ? 'badge-shipped'
-                  : order.status === 'delivered'
-                  ? 'badge-delivered'
-                  : order.status === 'return_requested'
-                  ? 'badge-processing'
-                  : order.status === 'returned'
-                  ? 'badge-cancelled'
-                  : 'badge-cancelled'
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-semibold ${getOrderStatusBadgeClass(order.status)}`}
             >
-              {order.status}
+              {formatOrderStatus(order.status)}
             </span>
           </div>
 
@@ -271,7 +253,7 @@ export default function OrderDetailPage() {
           {/* Order Status Timeline */}
           <div className="mt-8">
             <div className="flex justify-between items-center">
-              {getStatusSteps().map((step, index) => (
+              {statusSteps.map((step, index) => (
                 <div key={step.name} className="flex-1 relative">
                   <div className="flex flex-col items-center">
                     <div
@@ -286,10 +268,10 @@ export default function OrderDetailPage() {
                     <p className={`mt-2 text-xs font-medium capitalize ${
                       step.completed ? 'text-green-600' : 'text-gray-500'
                     }`}>
-                      {step.name}
+                      {formatOrderStatus(step.name)}
                     </p>
                   </div>
-                  {index < getStatusSteps().length - 1 && (
+                  {index < statusSteps.length - 1 && (
                     <div
                       className={`absolute top-5 left-1/2 w-full h-0.5 ${
                         step.completed ? 'bg-green-500' : 'bg-gray-200'

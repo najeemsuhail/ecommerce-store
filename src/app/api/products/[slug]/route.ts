@@ -4,8 +4,10 @@ import {
   deleteProductFromElasticsearch,
   syncProductToElasticsearch,
 } from '@/lib/elasticsearchSync';
+import { getProductDetailBySlug } from '@/lib/productDetail';
 
-export const revalidate = 60; // ISR: Revalidate every 60 seconds
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // GET single product by slug
 export async function GET(
@@ -16,75 +18,7 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    const [product, reviewStats] = await Promise.all([
-      prisma.product.findUnique({
-        where: { slug },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          price: true,
-          images: true,
-          videoUrl: true,
-          isDigital: true,
-          isActive: true,
-          stock: true,
-          weight: true,
-          brand: true,
-          specifications: true,
-          tags: true,
-          variants: {
-            orderBy: { createdAt: 'asc' },
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              stock: true,
-              isActive: true,
-            },
-          },
-          categories: {
-            select: {
-              categoryId: true,
-              category: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          reviews: {
-            take: 10, // Limit to first 10 reviews for UI list
-            orderBy: { createdAt: 'desc' },
-            select: {
-              id: true,
-              rating: true,
-              comment: true,
-              user: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-      prisma.review.aggregate({
-        _avg: {
-          rating: true,
-        },
-        _count: {
-          id: true,
-        },
-        where: {
-          product: {
-            slug,
-          },
-        },
-      }),
-    ]);
+    const product = await getProductDetailBySlug(slug);
 
     if (!product) {
       return NextResponse.json(
@@ -93,21 +27,14 @@ export async function GET(
       );
     }
 
-    const avgRating = reviewStats._avg.rating ?? 0;
-    const reviewCount = reviewStats._count.id ?? 0;
-
     return NextResponse.json(
       {
         success: true,
-        product: {
-          ...product,
-          averageRating: Math.round(avgRating * 10) / 10,
-          reviewCount,
-        },
+        product,
       },
       {
         headers: {
-          'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+          'Cache-Control': 'no-store, max-age=0',
           'X-Product-Source': 'database',
           'X-Response-Time-ms': String(Date.now() - startTime),
         },
