@@ -116,7 +116,6 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
         },
       },
       reviews: {
-        take: 10,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -141,20 +140,15 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
     return null;
   }
 
-  const reviewStats = await prisma.review.aggregate({
-    _avg: {
-      rating: true,
-    },
-    where: {
-      productId: product.id,
-    },
-  });
-
   const { _count, ...productData } = product;
-  const avgRating = reviewStats._avg.rating ?? 0;
+  const avgRating =
+    product.reviews.length > 0
+      ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
+      : 0;
 
   return {
     ...productData,
+    reviews: product.reviews.slice(0, 10),
     specifications: product.specifications as Record<string, unknown> | null,
     averageRating: Math.round(avgRating * 10) / 10,
     reviewCount: _count.reviews,
