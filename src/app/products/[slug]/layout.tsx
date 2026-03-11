@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getProductDetailBySlug } from '@/lib/productDetail';
+import { getProductMetadataBySlug } from '@/lib/productDetail';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,7 +11,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductDetailBySlug(slug);
+  const product = await getProductMetadataBySlug(slug);
 
   const title = product?.metaTitle || product?.name || 'Product';
   const description =
