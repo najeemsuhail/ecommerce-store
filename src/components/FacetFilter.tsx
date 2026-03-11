@@ -267,9 +267,9 @@ export default function FacetFilter({
     selectedFilters.priceRange.max < facets.priceRange.max;
   const visibleCategories =
     categoryOptions && categoryOptions.length > 0 ? categoryOptions : facets.categories;
-  const facetCategoryCountById = useMemo(
-    () => new Map(facets.categories.map((category) => [category.id, category.count])),
-    [facets.categories]
+  const categorySourceCountById = useMemo(
+    () => new Map(visibleCategories.map((category) => [category.id, category.count])),
+    [visibleCategories]
   );
   const categoryIdByName = useMemo(() => {
     const map = new Map<string, string>();
@@ -278,19 +278,6 @@ export default function FacetFilter({
     }
     return map;
   }, [visibleCategories, facets.categories]);
-  const relevantCategoryIds = useMemo(() => {
-    const ids = new Set<string>(visibleCategories.map((category) => category.id));
-    for (const categoryId of selectedFilters.categoryIds) {
-      ids.add(categoryId);
-    }
-    for (const categoryName of selectedFilters.categories) {
-      const id = categoryIdByName.get(normalizeCategoryKey(categoryName));
-      if (id) {
-        ids.add(id);
-      }
-    }
-    return ids;
-  }, [visibleCategories, selectedFilters.categoryIds, selectedFilters.categories, categoryIdByName]);
   const hierarchyMap = useMemo(() => {
     const normalizedHierarchy =
       Array.isArray(categoryHierarchy) && categoryHierarchy.length > 0
@@ -314,23 +301,22 @@ export default function FacetFilter({
       );
     }
 
-    const byId = new Map(normalizedHierarchy.map((category) => [category.id, category]));
-    const includedIds = new Set(relevantCategoryIds);
+    const hierarchyEntries = new Map(
+      normalizedHierarchy.map((category) => [category.id, category])
+    );
 
-    for (const id of Array.from(relevantCategoryIds)) {
-      let current = byId.get(id);
-      while (current?.parentId) {
-        includedIds.add(current.parentId);
-        current = byId.get(current.parentId);
+    for (const category of visibleCategories) {
+      if (!hierarchyEntries.has(category.id)) {
+        hierarchyEntries.set(category.id, {
+          id: category.id,
+          name: category.name,
+          parentId: null,
+        });
       }
     }
 
-    return new Map(
-      normalizedHierarchy
-        .filter((category) => includedIds.has(category.id))
-        .map((category) => [category.id, category])
-    );
-  }, [categoryHierarchy, visibleCategories, relevantCategoryIds]);
+    return hierarchyEntries;
+  }, [categoryHierarchy, visibleCategories]);
   const childrenByParent = useMemo(() => {
     const map = new Map<string, Array<{ id: string; name: string; parentId: string | null }>>();
     for (const category of hierarchyMap.values()) {
@@ -352,7 +338,7 @@ export default function FacetFilter({
         return countById.get(categoryId)!;
       }
 
-      let total = facetCategoryCountById.get(categoryId) ?? 0;
+      let total = categorySourceCountById.get(categoryId) ?? 0;
       const children = childrenByParent.get(categoryId) || [];
       for (const child of children) {
         total += computeCount(child.id);
@@ -367,7 +353,7 @@ export default function FacetFilter({
     }
 
     return countById;
-  }, [facetCategoryCountById, childrenByParent, hierarchyMap]);
+  }, [categorySourceCountById, childrenByParent, hierarchyMap]);
   const rootCategories = useMemo(() => {
     const roots = Array.from(hierarchyMap.values()).filter((category) => !category.parentId);
     roots.sort((a, b) => a.name.localeCompare(b.name));
