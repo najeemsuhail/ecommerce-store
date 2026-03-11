@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { formatPrice } from '@/lib/currency';
@@ -22,87 +22,98 @@ export default function AddToWishlistModal({
   productName,
   productPrice,
   productImage,
-  productSlug,
 }: AddToWishlistModalProps) {
-  const { groups, isLoggedIn, isLoading, createGroup, addItemToGroup } = useWishlist();
+  const { groups, isLoggedIn, createGroup, addItemToGroup } = useWishlist();
   const [newGroupName, setNewGroupName] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleClose = () => {
+    setNewGroupName('');
+    setError('');
+    setIsSubmitting(false);
+    onClose();
+  };
 
   const handleAddToExistingGroup = async (groupId: string) => {
-    await addItemToGroup(groupId, productId);
-    setMessage('Added to collection!');
-    setTimeout(() => {
-      onClose();
-      setMessage('');
-      setNewGroupName('');
-      setSelectedGroupId('');
-    }, 1500);
+    setIsSubmitting(true);
+    setError('');
+    const success = await addItemToGroup(groupId, productId);
+    setIsSubmitting(false);
+
+    if (success) {
+      handleClose();
+      return;
+    }
+
+    setError('Failed to add item to collection.');
   };
 
   const handleCreateAndAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newGroupName.trim()) {
-      await createGroup(newGroupName.trim());
-      // After creating group, refetch to get the new group
-      setTimeout(async () => {
-        // Add to the first group (most recently created)
-        if (groups.length > 0) {
-          await addItemToGroup(groups[0].id, productId);
-        }
-      }, 500);
-      setMessage('Added to new collection!');
-      setTimeout(() => {
-        onClose();
-        setMessage('');
-        setNewGroupName('');
-        setSelectedGroupId('');
-      }, 2000);
+    const trimmedName = newGroupName.trim();
+
+    if (!trimmedName) {
+      setError('Collection name is required.');
+      return;
     }
+
+    setIsSubmitting(true);
+    setError('');
+
+    const createdGroup = await createGroup(trimmedName);
+    if (!createdGroup) {
+      setIsSubmitting(false);
+      setError('Failed to create collection.');
+      return;
+    }
+
+    const success = await addItemToGroup(createdGroup.id, productId);
+    setIsSubmitting(false);
+
+    if (success) {
+      handleClose();
+      return;
+    }
+
+    setError('Collection created, but adding the item failed.');
   };
 
   if (!isOpen) return null;
 
-  // Show login prompt if not logged in
   if (!isLoggedIn) {
     return (
       <>
-        {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-black/50 z-40"
-          onClick={onClose}
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={handleClose}
           style={{ backdropFilter: 'blur(4px)' }}
         />
 
-        {/* Login Modal */}
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-light-theme rounded-lg shadow-2xl z-50 w-full max-w-md mx-4">
-          <div className="gradient-primary-accent p-6 text-white-theme flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Sign In Required</h2>
-            <button
-              onClick={onClose}
-              className="text-white-theme hover:text-gray-200 text-2xl"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="p-6 text-center">
-            <p className="text-dark-theme mb-6">
-              You need to sign in to save items to your wishlist.
-            </p>
-            <div className="flex gap-3">
-              <Link
-                href="/auth"
-                className="flex-1 btn-primary-theme cursor-pointer"
-              >
-                Sign In
-              </Link>
-              <button
-                onClick={onClose}
-                className="flex-1 border-2 border-gray-theme text-gray-theme px-4 py-2 rounded-lg hover:bg-light-gray-theme font-medium transition-colors"
-              >
-                Cancel
+        <div className="fixed inset-x-4 bottom-4 z-50 md:left-1/2 md:top-1/2 md:bottom-auto md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2">
+          <div className="overflow-hidden rounded-2xl bg-light-theme shadow-2xl">
+            <div className="gradient-primary-accent flex items-center justify-between p-4 text-white-theme md:p-6">
+              <h2 className="text-xl font-bold md:text-2xl">Sign In Required</h2>
+              <button onClick={handleClose} className="text-2xl text-white-theme hover:text-gray-200">
+                x
               </button>
+            </div>
+
+            <div className="p-4 text-center md:p-6">
+              <p className="mb-6 text-sm text-dark-theme md:text-base">
+                You need to sign in to save items to your wishlist.
+              </p>
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
+                <Link href="/auth" className="flex-1 cursor-pointer text-center btn-primary-theme">
+                  Sign In
+                </Link>
+                <button
+                  onClick={handleClose}
+                  className="flex-1 rounded-lg border-2 border-gray-theme px-4 py-2 font-medium text-gray-theme transition-colors hover:bg-light-gray-theme"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -112,91 +123,84 @@ export default function AddToWishlistModal({
 
   return (
     <>
-      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
+        className="fixed inset-0 z-40 bg-black/50"
+        onClick={handleClose}
         style={{ backdropFilter: 'blur(4px)' }}
       />
 
-      {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-light-theme rounded-lg shadow-2xl z-50 w-full max-w-md mx-4">
-        {/* Header */}
-        <div className="gradient-primary-accent p-6 text-white-theme flex justify-between items-center">
-          <h2 className="text-2xl font-bold">Add to Collection</h2>
-          <button
-            onClick={onClose}
-            className="text-white-theme hover:text-light-theme text-2xl"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6">
-          {message && (
-            <div className="mb-4 p-3 bg-green-500 text-white rounded-lg text-center font-semibold flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-              </svg>
-              {message}
+      <div className="fixed inset-x-0 bottom-0 z-50 md:inset-x-4 md:bottom-4 md:flex md:items-center md:justify-center">
+        <div className="w-full md:max-w-md">
+          <div className="max-h-[88vh] overflow-hidden rounded-t-3xl bg-light-theme shadow-2xl md:rounded-2xl">
+            <div className="gradient-primary-accent flex items-center justify-between p-4 text-white-theme md:p-6">
+              <h2 className="text-xl font-bold md:text-2xl">Add to Collection</h2>
+              <button onClick={handleClose} className="text-2xl text-white-theme hover:text-light-theme">
+                x
+              </button>
             </div>
-          )}
 
-          {/* Product Info */}
-          <div className="mb-6 p-4 bg-light-gray-theme rounded-lg flex gap-4">
-            {productImage && (
-              <img
-                src={productImage}
-                alt={productName}
-                className="w-20 h-20 object-cover rounded"
-              />
-            )}
-            <div className="flex-1">
-              <p className="font-medium text-dark-theme">{productName}</p>
-              <p className="text-primary-theme font-bold">{formatPrice(productPrice)}</p>
-            </div>
-          </div>
+            <div className="max-h-[calc(88vh-76px)] overflow-y-auto p-4 md:p-6">
+              {error && (
+                <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+                  {error}
+                </div>
+              )}
 
-          {/* Existing Collections */}
-          {groups.length > 0 && (
-            <div className="mb-6">
-              <h3 className="font-bold text-dark-theme mb-3">Add to existing collection:</h3>
-              <div className="space-y-2">
-                {groups.map((group) => (
+              <div className="mb-6 flex gap-3 rounded-xl bg-light-gray-theme p-3 md:p-4">
+                {productImage && (
+                  <img
+                    src={productImage}
+                    alt={productName}
+                    className="h-16 w-16 rounded object-cover md:h-20 md:w-20"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 font-medium text-dark-theme">{productName}</p>
+                  <p className="font-bold text-primary-theme">{formatPrice(productPrice)}</p>
+                </div>
+              </div>
+
+              {groups.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="mb-3 font-bold text-dark-theme">Add to existing collection:</h3>
+                  <div className="space-y-2">
+                    {groups.map((group) => (
+                      <button
+                        key={group.id}
+                        onClick={() => handleAddToExistingGroup(group.id)}
+                        disabled={isSubmitting}
+                        className="w-full rounded-xl border-2 border-gray-theme p-3 text-left transition-all hover:border-primary-theme hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <p className="font-medium text-dark-theme">{group.name}</p>
+                        <p className="text-sm text-slate-500">
+                          {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="mb-3 font-bold text-gray-900">Or create new collection:</h3>
+                <form onSubmit={handleCreateAndAdd} className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    placeholder="Collection name..."
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    className="flex-1 rounded-lg border px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                   <button
-                    key={group.id}
-                    onClick={() => handleAddToExistingGroup(group.id)}
-                    className="w-full text-left p-3 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:bg-primary-light transition-all"
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="btn-primary-theme cursor-pointer text-sm disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <p className="font-medium text-dark-theme">{group.name}</p>
-                    <p className="text-sm text-light-theme">
-                      {group.items.length} item{group.items.length !== 1 ? 's' : ''}
-                    </p>
+                    {isSubmitting ? 'Saving...' : 'Create'}
                   </button>
-                ))}
+                </form>
               </div>
             </div>
-          )}
-
-          {/* Create New Collection */}
-          <div>
-            <h3 className="font-bold text-gray-900 mb-3">Or create new collection:</h3>
-            <form onSubmit={handleCreateAndAdd} className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Collection name..."
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-              />
-              <button
-                type="submit"
-                className="btn-primary-theme text-sm cursor-pointer"
-              >
-                Create
-              </button>
-            </form>
           </div>
         </div>
       </div>

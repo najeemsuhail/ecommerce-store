@@ -8,6 +8,16 @@ import { useCart } from '@/contexts/CartContext';
 import { formatPrice } from '@/lib/currency';
 import AddToCartNotification from '@/components/AddToCartNotification';
 
+const DEFAULT_WISHLIST_NAME = 'My Wishlist';
+
+type WishlistDisplayItem = {
+  productId: string;
+  name?: string;
+  price?: number;
+  image?: string;
+  slug?: string;
+};
+
 export default function WishlistPage() {
   const { groups, createGroup, deleteGroup, renameGroup, removeItemFromGroup } = useWishlist();
   const { addItem } = useCart();
@@ -65,7 +75,7 @@ export default function WishlistPage() {
     setRenameText(currentName);
   };
 
-  const handleMoveToCart = async (groupId: string, item: any) => {
+  const handleMoveToCart = async (groupId: string, item: WishlistDisplayItem) => {
     addItem({
       productId: item.productId,
       name: item.name || 'Product',
@@ -196,7 +206,10 @@ export default function WishlistPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {groups.map((group) => (
+              {groups.map((group) => {
+                const isDefaultGroup = group.name === DEFAULT_WISHLIST_NAME;
+
+                return (
                 <div
                   key={group.id}
                   className="bg-light-theme rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden"
@@ -222,17 +235,26 @@ export default function WishlistPage() {
                     ) : (
                       <div className="flex justify-between items-center">
                         <div>
-                          <h3 className="text-lg font-bold">{group.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold">{group.name}</h3>
+                            {isDefaultGroup && (
+                              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white">
+                                Default
+                              </span>
+                            )}
+                          </div>
                           <p className="text-blue-100 text-sm">
                             {group.items.length} item{group.items.length !== 1 ? 's' : ''}
                           </p>
                         </div>
-                        <button
-                          onClick={() => handleRenameGroup(group.id, group.name)}
-                          className="text-blue-100 hover:text-white-theme text-sm"
-                        >
-                          Edit
-                        </button>
+                        {!isDefaultGroup && (
+                          <button
+                            onClick={() => handleRenameGroup(group.id, group.name)}
+                            className="text-blue-100 hover:text-white-theme text-sm"
+                          >
+                            Edit
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -306,15 +328,22 @@ export default function WishlistPage() {
 
                   {/* Delete Collection Button */}
                   <div className="border-t p-4">
-                    <button
-                      onClick={() => deleteGroup(group.id)}
-                          className="w-full text-danger-theme hover:text-danger-theme py-2 font-medium border border-danger-theme rounded-lg hover:bg-danger-light transition-colors"
-                    >
-                      Delete Collection
-                    </button>
+                    {isDefaultGroup ? (
+                      <div className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 text-center text-sm font-medium text-slate-500">
+                        Default collection cannot be deleted
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => deleteGroup(group.id)}
+                        className="w-full rounded-lg border border-danger-theme py-2 font-medium text-danger-theme transition-colors hover:bg-danger-light hover:text-danger-theme"
+                      >
+                        Delete Collection
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

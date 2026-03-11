@@ -22,6 +22,12 @@ async function getUser(request: NextRequest) {
   return decoded.userId;
 }
 
+const DEFAULT_WISHLIST_NAME = 'My Wishlist';
+
+function isUniqueConstraintError(error: unknown): error is { code: string } {
+  return typeof error === 'object' && error !== null && 'code' in error;
+}
+
 // GET all wishlist groups for the user
 export async function GET(request: NextRequest) {
   try {
@@ -51,7 +57,7 @@ export async function GET(request: NextRequest) {
       const defaultGroup = await prisma.wishlistGroup.create({
         data: {
           userId,
-          name: 'My Wishlist',
+          name: DEFAULT_WISHLIST_NAME,
         },
         include: {
           items: true,
@@ -61,46 +67,44 @@ export async function GET(request: NextRequest) {
       console.log(`Created default wishlist group for user ${userId}`);
     }
 
-    console.log(`Found ${groups.length} wishlist groups for user ${userId}`);
-    groups.forEach(g => console.log(`Group "${g.name}" has ${g.items.length} items`));
-
-    // Fetch product details for all items
-    const groupsWithProducts = await Promise.all(
-      groups.map(async (group) => {
-        const itemsWithProducts = await Promise.all(
-          group.items.map(async (item) => {
-            const product = await prisma.product.findUnique({
-              where: { id: item.productId },
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                images: true,
-                slug: true,
-              },
-            });
-            
-            if (!product) {
-              console.warn(`Product not found for ID: ${item.productId}`);
-              return null;
-            }
-            
-            return {
-              ...item,
-              productId: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.images?.[0],
-              slug: product.slug,
-            };
-          })
-        );
-        return {
-          ...group,
-          items: itemsWithProducts.filter((item) => item !== null),
-        };
-      })
+    const productIds = Array.from(
+      new Set(groups.flatMap((group) => group.items.map((item) => item.productId)))
     );
+    const products = productIds.length > 0
+      ? await prisma.product.findMany({
+          where: {
+            id: { in: productIds },
+          },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            images: true,
+            slug: true,
+          },
+        })
+      : [];
+    const productById = new Map(products.map((product) => [product.id, product]));
+    const groupsWithProducts = groups.map((group) => ({
+      ...group,
+      items: group.items
+        .map((item) => {
+          const product = productById.get(item.productId);
+          if (!product) {
+            return null;
+          }
+
+          return {
+            ...item,
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.images?.[0],
+            slug: product.slug,
+          };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null),
+    }));
 
     return NextResponse.json({
       success: true,
@@ -156,11 +160,11 @@ export async function POST(request: NextRequest) {
       success: true,
       group,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create wishlist group:', error);
     
     // Handle unique constraint violation (duplicate group name for user)
-    if (error.code === 'P2002') {
+    if (isUniqueConstraintError(error) && error.code === 'P2002') {
       return NextResponse.json(
         { success: false, error: 'A collection with this name already exists' },
         { status: 400 }

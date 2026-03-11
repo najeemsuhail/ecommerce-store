@@ -25,11 +25,11 @@ interface WishlistContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   error: string | null;
-  createGroup: (groupName: string) => Promise<void>;
-  deleteGroup: (groupId: string) => Promise<void>;
-  renameGroup: (groupId: string, newName: string) => Promise<void>;
-  addItemToGroup: (groupId: string, productId: string) => Promise<void>;
-  removeItemFromGroup: (groupId: string, productId: string) => Promise<void>;
+  createGroup: (groupName: string) => Promise<WishlistGroup | null>;
+  deleteGroup: (groupId: string) => Promise<boolean>;
+  renameGroup: (groupId: string, newName: string) => Promise<boolean>;
+  addItemToGroup: (groupId: string, productId: string) => Promise<boolean>;
+  removeItemFromGroup: (groupId: string, productId: string) => Promise<boolean>;
   isInWishlist: (productId: string) => boolean;
   refreshWishlist: () => Promise<void>;
 }
@@ -142,7 +142,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
-      return;
+      return null;
     }
 
     try {
@@ -156,21 +156,27 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        await refreshWishlist();
+        const data = await response.json();
+        const createdGroup = data.group as WishlistGroup;
+        setGroups((prev) => [createdGroup, ...prev]);
+        setError(null);
+        return createdGroup;
       } else {
         setError('Failed to create group');
+        return null;
       }
     } catch (err) {
       console.error('Failed to create group:', err);
       setError('Failed to create group');
+      return null;
     }
-  }, [getToken, refreshWishlist]);
+  }, [getToken]);
 
   const deleteGroup = useCallback(async (groupId: string) => {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
-      return;
+      return false;
     }
 
     try {
@@ -182,21 +188,26 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        setGroups(groups.filter((group) => group.id !== groupId));
+        setGroups((prev) => prev.filter((group) => group.id !== groupId));
+        setError(null);
+        return true;
       } else {
-        setError('Failed to delete group');
+        const data = await response.json().catch(() => null);
+        setError(data?.error || 'Failed to delete group');
+        return false;
       }
     } catch (err) {
       console.error('Failed to delete group:', err);
       setError('Failed to delete group');
+      return false;
     }
-  }, [getToken, groups]);
+  }, [getToken]);
 
   const renameGroup = useCallback(async (groupId: string, newName: string) => {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
-      return;
+      return false;
     }
 
     try {
@@ -210,25 +221,30 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        setGroups(
-          groups.map((group) =>
+        setGroups((prev) =>
+          prev.map((group) =>
             group.id === groupId ? { ...group, name: newName } : group
           )
         );
+        setError(null);
+        return true;
       } else {
-        setError('Failed to rename group');
+        const data = await response.json().catch(() => null);
+        setError(data?.error || 'Failed to rename group');
+        return false;
       }
     } catch (err) {
       console.error('Failed to rename group:', err);
       setError('Failed to rename group');
+      return false;
     }
-  }, [getToken, groups]);
+  }, [getToken]);
 
   const addItemToGroup = useCallback(async (groupId: string, productId: string) => {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
-      return;
+      return false;
     }
 
     try {
@@ -242,21 +258,39 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        await refreshWishlist();
+        const data = await response.json();
+        const item = data.item as WishlistItem;
+        setGroups((prev) =>
+          prev.map((group) => {
+            if (group.id !== groupId) return group;
+            if (group.items.some((existingItem) => existingItem.productId === productId)) {
+              return group;
+            }
+            return {
+              ...group,
+              items: [...group.items, item],
+            };
+          })
+        );
+        setError(null);
+        return true;
       } else {
-        setError('Failed to add item');
+        const data = await response.json().catch(() => null);
+        setError(data?.error || 'Failed to add item');
+        return false;
       }
     } catch (err) {
       console.error('Failed to add item:', err);
       setError('Failed to add item');
+      return false;
     }
-  }, [getToken, refreshWishlist]);
+  }, [getToken]);
 
   const removeItemFromGroup = useCallback(async (groupId: string, productId: string) => {
     const token = getToken();
     if (!token) {
       setError('Not logged in');
-      return;
+      return false;
     }
 
     try {
@@ -270,8 +304,8 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        setGroups(
-          groups.map((group) => {
+        setGroups((prev) =>
+          prev.map((group) => {
             if (group.id === groupId) {
               return {
                 ...group,
@@ -281,14 +315,19 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             return group;
           })
         );
+        setError(null);
+        return true;
       } else {
-        setError('Failed to remove item');
+        const data = await response.json().catch(() => null);
+        setError(data?.error || 'Failed to remove item');
+        return false;
       }
     } catch (err) {
       console.error('Failed to remove item:', err);
       setError('Failed to remove item');
+      return false;
     }
-  }, [getToken, groups]);
+  }, [getToken]);
 
   const isInWishlist = (productId: string) => {
     return groups.some((group) =>

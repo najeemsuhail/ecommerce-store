@@ -18,6 +18,12 @@ async function getUser(request: NextRequest) {
   return decoded.userId;
 }
 
+const DEFAULT_WISHLIST_NAME = 'My Wishlist';
+
+function isUniqueConstraintError(error: unknown): error is { code: string } {
+  return typeof error === 'object' && error !== null && 'code' in error;
+}
+
 // DELETE a wishlist group
 export async function DELETE(
   request: NextRequest,
@@ -49,6 +55,13 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
+      );
+    }
+
+    if (group.name === DEFAULT_WISHLIST_NAME) {
+      return NextResponse.json(
+        { success: false, error: 'Default wishlist collection cannot be deleted' },
+        { status: 400 }
       );
     }
     
@@ -111,6 +124,13 @@ export async function PATCH(
         { status: 403 }
       );
     }
+
+    if (group.name === DEFAULT_WISHLIST_NAME) {
+      return NextResponse.json(
+        { success: false, error: 'Default wishlist collection cannot be renamed' },
+        { status: 400 }
+      );
+    }
     
     const updatedGroup = await prisma.wishlistGroup.update({
       where: { id: groupId },
@@ -124,11 +144,11 @@ export async function PATCH(
       success: true,
       group: updatedGroup,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to update wishlist group:', error);
     
     // Handle unique constraint violation (duplicate group name for user)
-    if (error.code === 'P2002') {
+    if (isUniqueConstraintError(error) && error.code === 'P2002') {
       return NextResponse.json(
         { success: false, error: 'A collection with this name already exists' },
         { status: 400 }
