@@ -698,7 +698,7 @@ export async function POST(request: NextRequest) {
     });
 
     await syncProductToElasticsearch(product.id);
-    revalidateTag('products');
+    revalidateTag('products', 'max');
     revalidatePath('/products');
     revalidatePath(`/products/${product.slug}`);
 

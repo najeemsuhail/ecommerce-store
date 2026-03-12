@@ -121,7 +121,7 @@ export async function PUT(
     });
 
     await syncProductToElasticsearch(product.id);
-    revalidateTag('products');
+    revalidateTag('products', 'max');
     revalidatePath('/products');
     revalidatePath(`/products/${slug}`);
     if (product.slug !== slug) {
@@ -166,7 +166,7 @@ export async function DELETE(
       where: { slug },
     });
     await deleteProductFromElasticsearch(existingProduct.id);
-    revalidateTag('products');
+    revalidateTag('products', 'max');
     revalidatePath('/products');
     revalidatePath(`/products/${slug}`);
 

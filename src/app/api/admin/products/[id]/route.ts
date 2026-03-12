@@ -87,7 +87,7 @@ export async function DELETE(
       where: { id },
     });
     await deleteProductFromElasticsearch(existingProduct.id);
-    revalidateTag('products');
+    revalidateTag('products', 'max');
     revalidatePath('/products');
     revalidatePath(`/products/${existingProduct.slug}`);
 
