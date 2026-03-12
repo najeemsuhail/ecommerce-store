@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/currency';
 
 export default function RecentlyViewedSection() {
   const { recentlyViewed, clearRecentlyViewed } = useRecentlyViewed();
@@ -21,7 +21,10 @@ export default function RecentlyViewedSection() {
     productSlug: '',
   });
 
-  const handleWishlistClick = (product: any, e: React.MouseEvent) => {
+  const handleWishlistClick = (
+    product: (typeof recentlyViewed)[number],
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     
     if (isInWishlist(product.id)) {
@@ -70,10 +73,12 @@ export default function RecentlyViewedSection() {
               {/* Product Image */}
               <Link href={`/products/${product.slug}`}>
                 <div className="relative overflow-hidden bg-gray-100 h-48">
-                  <img
+                  <Image
                     src={product.images?.[0] || '/images/products/default.png'}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   {/* Add to Cart Button on Hover */}
                   <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">

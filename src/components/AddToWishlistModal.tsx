@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { formatPrice } from '@/lib/currency';
@@ -148,11 +149,15 @@ export default function AddToWishlistModal({
 
               <div className="mb-6 flex gap-3 rounded-xl bg-light-gray-theme p-3 md:p-4">
                 {productImage && (
-                  <img
-                    src={productImage}
-                    alt={productName}
-                    className="h-16 w-16 rounded object-cover md:h-20 md:w-20"
-                  />
+                  <div className="relative h-16 w-16 overflow-hidden rounded md:h-20 md:w-20">
+                    <Image
+                      src={productImage}
+                      alt={productName}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 font-medium text-dark-theme">{productName}</p>

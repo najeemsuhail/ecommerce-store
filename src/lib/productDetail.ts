@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import prisma from '@/lib/prisma';
-import { stripHtml } from '@/lib/html';
+import { sanitizeRichHtml, stripHtml } from '@/lib/html';
 
 export interface ProductVariant {
   id: string;
@@ -60,7 +60,16 @@ export interface ProductMetadata {
 }
 
 export const getProductMetadataBySlug = cache(async (slug: string): Promise<ProductMetadata | null> => {
-  const product = await getProductDetailBySlug(slug);
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    select: {
+      name: true,
+      description: true,
+      metaTitle: true,
+      metaDescription: true,
+      images: true,
+    },
+  });
 
   if (!product) {
     return null;
@@ -117,6 +126,7 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
         },
       },
       reviews: {
+        take: 10,
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
@@ -141,15 +151,19 @@ export const getProductDetailBySlug = cache(async (slug: string): Promise<Produc
     return null;
   }
 
+  const ratingAggregate = await prisma.review.aggregate({
+    where: { productId: product.id },
+    _avg: {
+      rating: true,
+    },
+  });
+
   const { _count, ...productData } = product;
-  const avgRating =
-    product.reviews.length > 0
-      ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length
-      : 0;
+  const avgRating = ratingAggregate._avg.rating ?? 0;
 
   return {
     ...productData,
-    reviews: product.reviews.slice(0, 10),
+    description: sanitizeRichHtml(productData.description),
     specifications: product.specifications as Record<string, unknown> | null,
     averageRating: Math.round(avgRating * 10) / 10,
     reviewCount: _count.reviews,

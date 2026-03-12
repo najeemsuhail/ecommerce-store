@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
@@ -15,7 +16,6 @@ import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 import ShareProduct from '@/components/ShareProduct';
-import { sanitizeRichHtml } from '@/lib/html';
 import type { ProductDetail, ProductReview, ProductVariant, ProductCategoryLink } from '@/lib/productDetail';
 
 const ReviewForm = dynamic(() => import('@/components/ReviewForm'), {
@@ -64,21 +64,31 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [deferredSectionsReady, setDeferredSectionsReady] = useState(false);
-  const safeDescriptionHtml = sanitizeRichHtml(product.description);
 
   useEffect(() => {
     addToRecentlyViewed({
       id: product.id,
       name: product.name,
       slug: product.slug,
-      images: product.images || [],
+      images: product.images,
       price: product.price,
       viewedAt: Date.now(),
       isDigital: product.isDigital,
       weight: product.weight ?? undefined,
       isActive: product.isActive,
     });
-  }, [addToRecentlyViewed, product]);
+  }, [
+    addToRecentlyViewed,
+    product.brand,
+    product.id,
+    product.images,
+    product.isActive,
+    product.isDigital,
+    product.name,
+    product.price,
+    product.slug,
+    product.weight,
+  ]);
 
   useEffect(() => {
     const anchor = document.getElementById('deferred-sections-anchor');
@@ -170,9 +180,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                   onMouseMove={showImageZoom ? handleImageZoom : undefined}
                 >
                   {product.images?.[selectedImage] ? (
-                    <img
+                    <Image
                       src={product.images[selectedImage]}
                       alt={product.name}
+                      fill
+                      priority={selectedImage === 0}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
                       className={`w-full h-full object-contain transition-transform duration-200 ${
                         showImageZoom ? 'scale-150' : 'scale-100'
                       }`}
@@ -181,7 +194,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                           ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` }
                           : undefined
                       }
-                      loading="eager"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -224,7 +236,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
                 {product.images && product.images.length > 1 && (
                   <div className="mt-4">
-                    <p className="text-sm text-gray-600 mb-2 font-semibold">Click to select image</p>
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                       {product.images.map((image: string, index: number) => (
                         <button
@@ -237,11 +248,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                           }`}
                           title={`Image ${index + 1}`}
                         >
-                          <img
+                          <Image
                             src={image}
                             alt={`${product.name} ${index + 1}`}
-                            className="w-full h-full object-contain"
-                            loading="lazy"
+                            fill
+                            sizes="80px"
+                            className="object-contain"
                           />
                         </button>
                       ))}
@@ -303,7 +315,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     className="text-gray-700 prose prose-sm max-w-none"
                     style={{ lineHeight: 1.7 }}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }} />
+                    <div dangerouslySetInnerHTML={{ __html: product.description }} />
                     <style>{`
                       .prose ul, .prose ol {
                         margin-left: 1.5em;
