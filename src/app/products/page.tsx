@@ -73,6 +73,29 @@ interface CategoryApiItem {
 }
 
 const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
+const formatPriceRangeLabel = (
+  min: number,
+  max: number,
+  absoluteMax: number,
+  absoluteMin = 0
+) => {
+  const hasMin = min > absoluteMin;
+  const hasMax = max < absoluteMax;
+
+  if (hasMin && hasMax) {
+    return `${formatPrice(min)} - ${formatPrice(max)}`;
+  }
+
+  if (hasMin) {
+    return `${formatPrice(min)} and above`;
+  }
+
+  if (hasMax) {
+    return `Up to ${formatPrice(max)}`;
+  }
+
+  return 'Any price';
+};
 
 // Filter Skeleton Component
 function FilterSkeleton() {
@@ -175,12 +198,14 @@ function ProductsContent() {
   const observerTarget = useRef<HTMLDivElement>(null);
   const resultsTopRef = useRef<HTMLDivElement>(null);
   const hasInitializedListingRef = useRef(false);
+  const basePriceMin = defaultFacets.priceRange.min > 0 ? defaultFacets.priceRange.min : 0;
+  const basePriceMax = defaultFacets.priceRange.max;
   const activeFiltersCount =
     facetFilters.brands.length +
     facetFilters.categories.length +
     (facetFilters.isDigital ? 1 : 0) +
     (facetFilters.isFeatured ? 1 : 0) +
-    ((facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) ? 1 : 0) +
+    ((facetFilters.priceRange.min > basePriceMin || facetFilters.priceRange.max < basePriceMax) ? 1 : 0) +
     (facetFilters.attributes
       ? Object.values(facetFilters.attributes).reduce((count, values) => count + values.length, 0)
       : 0);
@@ -191,8 +216,8 @@ function ProductsContent() {
     facetFilters.categories.length > 0 ||
     Boolean(facetFilters.isDigital) ||
     Boolean(facetFilters.isFeatured) ||
-    facetFilters.priceRange.min > 0 ||
-    facetFilters.priceRange.max < facets.priceRange.max;
+    facetFilters.priceRange.min > basePriceMin ||
+    facetFilters.priceRange.max < basePriceMax;
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -228,6 +253,34 @@ function ProductsContent() {
   useEffect(() => {
     fetchFacets(0);
   }, [facetFilters, searchTerm]);
+
+  useEffect(() => {
+    const fetchBaseFacets = async () => {
+      try {
+        const response = await fetch('/api/products?includeFacets=true&facetsOnly=true&skip=0&limit=0', {
+          next: { revalidate: 300 },
+        });
+        const data = await response.json();
+        if (data.success && data.facets) {
+          setDefaultFacets(data.facets);
+          setFacetFilters((prev) => ({
+            ...prev,
+            priceRange:
+              prev.priceRange.min === 0 && prev.priceRange.max === 100000
+                ? {
+                    min: data.facets.priceRange.min > 0 ? data.facets.priceRange.min : 0,
+                    max: data.facets.priceRange.max,
+                  }
+                : prev.priceRange,
+          }));
+        }
+      } catch {
+        // Leave fallback defaults in place if the base facet request fails.
+      }
+    };
+
+    fetchBaseFacets();
+  }, []);
 
   useEffect(() => {
     const fetchCategoryHierarchy = async () => {
@@ -315,7 +368,6 @@ function ProductsContent() {
       }
       if (data.success && data.facets) {
         const computedFacets: FacetData = data.facets;
-        setDefaultFacets(computedFacets);
         setFacets(computedFacets);
         setFacetFilters((prev) => {
           if (prev.priceRange.max === computedFacets.priceRange.max) {
@@ -368,11 +420,11 @@ function ProductsContent() {
       });
     }
 
-    if (facetFilters.priceRange.min > 0) {
+    if (facetFilters.priceRange.min > basePriceMin) {
       url += `minPrice=${facetFilters.priceRange.min}&`;
     }
 
-    if (facetFilters.priceRange.max < facets.priceRange.max) {
+    if (facetFilters.priceRange.max < basePriceMax) {
       url += `maxPrice=${facetFilters.priceRange.max}&`;
     }
 
@@ -549,6 +601,7 @@ function ProductsContent() {
             <div className="hidden lg:block lg:col-span-3">
               <FacetFilter
                 facets={facets}
+                basePriceRange={defaultFacets.priceRange}
                 categoryOptions={stableCategoryFacets}
                 categoryHierarchy={categoryHierarchy}
                 selectedFilters={facetFilters}
@@ -581,6 +634,7 @@ function ProductsContent() {
                 <div className="p-4">
                   <FacetFilter
                     facets={facets}
+                    basePriceRange={defaultFacets.priceRange}
                     categoryOptions={stableCategoryFacets}
                     categoryHierarchy={categoryHierarchy}
                     selectedFilters={facetFilters}
@@ -602,7 +656,7 @@ function ProductsContent() {
                         brands: [],
                         categories: [],
                         categoryIds: [],
-                        priceRange: { min: 0, max: facets.priceRange.max },
+                        priceRange: { min: basePriceMin, max: basePriceMax },
                         isDigital: undefined,
                         isFeatured: undefined,
                         attributes: {},
@@ -667,17 +721,22 @@ function ProductsContent() {
                     <span>✕</span>
                   </button>
                 ))}
-                {(facetFilters.priceRange.min > 0 || facetFilters.priceRange.max < facets.priceRange.max) && (
+                {(facetFilters.priceRange.min > basePriceMin || facetFilters.priceRange.max < basePriceMax) && (
                   <button
                     onClick={() =>
                       setFacetFilters((prev) => ({
                         ...prev,
-                        priceRange: { min: 0, max: facets.priceRange.max },
+                        priceRange: { min: basePriceMin, max: basePriceMax },
                       }))
                     }
                     className="inline-flex items-center gap-1 bg-primary  px-3 py-1 rounded-full text-sm hover:bg-primary-hover transition-colors"
                   >
-                    Price: {formatPrice(facetFilters.priceRange.min)} - {formatPrice(facetFilters.priceRange.max)}
+                    Price: {formatPriceRangeLabel(
+                      facetFilters.priceRange.min,
+                      facetFilters.priceRange.max,
+                      basePriceMax,
+                      basePriceMin
+                    )}
                     <span>✕</span>
                   </button>
                 )}
@@ -715,7 +774,7 @@ function ProductsContent() {
                       brands: [],
                       categories: [],
                       categoryIds: [],
-                      priceRange: { min: 0, max: facets.priceRange.max },
+                      priceRange: { min: basePriceMin, max: basePriceMax },
                       isDigital: undefined,
                       isFeatured: undefined,
                       attributes: {},
@@ -825,7 +884,7 @@ function ProductsContent() {
                           brands: [],
                           categories: [],
                           categoryIds: [],
-                          priceRange: { min: 0, max: facets.priceRange.max },
+                          priceRange: { min: basePriceMin, max: basePriceMax },
                           isDigital: undefined,
                           isFeatured: undefined,
                           attributes: {},
@@ -843,7 +902,7 @@ function ProductsContent() {
                           brands: [],
                           categories: [],
                           categoryIds: [],
-                          priceRange: { min: 0, max: facets.priceRange.max },
+                          priceRange: { min: basePriceMin, max: basePriceMax },
                           isDigital: undefined,
                           isFeatured: undefined,
                           attributes: {},

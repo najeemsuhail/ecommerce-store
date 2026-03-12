@@ -36,6 +36,7 @@ interface FacetData {
 
 interface FacetFilterProps {
   facets: FacetData;
+  basePriceRange?: { min: number; max: number };
   categoryOptions?: { name: string; id: string; count: number }[];
   categoryHierarchy?: { id: string; name: string; parentId?: string | null }[];
   selectedFilters: FacetFilters;
@@ -44,11 +45,33 @@ interface FacetFilterProps {
 
 export default function FacetFilter({
   facets,
+  basePriceRange,
   categoryOptions,
   categoryHierarchy,
   selectedFilters,
   onFilterChange,
 }: FacetFilterProps) {
+  const resolvedBasePriceRange = basePriceRange ?? facets.priceRange;
+  const defaultMinPrice = resolvedBasePriceRange.min > 0 ? resolvedBasePriceRange.min : 0;
+  const formatPriceFilterLabel = (min: number, max: number) => {
+    const hasMin = min > defaultMinPrice;
+    const hasMax = max < resolvedBasePriceRange.max;
+
+    if (hasMin && hasMax) {
+      return `${formatPrice(min)} - ${formatPrice(max)}`;
+    }
+
+    if (hasMin) {
+      return `${formatPrice(min)} and above`;
+    }
+
+    if (hasMax) {
+      return `Up to ${formatPrice(max)}`;
+    }
+
+    return 'Any price';
+  };
+
   const SHOW_ATTRIBUTES_SECTION = false; // Temporary toggle
   const [expandedSections, setExpandedSections] = useState({
     brands: true,
@@ -63,8 +86,14 @@ export default function FacetFilter({
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<Set<string>>(new Set());
 
   const [priceInput, setPriceInput] = useState({
-    min: selectedFilters.priceRange?.min ?? 0,
-    max: selectedFilters.priceRange?.max ?? 10000,
+    min:
+      selectedFilters.priceRange && selectedFilters.priceRange.min > defaultMinPrice
+        ? String(selectedFilters.priceRange.min)
+        : '',
+    max:
+      selectedFilters.priceRange && selectedFilters.priceRange.max < resolvedBasePriceRange.max
+        ? String(selectedFilters.priceRange.max)
+        : '',
   });
   const visibleAttributes = attributes.filter(
     (attr) => Array.isArray(attr.options) && attr.options.length > 0
@@ -229,20 +258,38 @@ export default function FacetFilter({
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'min' | 'max') => {
-    const value = parseFloat(e.target.value) || 0;
-    const newPrice = { ...priceInput, [type]: value };
+    const newPrice = { ...priceInput, [type]: e.target.value };
     setPriceInput(newPrice);
   };
 
   const applyPriceFilter = () => {
+    const parsedMin = priceInput.min.trim() === '' ? defaultMinPrice : Number(priceInput.min);
+    const parsedMax =
+      priceInput.max.trim() === '' ? resolvedBasePriceRange.max : Number(priceInput.max);
+    const normalizedMin = Number.isFinite(parsedMin) ? parsedMin : defaultMinPrice;
+    const normalizedMax = Number.isFinite(parsedMax) ? parsedMax : resolvedBasePriceRange.max;
+
     onFilterChange({
       ...selectedFilters,
       priceRange: {
-        min: Math.min(priceInput.min, priceInput.max),
-        max: Math.max(priceInput.min, priceInput.max),
+        min: Math.min(normalizedMin, normalizedMax),
+        max: Math.max(normalizedMin, normalizedMax),
       },
     });
   };
+
+  useEffect(() => {
+    setPriceInput({
+      min:
+        selectedFilters.priceRange && selectedFilters.priceRange.min > defaultMinPrice
+          ? String(selectedFilters.priceRange.min)
+          : '',
+      max:
+        selectedFilters.priceRange && selectedFilters.priceRange.max < resolvedBasePriceRange.max
+          ? String(selectedFilters.priceRange.max)
+          : '',
+    });
+  }, [defaultMinPrice, resolvedBasePriceRange.max, selectedFilters.priceRange]);
 
   const handleDigitalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onFilterChange({
@@ -263,8 +310,8 @@ export default function FacetFilter({
     selectedFilters.categories.length > 0 ||
     selectedFilters.isDigital ||
     selectedFilters.isFeatured ||
-    selectedFilters.priceRange.min > 0 ||
-    selectedFilters.priceRange.max < facets.priceRange.max;
+    selectedFilters.priceRange.min > defaultMinPrice ||
+    selectedFilters.priceRange.max < resolvedBasePriceRange.max;
   const visibleCategories =
     categoryOptions && categoryOptions.length > 0 ? categoryOptions : facets.categories;
   const categorySourceCountById = useMemo(
@@ -399,7 +446,7 @@ export default function FacetFilter({
                 brands: [],
                 categories: [],
                 categoryIds: [],
-                priceRange: { min: 0, max: facets.priceRange.max },
+                priceRange: { min: defaultMinPrice, max: resolvedBasePriceRange.max },
                 isDigital: undefined,
                 isFeatured: undefined,
               })
@@ -427,25 +474,25 @@ export default function FacetFilter({
           <div className="mt-4 space-y-3">
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 mb-1">Min</label>
+                <label className="block text-xs text-gray-600 mb-1">Min price</label>
                 <input
                   type="number"
                   value={priceInput.min}
                   onChange={(e) => handlePriceChange(e, 'min')}
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0"
+                  placeholder={defaultMinPrice > 0 ? String(defaultMinPrice) : 'No minimum'}
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-gray-600 mb-1">Max</label>
+                <label className="block text-xs text-gray-600 mb-1">Max price</label>
                 <input
                   type="number"
                   value={priceInput.max}
                   onChange={(e) => handlePriceChange(e, 'max')}
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`${facets?.priceRange?.max ?? 50000}`}
+                  placeholder={String(facets?.priceRange?.max ?? 50000)}
                 />
               </div>
             </div>
@@ -702,16 +749,17 @@ export default function FacetFilter({
                 </div>
               );
             })}
-            {(selectedFilters.priceRange.min > 0 || selectedFilters.priceRange.max < facets.priceRange.max) && (
+            {(selectedFilters.priceRange.min > defaultMinPrice ||
+              selectedFilters.priceRange.max < resolvedBasePriceRange.max) && (
               <div className="flex items-center justify-between bg-primary-light text-primary-theme px-3 py-1 rounded-full text-sm">
                 <span>
-                  Price: {formatPrice(selectedFilters.priceRange.min)} - {formatPrice(selectedFilters.priceRange.max)}
+                  Price: {formatPriceFilterLabel(selectedFilters.priceRange.min, selectedFilters.priceRange.max)}
                 </span>
                 <button
                   onClick={() =>
                     onFilterChange({
                       ...selectedFilters,
-                      priceRange: { min: 0, max: facets.priceRange.max },
+                      priceRange: { min: defaultMinPrice, max: resolvedBasePriceRange.max },
                     })
                   }
                   className="hover:text-primary-dark ml-2"

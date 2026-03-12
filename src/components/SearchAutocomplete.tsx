@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { startTransition, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faBox } from '@fortawesome/free-solid-svg-icons';
@@ -105,6 +105,18 @@ export default function SearchAutocomplete({
     return () => clearTimeout(timer);
   }, [query]);
 
+  useEffect(() => {
+    for (const product of results.products) {
+      router.prefetch(`/products/${product.slug}`);
+    }
+  }, [results.products, router]);
+
+  useEffect(() => {
+    for (const product of focusProducts) {
+      router.prefetch(`/products/${product.slug}`);
+    }
+  }, [focusProducts, router]);
+
   // Load recent searches once
   useEffect(() => {
     try {
@@ -170,6 +182,7 @@ export default function SearchAutocomplete({
   }, [selectedIndex]);
 
   const handleSelectSuggestion = (suggestion: Suggestion) => {
+    startTransition(() => {
     if (suggestion.type === 'product') {
       router.push(`/products/${suggestion.slug}`);
     } else if (suggestion.type === 'category') {
@@ -177,6 +190,7 @@ export default function SearchAutocomplete({
     } else if (suggestion.type === 'tag') {
       router.push(`/products?tag=${encodeURIComponent(suggestion.name)}`);
     }
+    });
     setIsOpen(false);
     setQuery('');
     onNavigate?.();
