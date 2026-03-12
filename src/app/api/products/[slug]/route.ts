@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import {
   deleteProductFromElasticsearch,
@@ -120,6 +121,12 @@ export async function PUT(
     });
 
     await syncProductToElasticsearch(product.id);
+    revalidateTag('products');
+    revalidatePath('/products');
+    revalidatePath(`/products/${slug}`);
+    if (product.slug !== slug) {
+      revalidatePath(`/products/${product.slug}`);
+    }
 
     return NextResponse.json({
       success: true,
@@ -159,6 +166,9 @@ export async function DELETE(
       where: { slug },
     });
     await deleteProductFromElasticsearch(existingProduct.id);
+    revalidateTag('products');
+    revalidatePath('/products');
+    revalidatePath(`/products/${slug}`);
 
     return NextResponse.json({
       success: true,

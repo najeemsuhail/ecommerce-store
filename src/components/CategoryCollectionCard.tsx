@@ -45,9 +45,6 @@ export default function CategoryCollectionCard({
         )}
 
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/80 via-slate-900/25 to-transparent" />
-        <div className="absolute left-4 top-4 rounded-full bg-white/88 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700">
-          Collection
-        </div>
       </div>
 
       <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-5">

@@ -1,4 +1,4 @@
-import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { sanitizeRichHtml, stripHtml } from '@/lib/html';
 
@@ -59,17 +59,92 @@ export interface ProductMetadata {
   images: string[];
 }
 
-export const getProductMetadataBySlug = cache(async (slug: string): Promise<ProductMetadata | null> => {
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      name: true,
-      description: true,
-      metaTitle: true,
-      metaDescription: true,
-      images: true,
-    },
-  });
+const getProductMetadataRecordBySlug = unstable_cache(
+  async (slug: string) => {
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      select: {
+        name: true,
+        description: true,
+        metaTitle: true,
+        metaDescription: true,
+        images: true,
+      },
+    });
+
+    return product;
+  },
+  ['product-metadata-by-slug'],
+  { revalidate: 300, tags: ['products'] }
+);
+
+const getProductDetailRecordBySlug = unstable_cache(
+  async (slug: string) => {
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        videoUrl: true,
+        isDigital: true,
+        isActive: true,
+        stock: true,
+        weight: true,
+        brand: true,
+        specifications: true,
+        tags: true,
+        metaTitle: true,
+        metaDescription: true,
+        images: true,
+        variants: {
+          orderBy: { createdAt: 'asc' },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            stock: true,
+            isActive: true,
+          },
+        },
+        categories: {
+          select: {
+            categoryId: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        reviews: {
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return product;
+  },
+  ['product-detail-by-slug'],
+  { revalidate: 300, tags: ['products'] }
+);
+
+export async function getProductMetadataBySlug(slug: string): Promise<ProductMetadata | null> {
+  const product = await getProductMetadataRecordBySlug(slug);
 
   if (!product) {
     return null;
@@ -82,90 +157,35 @@ export const getProductMetadataBySlug = cache(async (slug: string): Promise<Prod
     metaDescription: product.metaDescription,
     images: product.images,
   };
-});
+}
 
-export const getProductDetailBySlug = cache(async (slug: string): Promise<ProductDetail | null> => {
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      description: true,
-      price: true,
-      images: true,
-      videoUrl: true,
-      isDigital: true,
-      isActive: true,
-      stock: true,
-      weight: true,
-      brand: true,
-      specifications: true,
-      tags: true,
-      metaTitle: true,
-      metaDescription: true,
-      variants: {
-        orderBy: { createdAt: 'asc' },
-        select: {
-          id: true,
-          name: true,
-          price: true,
-          stock: true,
-          isActive: true,
-        },
-      },
-      categories: {
-        select: {
-          categoryId: true,
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      reviews: {
-        take: 10,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          rating: true,
-          comment: true,
-          user: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          reviews: true,
-        },
-      },
-    },
-  });
+export async function getProductDetailBySlug(slug: string): Promise<ProductDetail | null> {
+  const product = await getProductDetailRecordBySlug(slug);
 
   if (!product) {
     return null;
   }
 
-  const ratingAggregate = await prisma.review.aggregate({
-    where: { productId: product.id },
+  const [ratingGroup] = await prisma.review.groupBy({
+    by: ['productId'],
+    where: {
+      productId: product.id,
+    },
     _avg: {
+      rating: true,
+    },
+    _count: {
       rating: true,
     },
   });
 
-  const { _count, ...productData } = product;
-  const avgRating = ratingAggregate._avg.rating ?? 0;
+  const avgRating = ratingGroup?._avg.rating ?? 0;
 
   return {
-    ...productData,
-    description: sanitizeRichHtml(productData.description),
+    ...product,
+    description: sanitizeRichHtml(product.description),
     specifications: product.specifications as Record<string, unknown> | null,
     averageRating: Math.round(avgRating * 10) / 10,
-    reviewCount: _count.reviews,
+    reviewCount: ratingGroup?._count.rating ?? 0,
   };
-});
+}

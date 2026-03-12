@@ -5,7 +5,6 @@ export const revalidate = 300;
 
 type Props = {
   params: Promise<{ slug: string }>;
-  children: React.ReactNode;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -14,10 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = product?.metaTitle || product?.name || 'Product';
   const description =
-    product?.metaDescription ||
-    (product?.description
-      ? product.description.replace(/<[^>]+>/g, '').slice(0, 160)
-      : '');
+    product?.metaDescription || (product?.description ? product.description.slice(0, 160) : '');
   const image = product?.images?.[0];
 
   return {
@@ -26,13 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      ...(image && { images: [image] }),
+      ...(image ? { images: [image] } : {}),
     },
     twitter: {
       card: image ? 'summary_large_image' : 'summary',
       title,
       description,
-      ...(image && { images: [image] }),
+      ...(image ? { images: [image] } : {}),
     },
   };
 }

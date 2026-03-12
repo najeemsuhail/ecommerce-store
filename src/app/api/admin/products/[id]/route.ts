@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
 import { deleteProductFromElasticsearch } from '@/lib/elasticsearchSync';
@@ -72,7 +73,7 @@ export async function DELETE(
 
     const existingProduct = await prisma.product.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, slug: true },
     });
 
     if (!existingProduct) {
@@ -86,6 +87,9 @@ export async function DELETE(
       where: { id },
     });
     await deleteProductFromElasticsearch(existingProduct.id);
+    revalidateTag('products');
+    revalidatePath('/products');
+    revalidatePath(`/products/${existingProduct.slug}`);
 
     return NextResponse.json({
       success: true,

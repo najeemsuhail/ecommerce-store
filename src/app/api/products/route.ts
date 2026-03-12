@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
@@ -697,6 +698,9 @@ export async function POST(request: NextRequest) {
     });
 
     await syncProductToElasticsearch(product.id);
+    revalidateTag('products');
+    revalidatePath('/products');
+    revalidatePath(`/products/${product.slug}`);
 
     return NextResponse.json({
       success: true,
