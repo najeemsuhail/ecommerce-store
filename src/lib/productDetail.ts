@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import prisma from '@/lib/prisma';
+import { stripHtml } from '@/lib/html';
 
 export interface ProductVariant {
   id: string;
@@ -67,7 +68,7 @@ export const getProductMetadataBySlug = cache(async (slug: string): Promise<Prod
 
   return {
     name: product.name,
-    description: product.description,
+    description: stripHtml(product.description),
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
     images: product.images,

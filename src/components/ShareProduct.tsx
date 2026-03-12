@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faWhatsapp,
   faFacebookF,
-  faXTwitter,
   faTelegram,
   faPinterestP,
 } from '@fortawesome/free-brands-svg-icons';
@@ -18,6 +17,12 @@ interface ShareProductProps {
   productPrice?: string;
 }
 
+const EMPTY_SUBSCRIBE = () => () => {};
+
+function getNativeShareSupport() {
+  return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+}
+
 export default function ShareProduct({
   productName,
   productSlug,
@@ -25,11 +30,10 @@ export default function ShareProduct({
   productPrice,
 }: ShareProductProps) {
   const [copied, setCopied] = useState(false);
-  const [productUrl, setProductUrl] = useState('');
-
-  useEffect(() => {
-    setProductUrl(`${window.location.origin}/products/${productSlug}`);
-  }, [productSlug]);
+  const canNativeShare = useSyncExternalStore(EMPTY_SUBSCRIBE, getNativeShareSupport, () => false);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? '';
+  const productPath = `/products/${productSlug}`;
+  const productUrl = appUrl ? `${appUrl}${productPath}` : productPath;
 
   const encodedUrl = encodeURIComponent(productUrl);
   const encodedText = encodeURIComponent(
@@ -112,7 +116,7 @@ export default function ShareProduct({
         </button>
 
         {/* Native mobile share */}
-        {'share' in navigator && (
+        {canNativeShare && (
           <button
             onClick={handleNativeShare}
             title="Share"

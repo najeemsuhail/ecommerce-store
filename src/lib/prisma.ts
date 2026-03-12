@@ -4,6 +4,10 @@ const globalForPrisma = globalThis as typeof globalThis & {
   prisma?: PrismaClient
 }
 
+function isSupabasePoolerUrl(url: URL) {
+  return url.hostname.includes('pooler.supabase.com')
+}
+
 function buildPrismaUrl() {
   const databaseUrl = process.env.DATABASE_URL
 
@@ -12,6 +16,16 @@ function buildPrismaUrl() {
   }
 
   const url = new URL(databaseUrl)
+
+  // Only rewrite URLs for Supabase's pooled endpoint.
+  // Direct Postgres URLs should be left untouched.
+  if (!isSupabasePoolerUrl(url)) {
+    return undefined
+  }
+
+  if (!url.searchParams.has('pgbouncer')) {
+    url.searchParams.set('pgbouncer', 'true')
+  }
 
   if (!url.searchParams.has('connection_limit')) {
     url.searchParams.set('connection_limit', '1')

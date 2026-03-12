@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 
 export interface RecentlyViewedProduct {
   id: string;
@@ -25,27 +25,31 @@ const RecentlyViewedContext = createContext<RecentlyViewedContextType | undefine
 const STORAGE_KEY = 'recently_viewed_products';
 const MAX_ITEMS = 10;
 
-export function RecentlyViewedProvider({ children }: { children: React.ReactNode }) {
-  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>([]);
-  const [isClient, setIsClient] = useState(false);
+function getInitialRecentlyViewed(): RecentlyViewedProduct[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
-  // Initialize from localStorage
-  useEffect(() => {
-    setIsClient(true);
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setRecentlyViewed(parsed);
-      }
-    } catch (error) {
-      console.error('Failed to load recently viewed products:', error);
-      localStorage.removeItem(STORAGE_KEY);
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return [];
     }
-  }, []);
 
-  const addToRecentlyViewed = (product: RecentlyViewedProduct) => {
-    if (!isClient) return;
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Failed to load recently viewed products:', error);
+    localStorage.removeItem(STORAGE_KEY);
+    return [];
+  }
+}
+
+export function RecentlyViewedProvider({ children }: { children: React.ReactNode }) {
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>(getInitialRecentlyViewed);
+
+  const addToRecentlyViewed = useCallback((product: RecentlyViewedProduct) => {
+    if (typeof window === 'undefined') return;
 
     setRecentlyViewed((prev) => {
       // Remove if already exists to avoid duplicates
@@ -69,16 +73,16 @@ export function RecentlyViewedProvider({ children }: { children: React.ReactNode
 
       return updated;
     });
-  };
+  }, []);
 
-  const clearRecentlyViewed = () => {
+  const clearRecentlyViewed = useCallback(() => {
     setRecentlyViewed([]);
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
       console.error('Failed to clear recently viewed products:', error);
     }
-  };
+  }, []);
 
   return (
     <RecentlyViewedContext.Provider

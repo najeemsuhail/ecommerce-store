@@ -15,6 +15,7 @@ import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 import ShareProduct from '@/components/ShareProduct';
+import { sanitizeRichHtml } from '@/lib/html';
 import type { ProductDetail, ProductReview, ProductVariant, ProductCategoryLink } from '@/lib/productDetail';
 
 const ReviewForm = dynamic(() => import('@/components/ReviewForm'), {
@@ -63,6 +64,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [showImageZoom, setShowImageZoom] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [deferredSectionsReady, setDeferredSectionsReady] = useState(false);
+  const safeDescriptionHtml = sanitizeRichHtml(product.description);
 
   useEffect(() => {
     addToRecentlyViewed({
@@ -301,7 +303,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                     className="text-gray-700 prose prose-sm max-w-none"
                     style={{ lineHeight: 1.7 }}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                    <div dangerouslySetInnerHTML={{ __html: safeDescriptionHtml }} />
                     <style>{`
                       .prose ul, .prose ol {
                         margin-left: 1.5em;
