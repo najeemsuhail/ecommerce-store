@@ -120,20 +120,6 @@ const getProductDetailRecordBySlug = unstable_cache(
             },
           },
         },
-        reviews: {
-          take: 10,
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            rating: true,
-            comment: true,
-            user: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -166,26 +152,12 @@ export async function getProductDetailBySlug(slug: string): Promise<ProductDetai
     return null;
   }
 
-  const [ratingGroup] = await prisma.review.groupBy({
-    by: ['productId'],
-    where: {
-      productId: product.id,
-    },
-    _avg: {
-      rating: true,
-    },
-    _count: {
-      rating: true,
-    },
-  });
-
-  const avgRating = ratingGroup?._avg.rating ?? 0;
-
   return {
     ...product,
     description: sanitizeRichHtml(product.description),
     specifications: product.specifications as Record<string, unknown> | null,
-    averageRating: Math.round(avgRating * 10) / 10,
-    reviewCount: ratingGroup?._count.rating ?? 0,
+    averageRating: 0,
+    reviewCount: 0,
+    reviews: [],
   };
 }

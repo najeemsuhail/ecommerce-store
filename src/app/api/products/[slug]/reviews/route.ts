@@ -33,7 +33,7 @@ export async function GET(
     }
 
     // Fetch reviews with pagination
-    const [reviews, totalCount] = await Promise.all([
+    const [reviews, totalCount, ratingAggregate] = await Promise.all([
       prisma.review.findMany({
         where: { productId: product.id },
         skip,
@@ -51,6 +51,12 @@ export async function GET(
       prisma.review.count({
         where: { productId: product.id },
       }),
+      prisma.review.aggregate({
+        where: { productId: product.id },
+        _avg: {
+          rating: true,
+        },
+      }),
     ]);
 
     return NextResponse.json(
@@ -58,6 +64,7 @@ export async function GET(
         success: true,
         reviews,
         totalCount,
+        averageRating: Math.round((ratingAggregate._avg.rating ?? 0) * 10) / 10,
         hasMore: skip + take < totalCount,
       },
       {

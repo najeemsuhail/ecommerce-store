@@ -32,10 +32,23 @@ interface ProductDetailEnhancementsProps {
   };
 }
 
+interface DeferredReview {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  user?: {
+    name?: string | null;
+  } | null;
+}
+
 export default function ProductDetailEnhancements({ product }: ProductDetailEnhancementsProps) {
   const { addItem } = useCart();
   const { addToRecentlyViewed } = useRecentlyViewed();
   const [deferredSectionsReady, setDeferredSectionsReady] = useState(false);
+  const [reviews, setReviews] = useState<DeferredReview[]>([]);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
     addToRecentlyViewed({
@@ -79,6 +92,45 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
     return () => observer.disconnect();
   }, [product.id]);
 
+  useEffect(() => {
+    if (!deferredSectionsReady) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadReviews = async () => {
+      setReviewsLoading(true);
+
+      try {
+        const response = await fetch(`/api/products/${product.slug}/reviews?take=10`, {
+          signal: controller.signal,
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to load reviews');
+        }
+
+        setReviews(data.reviews || []);
+        setReviewCount(data.totalCount || 0);
+        setAverageRating(data.averageRating || 0);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to load product reviews:', error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    loadReviews();
+
+    return () => controller.abort();
+  }, [deferredSectionsReady, product.slug]);
+
   if (!deferredSectionsReady) {
     return (
       <div className="mt-12">
@@ -117,6 +169,50 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
 
       <div className="mt-12">
         <ReviewForm productId={product.id} productName={product.name} />
+
+        {reviewsLoading ? (
+          <div className="space-y-4">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="rounded-lg bg-gray-100 p-6 animate-pulse">
+                <div className="mb-3 h-4 w-40 rounded bg-gray-200" />
+                <div className="h-4 w-full rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        ) : reviewCount > 0 ? (
+          <div>
+            <h2 className="mb-3 text-2xl font-bold">Customer Reviews</h2>
+            <div className="mb-6 flex items-center gap-3 text-sm text-gray-600">
+              <div className="flex text-yellow-400">
+                {'★'.repeat(Math.round(averageRating))}
+                {'☆'.repeat(5 - Math.round(averageRating))}
+              </div>
+              <span>
+                {averageRating.toFixed(1)} from {reviewCount} review{reviewCount === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="bg-light-theme rounded-lg shadow p-6">
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="flex text-yellow-400">
+                      {'★'.repeat(review.rating)}
+                      {'☆'.repeat(5 - review.rating)}
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      by {review.user?.name || 'Anonymous'}
+                    </span>
+                  </div>
+                  {review.comment && <p className="text-gray-700">{review.comment}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>No reviews yet. Be the first to review this product!</p>
+          </div>
+        )}
       </div>
     </>
   );
