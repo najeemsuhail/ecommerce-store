@@ -69,7 +69,7 @@ export default function Header() {
 
   return (
     <nav className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
-      <div className="w-full lg:w-[95%] mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto py-4">
         <div className="flex justify-between items-center gap-4">
 
           {/* LEFT: Logo + Menu */}

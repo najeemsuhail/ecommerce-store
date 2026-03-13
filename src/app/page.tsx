@@ -17,7 +17,7 @@ import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Array<{ name: string; id: string; slug: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ name: string; id: string; slug: string; imageUrl?: string | null }>>([]);
   const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
@@ -68,12 +68,12 @@ export default function HomePage() {
         // Prefer true parent categories (top-level categories that have children).
         const parentCategories = data
           .filter((cat: any) => !cat.parentId && Array.isArray(cat.children) && cat.children.length > 0)
-          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
+          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
 
         // Fallback to top-level categories when no parent categories exist.
         const topLevelCategories = data
           .filter((cat: any) => !cat.parentId)
-          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug }));
+          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
         const categoriesToUse = parentCategories.length > 0 ? parentCategories : topLevelCategories;
         
         // Remove duplicates by name (keep first occurrence)
@@ -82,7 +82,8 @@ export default function HomePage() {
             index === self.findIndex((c: any) => c.name === cat.name)
         );
         
-        setCategories(uniqueCategories.slice(0, 6));
+        const shuffledCategories = [...uniqueCategories].sort(() => Math.random() - 0.5);
+        setCategories(shuffledCategories.slice(0, 6));
       }
     } catch (error) {
       console.error('Failed to fetch categories');
@@ -164,7 +165,6 @@ export default function HomePage() {
             type="bestseller"
           />
         )}
-        <LatestBlogPostsSection />
         <section className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-50">
           <div className="max-w-7xl mx-auto px-4">
             <ProductRecommendations 
@@ -176,6 +176,7 @@ export default function HomePage() {
           </div>
         </section>
         <FeaturesSection />
+        <LatestBlogPostsSection />
       </div>
     </Layout>
   );
