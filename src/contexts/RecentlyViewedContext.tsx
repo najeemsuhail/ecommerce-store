@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 export interface RecentlyViewedProduct {
   id: string;
@@ -25,11 +25,7 @@ const RecentlyViewedContext = createContext<RecentlyViewedContextType | undefine
 const STORAGE_KEY = 'recently_viewed_products';
 const MAX_ITEMS = 10;
 
-function getInitialRecentlyViewed(): RecentlyViewedProduct[] {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-
+function loadRecentlyViewedFromStorage(): RecentlyViewedProduct[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) {
@@ -46,7 +42,11 @@ function getInitialRecentlyViewed(): RecentlyViewedProduct[] {
 }
 
 export function RecentlyViewedProvider({ children }: { children: React.ReactNode }) {
-  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>(getInitialRecentlyViewed);
+  const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>([]);
+
+  useEffect(() => {
+    setRecentlyViewed(loadRecentlyViewedFromStorage());
+  }, []);
 
   const addToRecentlyViewed = useCallback((product: RecentlyViewedProduct) => {
     if (typeof window === 'undefined') return;

@@ -124,10 +124,10 @@ export default function RecentlyViewedSection() {
               <div className="p-3">
                 <Link
                   href={`/products/${product.slug}`}
-                  className="block text-sm font-semibold text-gray-900 hover:text-blue-600 line-clamp-2 leading-tight"
+                  className="block h-10 overflow-hidden text-sm font-semibold leading-5 text-gray-900 hover:text-blue-600"
                   title={product.name}
                 >
-                  {product.name}
+                  <span className="line-clamp-2">{product.name}</span>
                 </Link>
                 <div className="flex gap-2 md:hidden items-center pt-3">
                   <button
