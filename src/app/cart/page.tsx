@@ -212,9 +212,8 @@ export default function CartPage() {
                       <p className="text-text-lighter text-xs md:text-sm mb-1 truncate">{item.variantName}</p>
                     )}
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs text-gray-500 line-through">{formatPrice(item.price)}</span>
                       {item.isDigital && (
-                        <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded">Digital</span>
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">Digital</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">

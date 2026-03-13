@@ -212,7 +212,7 @@ export default function Header() {
                           }}
                           className="block w-full text-left px-4 py-3 hover:bg-light-gray-theme text-dark-theme font-medium transition-colors"
                         >
-                          Logout
+                          Sign Out
                         </button>
                       </>
                     )}
