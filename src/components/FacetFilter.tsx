@@ -37,7 +37,7 @@ interface FacetData {
 interface FacetFilterProps {
   facets: FacetData;
   basePriceRange?: { min: number; max: number };
-  categoryOptions?: { name: string; id: string; count: number }[];
+  categoryOptions?: { name: string; id: string; count?: number }[];
   categoryHierarchy?: { id: string; name: string; parentId?: string | null }[];
   selectedFilters: FacetFilters;
   onFilterChange: (filters: FacetFilters) => void;
@@ -312,8 +312,18 @@ export default function FacetFilter({
     selectedFilters.isFeatured ||
     selectedFilters.priceRange.min > defaultMinPrice ||
     selectedFilters.priceRange.max < resolvedBasePriceRange.max;
-  const visibleCategories =
-    categoryOptions && categoryOptions.length > 0 ? categoryOptions : facets.categories;
+  const visibleCategories = useMemo(() => {
+    if (!categoryOptions || categoryOptions.length === 0) {
+      return facets.categories;
+    }
+
+    const facetCountById = new Map(facets.categories.map((category) => [category.id, category.count]));
+
+    return categoryOptions.map((category) => ({
+      ...category,
+      count: facetCountById.get(category.id) ?? category.count ?? 0,
+    }));
+  }, [categoryOptions, facets.categories]);
   const categorySourceCountById = useMemo(
     () => new Map(visibleCategories.map((category) => [category.id, category.count])),
     [visibleCategories]

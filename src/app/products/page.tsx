@@ -67,9 +67,6 @@ interface CategoryApiItem {
   id: string;
   name: string;
   parentId?: string | null;
-  _count?: {
-    products?: number;
-  };
 }
 
 const normalizeCategoryKey = (value: string) => value.trim().toLowerCase();
@@ -302,7 +299,7 @@ function ProductsContent() {
         const stableCategories = normalizedData.map((category) => ({
           id: category.id,
           name: category.name,
-          count: category._count?.products ?? 0,
+          count: 0,
         }));
 
         setCategoryHierarchy(normalized);
