@@ -256,8 +256,8 @@ export default function Header() {
           
           {/* Full Screen Menu */}
           <div 
-            className="fixed top-16 left-0 right-0 bottom-0 md:hidden z-50 px-6 py-8 flex flex-col border-t-2 border-gray-200 shadow-2xl overflow-y-auto"
-            style={{ backgroundColor: '#ffffff', width: '100vw', height: 'calc(100vh - 4rem)' }}
+            className="fixed inset-x-0 top-16 bottom-0 box-border md:hidden z-50 flex flex-col overflow-y-auto border-t-2 border-gray-200 px-6 py-8 shadow-2xl"
+            style={{ backgroundColor: '#ffffff', height: 'calc(100vh - 4rem)' }}
           >
             {/* Close Button */}
             <button

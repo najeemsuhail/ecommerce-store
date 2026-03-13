@@ -102,7 +102,7 @@ function FilterSkeleton() {
   return (
     <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20 space-y-6">
       {/* Price Skeleton */}
-      <div className="border-b pb-6">
+      <div className="border-b border-border-200 pb-6">
         <div className="h-6 bg-gray-200 rounded w-20 mb-4 animate-pulse" />
         <div className="space-y-3">
           <div className="h-10 bg-gray-200 rounded animate-pulse" />
@@ -112,7 +112,7 @@ function FilterSkeleton() {
       </div>
 
       {/* Categories Skeleton */}
-      <div className="border-b pb-6">
+      <div className="border-b border-border-200 pb-6">
         <div className="h-6 bg-gray-200 rounded w-24 mb-4 animate-pulse" />
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -122,7 +122,7 @@ function FilterSkeleton() {
       </div>
 
       {/* Attributes Skeleton */}
-      <div className="border-b pb-6">
+      <div className="border-b border-border-200 pb-6">
         <div className="h-6 bg-gray-200 rounded w-24 mb-4 animate-pulse" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
