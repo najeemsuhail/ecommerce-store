@@ -16,7 +16,7 @@ import ProductVideo from '@/components/ProductVideo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 import ShareProduct from '@/components/ShareProduct';
-import type { ProductDetail, ProductReview, ProductVariant, ProductCategoryLink } from '@/lib/productDetail';
+import type { ProductDetail, ProductReview, ProductVariant } from '@/lib/productDetail';
 
 const ReviewForm = dynamic(() => import('@/components/ReviewForm'), {
   loading: () => <div className="h-28 rounded-lg bg-gray-100 animate-pulse" />,
@@ -273,14 +273,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
               <div className="bg-light-theme rounded-lg shadow-lg p-6">
                 <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
 
-                {product.brand && (
+                {/* {product.brand && (
                   <p className="text-gray-600 mb-1">Brand: {product.brand}</p>
-                )}
+                )} */}
 
-                {product.categories && product.categories.length > 0 && (
+                {/* {product.categories && product.categories.length > 0 && (
                   <div className="mb-4">
                     <span className="text-gray-600">Categories: </span>
-                    {product.categories.map((cat: ProductCategoryLink, idx: number) => (
+                    {product.categories.map((cat, idx: number) => (
                       <span
                         key={cat.category?.id || cat.categoryId}
                         className="inline-block text-sm text-primary-theme font-medium mr-2"
@@ -290,7 +290,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       </span>
                     ))}
                   </div>
-                )}
+                )} */}
 
                 <div className="mb-6">
                   <div className="flex items-center gap-4 mb-2">

@@ -51,6 +51,12 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [product.id]);
+
+  useEffect(() => {
     addToRecentlyViewed({
       id: product.id,
       name: product.name,

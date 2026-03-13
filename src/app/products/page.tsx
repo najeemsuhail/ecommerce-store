@@ -564,7 +564,7 @@ function ProductsContent() {
         productImage={wishlistModal.productImage}
         productSlug={wishlistModal.productSlug}
       />
-      <div className="w-full lg:w-[90%] mx-auto px-4 py-4 lg:py-8">
+      <div className="w-full lg:w-[95%] mx-auto px-4 py-4 lg:py-8">
     
         {/* Mobile Filter and Sort Bar */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-light-theme border-t border-border-300 p-4 flex z-40">
@@ -594,11 +594,11 @@ function ProductsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-24 lg:pb-0">
           {/* Desktop Sidebar Filters */}
           {loading && products.length === 0 ? (
-            <div className="hidden lg:block lg:col-span-3">
+            <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
               <FilterSkeleton />
             </div>
           ) : products.length > 0 ? (
-            <div className="hidden lg:block lg:col-span-3">
+            <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
               <FacetFilter
                 facets={facets}
                 basePriceRange={defaultFacets.priceRange}
@@ -674,7 +674,7 @@ function ProductsContent() {
           {/* Main Content Area */}
           <div
             ref={resultsTopRef}
-            className={isNoResultsState ? 'lg:col-span-12' : 'lg:col-span-9'}
+            className={isNoResultsState ? 'lg:col-span-12' : 'lg:col-span-8 xl:col-span-9'}
           >
             {!loading && products.length > 0 && searchTerm.trim() && (
               <div className="mb-4 text-text-700">
@@ -1105,8 +1105,8 @@ function ProductsContent() {
                   ))}
                 </div>
                 {isRefreshingResults && (
-                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/40 backdrop-blur-[1px]">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow">
+                  <div className="absolute inset-0 flex items-start justify-center rounded-lg bg-white/40 pt-4 backdrop-blur-[1px]">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
                       Updating products...
                     </div>

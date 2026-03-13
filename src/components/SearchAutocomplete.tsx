@@ -70,6 +70,8 @@ export default function SearchAutocomplete({
     ...results.products,
     ...results.tags,
   ];
+  const hasQueryResults =
+    !!query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0);
 
   // Fetch autocomplete suggestions
   useEffect(() => {
@@ -384,30 +386,34 @@ export default function SearchAutocomplete({
                   </>
                 )}
 
-                {/* Search All Results - Top */}
-                {query && (results.products.length > 0 || results.categories.length > 0 || results.tags.length > 0) && (
-                  <div className="border-b border-border-color bg-bg-light">
-                    <button
-                      onClick={handleSearch}
-                      className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
-                    >
-                      <span>Search all results for "{query}"</span>
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
+                {/* Search All Results + Products Header */}
+                {hasQueryResults && (
+                  <div className="sticky top-0 z-20 bg-white">
+                    <div className="border-b border-border-color bg-white">
+                      <button
+                        onClick={handleSearch}
+                        className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
+                      >
+                        <span>Search all results for "{query}"</span>
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                    {results.products.length > 0 && (
+                      <div className="px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color flex items-center gap-2">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z" />
+                        </svg>
+                        Products
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Products */}
                 {results.products.length > 0 && (
                   <div className="border-b border-border-color last:border-b-0">
-                    <div className="sticky top-0 z-10 px-4 py-2.5 text-xs font-bold text-text-lighter uppercase bg-bg-light border-b border-border-color rounded-t-2xl flex items-center gap-2">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z" />
-                      </svg>
-                      Products
-                    </div>
                     {results.products.map((product, index) => {
                       const globalIndex = index;
                       return (
