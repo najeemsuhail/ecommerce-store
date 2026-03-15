@@ -11,10 +11,17 @@ interface GoogleTokenInfo {
   sub?: string;
 }
 
+export interface VerifiedGoogleTokenInfo extends GoogleTokenInfo {
+  email: string;
+  sub: string;
+}
+
 const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo';
 const VALID_ISSUERS = new Set(['accounts.google.com', 'https://accounts.google.com']);
 
-export async function verifyGoogleCredential(credential: string): Promise<GoogleTokenInfo> {
+export async function verifyGoogleCredential(
+  credential: string
+): Promise<VerifiedGoogleTokenInfo> {
   const clientId = process.env.GOOGLE_CLIENT_ID;
 
   if (!clientId) {
@@ -55,5 +62,5 @@ export async function verifyGoogleCredential(credential: string): Promise<Google
     throw new Error('Google token has expired');
   }
 
-  return tokenInfo;
+  return tokenInfo as VerifiedGoogleTokenInfo;
 }

@@ -456,21 +456,7 @@ export default function AuthForm() {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-slate-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                    placeholder="+91 9420386486"
-                  />
-                </div>
+                {/* Phone field intentionally hidden for now; can be restored later. */}
               </>
             )}
 
@@ -486,7 +472,7 @@ export default function AuthForm() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
-                placeholder="kanimalar@example.com"
+                placeholder="kanimalar@onlyinkani.in"
               />
             </div>
 
