@@ -1,28 +1,3 @@
-// Password reset email
-export async function sendPasswordResetEmail(user: any, resetToken: string) {
-  try {
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
-    const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
-      to: user.email,
-      subject: 'Reset Your Password - onlyinkani.in',
-      html: `<p>Hi ${user.name || user.email},</p>
-        <p>You requested a password reset. Click the link below to set a new password:</p>
-        <p><a href="${resetUrl}" style="color: #667eea;">Reset Password</a></p>
-        <p>If you did not request this, you can ignore this email.</p>
-        <p>This link will expire in 1 hour.</p>`
-    });
-    if (error) {
-      console.error('Error sending password reset email:', error);
-      return { success: false, error };
-    }
-    console.log('✅ Password reset email sent:', data);
-    return { success: true, data };
-  } catch (error) {
-    console.error('Error sending password reset email:', error);
-    return { success: false, error };
-  }
-}
 import { Resend } from 'resend';
 import {
   getOrderConfirmationEmail,
@@ -36,16 +11,44 @@ import {
 } from './emailTemplates';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const TRANSACTIONAL_EMAIL =
+  process.env.TRANSACTIONAL_EMAIL_FROM || process.env.EMAIL_FROM || 'info@onlyinkani.in';
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL_FROM || 'contact@onlyinkani.in';
 
 const getAdminNotificationEmails = (): string[] => {
-  const raw = process.env.ADMIN_NOTIFICATION_EMAILS || process.env.EMAIL_FROM || '';
+  const raw = process.env.ADMIN_NOTIFICATION_EMAILS || TRANSACTIONAL_EMAIL;
   const emails = raw
     .split(',')
     .map((email) => email.trim())
     .filter(Boolean);
 
-  return emails.length > 0 ? emails : ['contact@onlyinkani.in'];
+  return emails.length > 0 ? emails : [TRANSACTIONAL_EMAIL];
 };
+
+export async function sendPasswordResetEmail(user: any, resetToken: string) {
+  try {
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    const { data, error } = await resend.emails.send({
+      from: TRANSACTIONAL_EMAIL,
+      to: user.email,
+      subject: 'Reset Your Password - onlyinkani.in',
+      html: `<p>Hi ${user.name || user.email},</p>
+        <p>You requested a password reset. Click the link below to set a new password:</p>
+        <p><a href="${resetUrl}" style="color: #667eea;">Reset Password</a></p>
+        <p>If you did not request this, you can ignore this email.</p>
+        <p>This link will expire in 1 hour.</p>`,
+    });
+    if (error) {
+      console.error('Error sending password reset email:', error);
+      return { success: false, error };
+    }
+    console.log('âœ… Password reset email sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    return { success: false, error };
+  }
+}
 
 export async function sendOrderConfirmationEmail(order: any) {
   try {
@@ -56,7 +59,7 @@ export async function sendOrderConfirmationEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to: email,
       subject: `Order Confirmation - Order #${order.id.substring(0, 8)}`,
       html: getOrderConfirmationEmail(order),
@@ -67,7 +70,7 @@ export async function sendOrderConfirmationEmail(order: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Order confirmation email sent:', data);
+    console.log('âœ… Order confirmation email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending email:', error);
@@ -84,7 +87,7 @@ export async function sendOrderShippedEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to: email,
       subject: `Order Shipped - Order #${order.id.substring(0, 8)}`,
       html: getOrderShippedEmail(order),
@@ -95,7 +98,7 @@ export async function sendOrderShippedEmail(order: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Order shipped email sent:', data);
+    console.log('âœ… Order shipped email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending email:', error);
@@ -112,7 +115,7 @@ export async function sendOrderDeliveredEmail(order: any) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to: email,
       subject: `Order Delivered - Order #${order.id.substring(0, 8)}`,
       html: getOrderDeliveredEmail(order),
@@ -123,7 +126,7 @@ export async function sendOrderDeliveredEmail(order: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Order delivered email sent:', data);
+    console.log('âœ… Order delivered email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending email:', error);
@@ -134,7 +137,7 @@ export async function sendOrderDeliveredEmail(order: any) {
 export async function sendWelcomeEmail(user: any) {
   try {
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to: user.email,
       subject: 'Welcome to onlyinkani.in!',
       html: getWelcomeEmail(user),
@@ -145,7 +148,7 @@ export async function sendWelcomeEmail(user: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Welcome email sent:', data);
+    console.log('âœ… Welcome email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending email:', error);
@@ -160,17 +163,15 @@ export async function sendContactFormEmail(contactData: {
   message: string;
 }) {
   try {
-    // Validate input
     if (!contactData.email || !contactData.name || !contactData.subject || !contactData.message) {
       console.error('Missing required contact form data');
       return { success: false, error: 'Missing required fields' };
     }
 
-    // Send email to business inbox
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
-      to: process.env.EMAIL_FROM || 'contact@onlyinkani.in', // Send to business email
-      replyTo: contactData.email, // Reply goes to customer
+      from: CONTACT_EMAIL,
+      to: CONTACT_EMAIL,
+      replyTo: contactData.email,
       subject: `New Contact Form Submission: ${contactData.subject}`,
       html: getContactFormEmail(contactData),
     });
@@ -180,7 +181,7 @@ export async function sendContactFormEmail(contactData: {
       return { success: false, error };
     }
 
-    console.log('✅ Contact form email sent to business:', data);
+    console.log('âœ… Contact form email sent to business:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending contact form email:', error);
@@ -193,7 +194,7 @@ export async function sendVerificationEmail(user: any, verificationToken: string
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/verify-email?token=${verificationToken}`;
 
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to: user.email,
       subject: 'Verify Your Email - onlyinkani.in',
       html: getVerificationEmail(user, verificationUrl),
@@ -204,7 +205,7 @@ export async function sendVerificationEmail(user: any, verificationToken: string
       return { success: false, error };
     }
 
-    console.log('✅ Verification email sent:', data);
+    console.log('âœ… Verification email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending verification email:', error);
@@ -216,7 +217,7 @@ export async function sendAdminNewUserEmail(user: any) {
   try {
     const to = getAdminNotificationEmails();
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to,
       subject: `New User Registered - ${user.email}`,
       html: getAdminNewUserEmail(user),
@@ -227,7 +228,7 @@ export async function sendAdminNewUserEmail(user: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Admin new user email sent:', data);
+    console.log('âœ… Admin new user email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending admin new user email:', error);
@@ -239,7 +240,7 @@ export async function sendAdminNewOrderEmail(order: any) {
   try {
     const to = getAdminNotificationEmails();
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to,
       subject: `New Order Received - ${order.id.substring(0, 8)}`,
       html: getAdminNewOrderEmail(order),
@@ -250,7 +251,7 @@ export async function sendAdminNewOrderEmail(order: any) {
       return { success: false, error };
     }
 
-    console.log('✅ Admin new order email sent:', data);
+    console.log('âœ… Admin new order email sent:', data);
     return { success: true, data };
   } catch (error) {
     console.error('Error sending admin new order email:', error);

@@ -157,7 +157,7 @@ export function getOrderConfirmationEmail(order: any) {
                   </div>
 
                   <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-                    Questions? Contact us at contact@yourstore.com
+                    Questions? Contact us at contact@onlyinkani.in
                   </p>
                 </td>
               </tr>
@@ -240,7 +240,7 @@ export function getOrderShippedEmail(order: any) {
         </div>
         
         <p style="text-align: center; margin-top: 30px; font-size: 14px; color: #666;">
-          Questions? Contact us at contact@yourstore.com
+          Questions? Contact us at contact@onlyinkani.in
         </p>
       </div>
       

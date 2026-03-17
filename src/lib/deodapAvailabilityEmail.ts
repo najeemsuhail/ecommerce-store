@@ -2,15 +2,17 @@ import { Resend } from 'resend';
 import type { DeodapAvailabilitySyncResult } from './deodapAvailabilitySync';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const TRANSACTIONAL_EMAIL =
+  process.env.TRANSACTIONAL_EMAIL_FROM || process.env.EMAIL_FROM || 'info@onlyinkani.in';
 
 function getReportRecipients(): string[] {
-  const raw = process.env.ADMIN_NOTIFICATION_EMAILS || process.env.EMAIL_FROM || '';
+  const raw = process.env.ADMIN_NOTIFICATION_EMAILS || TRANSACTIONAL_EMAIL;
   const emails = raw
     .split(',')
     .map((email) => email.trim())
     .filter(Boolean);
 
-  return emails.length > 0 ? emails : ['contact@onlyinkani.in'];
+  return emails.length > 0 ? emails : [TRANSACTIONAL_EMAIL];
 }
 
 function reportHtml(result: DeodapAvailabilitySyncResult): string {
@@ -51,7 +53,7 @@ export async function sendDeodapAvailabilityReportEmail(result: DeodapAvailabili
   try {
     const to = getReportRecipients();
     const { data, error } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'contact@onlyinkani.in',
+      from: TRANSACTIONAL_EMAIL,
       to,
       subject: `Deodap Availability Sync Report - ${new Date().toISOString().slice(0, 10)}`,
       html: reportHtml(result),
