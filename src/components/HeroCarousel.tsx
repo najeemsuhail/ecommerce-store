@@ -35,8 +35,8 @@ const heroSlides: HeroSlide[] = [
     mainHeading: 'Smart Cooking',
     subHeading: 'Starts Here',
     description: 'Cook faster and cleaner with modern kitchen tools and storage solutions.',
-    primaryCTA: { label: 'Shop Kitchen', href: '/products?category=Kitchen' },
-    secondaryCTA: { label: 'View All', href: '/products' },
+    primaryCTA: { label: 'Shop Kitchen', href: '/products?category=Home%20Decor' },
+    secondaryCTA: { label: 'View All', href: '/products?category=Home%20Decor' },
     gradient: 'from-orange-900 via-amber-800 to-orange-900',
     accentColor: 'from-yellow-400 via-amber-400 to-orange-400',
     image: {
@@ -51,8 +51,8 @@ const heroSlides: HeroSlide[] = [
     mainHeading: 'Clean Home',
     subHeading: 'Happy Life',
     description: 'Keep your home fresh with efficient cleaning tools and supplies.',
-    primaryCTA: { label: 'Shop Cleaning', href: '/products?category=Cleaning' },
-    secondaryCTA: { label: 'Browse', href: '/products' },
+    primaryCTA: { label: 'Shop Cleaning', href: '/products?category=Home%20Decor' },
+    secondaryCTA: { label: 'Browse', href: '/products?category=Home%20Decor' },
     gradient: 'from-blue-900 via-cyan-800 to-blue-900',
     accentColor: 'from-cyan-400 via-blue-400 to-indigo-400',
     image: {
@@ -67,8 +67,8 @@ const heroSlides: HeroSlide[] = [
     mainHeading: 'Organize Your',
     subHeading: 'Space Better',
     description: 'Declutter your home with smart storage and organization solutions.',
-    primaryCTA: { label: 'Shop Storage', href: '/products?category=Storage' },
-    secondaryCTA: { label: 'Explore', href: '/products' },
+    primaryCTA: { label: 'Shop Storage', href: '/products?category=Home%20Decor' },
+    secondaryCTA: { label: 'Explore', href: '/products?category=Home%20Decor' },
     gradient: 'from-emerald-900 via-teal-800 to-emerald-900',
     accentColor: 'from-emerald-400 via-teal-400 to-cyan-400',
     image: {
@@ -83,8 +83,8 @@ const heroSlides: HeroSlide[] = [
     mainHeading: 'Make Your Home',
     subHeading: 'Beautiful',
     description: 'Stylish decor pieces to enhance your living space effortlessly.',
-    primaryCTA: { label: 'Shop Decor', href: '/products?category=Home%20Decor%20' },
-    secondaryCTA: { label: 'View Items', href: '/products' },
+    primaryCTA: { label: 'Shop Decor', href: '/products?category=Home%20Decor' },
+    secondaryCTA: { label: 'View Items', href: '/products?category=Home%20Decor' },
     gradient: 'from-purple-900 via-pink-800 to-purple-900',
     accentColor: 'from-pink-400 via-purple-400 to-indigo-400',
     image: {
