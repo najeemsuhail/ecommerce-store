@@ -10,6 +10,7 @@
     "lint": "eslint",
     "migrate:deploy": "prisma migrate deploy",
     "es:reindex": "node scripts/es-reindex.mjs",
+    "meili:reindex": "node scripts/meili-reindex.mjs",
     "sync:deodap-availability": "tsx scripts/sync-deodap-availability.ts"
   },
   "dependencies": {

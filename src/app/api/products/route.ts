@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
-import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
+import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
 import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
+import { getExternalSearchProvider } from '@/lib/searchProvider';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
@@ -212,7 +213,7 @@ async function buildDatabaseFacets(where: Prisma.ProductWhereInput): Promise<Api
 // GET all products (with search and filter)
 export async function GET(request: NextRequest) {
   const startedAt = Date.now();
-  let searchSource: 'elasticsearch' | 'database' = 'database';
+  let searchSource: 'elasticsearch' | 'meilisearch' | 'database' = 'database';
 
   const buildResponseHeaders = () => ({
     'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
@@ -269,7 +270,7 @@ export async function GET(request: NextRequest) {
 
     const hasSearch = Boolean(search);
     const shouldIncludeFacets = includeFacetsRequested || facetsOnlyRequested;
-    const shouldTryElasticsearch = isElasticsearchEnabled() && attributeFilters.size === 0;
+    const shouldTryElasticsearch = isExternalSearchEnabled() && attributeFilters.size === 0;
 
     let elasticsearchResult: {
       productIds: string[];
@@ -302,7 +303,7 @@ export async function GET(request: NextRequest) {
           },
         });
         if (elasticsearchResult) {
-          searchSource = 'elasticsearch';
+          searchSource = getExternalSearchProvider() || 'database';
           if (shouldIncludeFacets) {
             responseFacets = await normalizeElasticsearchFacets(elasticsearchResult.facets);
           }

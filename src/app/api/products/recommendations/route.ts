@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { isElasticsearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
+import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
+import { getExternalSearchProvider } from '@/lib/searchProvider';
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
@@ -35,7 +36,7 @@ type RecommendationProduct = Prisma.ProductGetPayload<{
 
 export async function GET(request: NextRequest) {
   try {
-    let recommendationSource: 'elasticsearch' | 'database' = 'database';
+    let recommendationSource: 'elasticsearch' | 'meilisearch' | 'database' = 'database';
     const searchParams = request.nextUrl.searchParams;
     const productId = searchParams.get('productId');
     const category = searchParams.get('category');
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
       excludeIds?: string[];
       size: number;
     }) => {
-      if (!isElasticsearchEnabled()) return [];
+      if (!isExternalSearchEnabled()) return [];
 
       const ids: string[] = [];
       const seen = new Set<string>(params.excludeIds || []);
@@ -161,7 +162,7 @@ export async function GET(request: NextRequest) {
       }
 
       let recommendations: RecommendationProduct[] = [];
-      if (isElasticsearchEnabled()) {
+      if (isExternalSearchEnabled()) {
         try {
           const categoryNames = product.categories
             .map((cat) => cat.category?.name)
@@ -178,7 +179,7 @@ export async function GET(request: NextRequest) {
           });
           recommendations = await fetchProductsByRankedIds(candidateIds);
           if (recommendations.length > 0) {
-            recommendationSource = 'elasticsearch';
+            recommendationSource = getExternalSearchProvider() || 'database';
           }
         } catch (error) {
           console.error('Elasticsearch similar recommendations failed, falling back to database:', error);
@@ -237,7 +238,7 @@ export async function GET(request: NextRequest) {
 
     if (category) {
       let recommendations: RecommendationProduct[] = [];
-      if (isElasticsearchEnabled()) {
+      if (isExternalSearchEnabled()) {
         try {
           const result = await searchProductIdsFromElasticsearch({
             from: 0,
@@ -250,7 +251,7 @@ export async function GET(request: NextRequest) {
           });
           recommendations = await fetchProductsByRankedIds(result?.productIds || []);
           if (recommendations.length > 0) {
-            recommendationSource = 'elasticsearch';
+            recommendationSource = getExternalSearchProvider() || 'database';
           }
         } catch (error) {
           console.error('Elasticsearch category recommendations failed, falling back to database:', error);
@@ -352,7 +353,7 @@ export async function GET(request: NextRequest) {
       });
 
       let recommendations: RecommendationProduct[] = [];
-      if (isElasticsearchEnabled()) {
+      if (isExternalSearchEnabled()) {
         try {
           const candidateIds = await fetchIdsFromElasticsearch({
             categories: Array.from(purchasedCategoryNames),
@@ -362,7 +363,7 @@ export async function GET(request: NextRequest) {
           });
           recommendations = await fetchProductsByRankedIds(candidateIds);
           if (recommendations.length > 0) {
-            recommendationSource = 'elasticsearch';
+            recommendationSource = getExternalSearchProvider() || 'database';
           }
         } catch (error) {
           console.error('Elasticsearch personalized recommendations failed, falling back to database:', error);
@@ -420,7 +421,7 @@ export async function GET(request: NextRequest) {
     }
 
     let trending: RecommendationProduct[] = [];
-    if (isElasticsearchEnabled()) {
+    if (isExternalSearchEnabled()) {
       try {
         const result = await searchProductIdsFromElasticsearch({
           from: 0,
@@ -430,7 +431,7 @@ export async function GET(request: NextRequest) {
         });
         trending = await fetchProductsByRankedIds(result?.productIds || []);
         if (trending.length > 0) {
-          recommendationSource = 'elasticsearch';
+          recommendationSource = getExternalSearchProvider() || 'database';
         }
       } catch (error) {
         console.error('Elasticsearch trending recommendations failed, falling back to database:', error);

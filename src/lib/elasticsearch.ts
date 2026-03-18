@@ -1,9 +1,11 @@
+import { isMeilisearchEnabled, searchProductIdsFromMeilisearch } from './meilisearch';
+import { getSearchProvider } from './searchProvider';
+
 const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL;
 const ELASTICSEARCH_INDEX = process.env.ELASTICSEARCH_INDEX || 'products';
 const ELASTICSEARCH_API_KEY = process.env.ELASTICSEARCH_API_KEY;
 const ELASTICSEARCH_USERNAME = process.env.ELASTICSEARCH_USERNAME;
 const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD;
-const SEARCH_PROVIDER = (process.env.SEARCH_PROVIDER || '').trim().toLowerCase();
 
 function buildHeaders() {
   const headers: Record<string, string> = {
@@ -23,13 +25,11 @@ function buildHeaders() {
 }
 
 export function isElasticsearchEnabled() {
-  if (SEARCH_PROVIDER === 'database' || SEARCH_PROVIDER === 'db') {
-    return false;
-  }
-  if (SEARCH_PROVIDER === 'elasticsearch' || SEARCH_PROVIDER === 'es') {
-    return Boolean(ELASTICSEARCH_URL);
-  }
-  return Boolean(ELASTICSEARCH_URL);
+  return getSearchProvider() === 'elasticsearch' && Boolean(ELASTICSEARCH_URL);
+}
+
+export function isExternalSearchEnabled() {
+  return isElasticsearchEnabled() || isMeilisearchEnabled();
 }
 
 type ElasticsearchProductHitSource = {
@@ -80,6 +80,10 @@ export async function searchProductIdsFromElasticsearch(options: {
     tags?: string[];
   };
 }) {
+  if (getSearchProvider() === 'meilisearch') {
+    return searchProductIdsFromMeilisearch(options);
+  }
+
   if (!ELASTICSEARCH_URL) {
     return null;
   }

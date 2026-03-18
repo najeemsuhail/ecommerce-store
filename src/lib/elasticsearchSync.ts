@@ -1,11 +1,17 @@
 import prisma from '@/lib/prisma';
+import {
+  deleteProductFromMeilisearch,
+  deleteProductsFromMeilisearch,
+  syncProductToMeilisearch,
+  syncProductsToMeilisearch,
+} from './meilisearchSync';
+import { getSearchProvider } from './searchProvider';
 
 const ELASTICSEARCH_URL = process.env.ELASTICSEARCH_URL;
 const ELASTICSEARCH_INDEX = process.env.ELASTICSEARCH_INDEX || 'products';
 const ELASTICSEARCH_API_KEY = process.env.ELASTICSEARCH_API_KEY;
 const ELASTICSEARCH_USERNAME = process.env.ELASTICSEARCH_USERNAME;
 const ELASTICSEARCH_PASSWORD = process.env.ELASTICSEARCH_PASSWORD;
-const SEARCH_PROVIDER = (process.env.SEARCH_PROVIDER || '').trim().toLowerCase();
 
 type ElasticsearchProductSource = {
   id: string;
@@ -25,13 +31,7 @@ type ElasticsearchProductSource = {
 };
 
 function isSyncEnabled() {
-  if (SEARCH_PROVIDER === 'database' || SEARCH_PROVIDER === 'db') {
-    return false;
-  }
-  if (SEARCH_PROVIDER === 'elasticsearch' || SEARCH_PROVIDER === 'es') {
-    return Boolean(ELASTICSEARCH_URL);
-  }
-  return Boolean(ELASTICSEARCH_URL);
+  return getSearchProvider() === 'elasticsearch' && Boolean(ELASTICSEARCH_URL);
 }
 
 function buildHeaders(contentType: string) {
@@ -148,6 +148,10 @@ async function sendBulk(lines: string[]) {
 }
 
 export async function syncProductToElasticsearch(productId: string) {
+  if (getSearchProvider() === 'meilisearch') {
+    return syncProductToMeilisearch(productId);
+  }
+
   if (!isSyncEnabled()) {
     return;
   }
@@ -181,6 +185,10 @@ export async function syncProductToElasticsearch(productId: string) {
 }
 
 export async function syncProductsToElasticsearch(productIds: string[]) {
+  if (getSearchProvider() === 'meilisearch') {
+    return syncProductsToMeilisearch(productIds);
+  }
+
   if (!isSyncEnabled()) {
     return;
   }
@@ -207,6 +215,10 @@ export async function syncProductsToElasticsearch(productIds: string[]) {
 }
 
 export async function deleteProductFromElasticsearch(productId: string) {
+  if (getSearchProvider() === 'meilisearch') {
+    return deleteProductFromMeilisearch(productId);
+  }
+
   if (!isSyncEnabled()) {
     return;
   }
@@ -233,6 +245,10 @@ export async function deleteProductFromElasticsearch(productId: string) {
 }
 
 export async function deleteProductsFromElasticsearch(productIds: string[]) {
+  if (getSearchProvider() === 'meilisearch') {
+    return deleteProductsFromMeilisearch(productIds);
+  }
+
   if (!isSyncEnabled()) {
     return;
   }

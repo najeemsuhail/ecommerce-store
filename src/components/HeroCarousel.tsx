@@ -1,9 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { useEffect, useState } from 'react';
 
 interface HeroSlide {
   id: number;
@@ -22,84 +21,91 @@ interface HeroSlide {
   };
   gradient: string;
   accentColor: string;
+  image: {
+    src: string;
+    alt: string;
+  };
 }
 
 const heroSlides: HeroSlide[] = [
   {
     id: 1,
-    badge: 'Everyday Home Essentials',
-    badgeEmoji: '🏠',
-    mainHeading: 'Make Daily Living',
-    subHeading: 'Simple & Organized',
-    description: 'Discover practical and affordable home essentials designed to simplify your everyday routine.',
-    primaryCTA: { label: 'Shop Essentials', href: '/products' },
-    secondaryCTA: { label: 'Browse Categories', href: '/products' },
-    gradient: 'from-slate-900 via-gray-800 to-slate-900',
-    accentColor: 'from-gray-400 via-slate-400 to-zinc-400',
+    badge: 'Kitchen Essentials',
+    badgeEmoji: '🍳',
+    mainHeading: 'Smart Cooking',
+    subHeading: 'Starts Here',
+    description: 'Cook faster and cleaner with modern kitchen tools and storage solutions.',
+    primaryCTA: { label: 'Shop Kitchen', href: '/products?category=kitchen' },
+    secondaryCTA: { label: 'View All', href: '/products' },
+    gradient: 'from-orange-900 via-amber-800 to-orange-900',
+    accentColor: 'from-yellow-400 via-amber-400 to-orange-400',
+    image: {
+      src: 'https://hcdbneuopujhkuoulqlc.supabase.co/storage/v1/object/sign/kani-store/hero-banner/hero-kitchen.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kZmJhNGQyMC0zMTBjLTQyYjItOWEzMi1kNWJhNzliZjNhYzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJrYW5pLXN0b3JlL2hlcm8tYmFubmVyL2hlcm8ta2l0Y2hlbi5wbmciLCJpYXQiOjE3NzM4MTkzMjYsImV4cCI6MTgwNTM1NTMyNn0.xjtGzeTdveOTjb6yPflzz-bIjieC2iBLCvKqm_ssk6w', // 👈 use generated image
+      alt: 'Kitchen essentials setup',
+    },
   },
   {
     id: 2,
-    badge: 'Kitchen & Storage',
-    badgeEmoji: '🍳',
-    mainHeading: 'Smart Solutions',
-    subHeading: 'For Your Kitchen',
-    description: 'Functional kitchen tools, containers, and organizers to keep your space neat and efficient.',
-    primaryCTA: { label: 'Explore Kitchen', href: '/products' },
-    secondaryCTA: { label: 'View Storage Items', href: '/products' },
-    gradient: 'from-amber-900 via-orange-800 to-amber-900',
-    accentColor: 'from-yellow-400 via-amber-400 to-orange-400',
+    badge: 'Cleaning Essentials',
+    badgeEmoji: '🧹',
+    mainHeading: 'Clean Home',
+    subHeading: 'Happy Life',
+    description: 'Keep your home fresh with efficient cleaning tools and supplies.',
+    primaryCTA: { label: 'Shop Cleaning', href: '/products?category=cleaning' },
+    secondaryCTA: { label: 'Browse', href: '/products' },
+    gradient: 'from-blue-900 via-cyan-800 to-blue-900',
+    accentColor: 'from-cyan-400 via-blue-400 to-indigo-400',
+    image: {
+      src: 'https://hcdbneuopujhkuoulqlc.supabase.co/storage/v1/object/sign/kani-store/hero-banner/hero-cleaning.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kZmJhNGQyMC0zMTBjLTQyYjItOWEzMi1kNWJhNzliZjNhYzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJrYW5pLXN0b3JlL2hlcm8tYmFubmVyL2hlcm8tY2xlYW5pbmcucG5nIiwiaWF0IjoxNzczODE5MzYwLCJleHAiOjE4MDUzNTUzNjB9.9eHlQW8j9qZ5qAEutOgY2dZjSuV1OwPwnb2IWObURWg',
+      alt: 'Cleaning products setup',
+    },
   },
   {
     id: 3,
-    badge: 'Daily Use Products',
+    badge: 'Home Storage',
     badgeEmoji: '🧺',
-    mainHeading: 'Reliable Products',
-    subHeading: 'For Every Room',
-    description: 'Affordable and durable home essentials suitable for bedrooms, bathrooms, and living spaces.',
-    primaryCTA: { label: 'Shop Now', href: '/products' },
-    secondaryCTA: { label: 'New Arrivals', href: '/products?sort=newest' },
+    mainHeading: 'Organize Your',
+    subHeading: 'Space Better',
+    description: 'Declutter your home with smart storage and organization solutions.',
+    primaryCTA: { label: 'Shop Storage', href: '/products?category=storage' },
+    secondaryCTA: { label: 'Explore', href: '/products' },
     gradient: 'from-emerald-900 via-teal-800 to-emerald-900',
     accentColor: 'from-emerald-400 via-teal-400 to-cyan-400',
+    image: {
+      src: 'https://hcdbneuopujhkuoulqlc.supabase.co/storage/v1/object/sign/kani-store/hero-banner/hero-storage.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kZmJhNGQyMC0zMTBjLTQyYjItOWEzMi1kNWJhNzliZjNhYzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJrYW5pLXN0b3JlL2hlcm8tYmFubmVyL2hlcm8tc3RvcmFnZS5wbmciLCJpYXQiOjE3NzM4MTkzMTQsImV4cCI6MTgwNTM1NTMxNH0.g6KFYoIG68at3tUJaHEeaCErvelyH1xChKZECcnxmdk',
+      alt: 'Storage boxes and organizers',
+    },
   },
   {
     id: 4,
-    badge: 'Value for Money',
-    badgeEmoji: '💰',
-    mainHeading: 'Quality You Can',
-    subHeading: 'Trust at Fair Prices',
-    description: 'Carefully selected home essentials that balance quality, affordability, and everyday usability.',
-    primaryCTA: { label: 'View Products', href: '/products' },
-    secondaryCTA: { label: 'Customer Favorites', href: '/products?sort=popular' },
-    gradient: 'from-indigo-900 via-slate-900 to-indigo-900',
-    accentColor: 'from-indigo-400 via-blue-400 to-slate-400',
+    badge: 'Home Decor',
+    badgeEmoji: '🪴',
+    mainHeading: 'Make Your Home',
+    subHeading: 'Beautiful',
+    description: 'Stylish decor pieces to enhance your living space effortlessly.',
+    primaryCTA: { label: 'Shop Decor', href: '/products?category=decor' },
+    secondaryCTA: { label: 'View Items', href: '/products' },
+    gradient: 'from-purple-900 via-pink-800 to-purple-900',
+    accentColor: 'from-pink-400 via-purple-400 to-indigo-400',
+    image: {
+      src: 'https://hcdbneuopujhkuoulqlc.supabase.co/storage/v1/object/sign/kani-store/hero-banner/hero-home-decor.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kZmJhNGQyMC0zMTBjLTQyYjItOWEzMi1kNWJhNzliZjNhYzEiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJrYW5pLXN0b3JlL2hlcm8tYmFubmVyL2hlcm8taG9tZS1kZWNvci5wbmciLCJpYXQiOjE3NzM4MTkzNDUsImV4cCI6MTgwNTM1NTM0NX0.wcuwsllwcusOU8vZqwu9VJWIG6uQt1ewLrhrmFgFp90',
+      alt: 'Home decor setup',
+    },
   },
 ];
 
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoplay, setIsAutoplay] = useState(true);
-
-  const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
-  };
-
-  const handleNextSlide = () => {
-    setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
-  };
 
   // Auto-rotate carousel
   useEffect(() => {
-    if (!isAutoplay) return;
-
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [isAutoplay]);
-
-  const slide = heroSlides[currentSlide];
+  }, []);
 
   return (
     <section className="relative overflow-hidden">
@@ -113,19 +119,21 @@ export default function HeroCarousel() {
               index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            {/* Background Gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient}`}>
-              {/* Animated gradient orbs */}
-              <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-              <div className="absolute top-0 -right-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-              <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-
-              {/* Grid background pattern */}
-              <div className="absolute inset-0 bg-grid-white/[0.02] bg-grid-size-20"></div>
+            <div className="absolute inset-0">
+              <Image
+                src={s.image.src}
+                alt={s.image.alt}
+                fill
+                priority={index === 0}
+                sizes="100vw"
+                className="object-cover object-center"
+              />
             </div>
 
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent"></div>
+
             {/* Content */}
-            <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 min-h-fit pb-32 md:pb-16">
+            <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 min-h-[220px] sm:min-h-[320px] md:min-h-[420px] lg:min-h-[520px] pb-20 md:pb-16 flex items-center">
               <div className="text-center space-y-6">
                 {/* Badge */}
                 {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 group">
@@ -138,9 +146,7 @@ export default function HeroCarousel() {
                 <div className="space-y-2">
                   <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
                     <span className="block text-white drop-shadow-2xl">{s.mainHeading}</span>
-                    <span
-                      className={`block bg-gradient-to-r ${s.accentColor} bg-clip-text text-transparent drop-shadow-lg text-4xl md:text-6xl font-black`}
-                    >
+                    <span className="block text-white drop-shadow-2xl text-4xl md:text-6xl font-black">
                       {s.subHeading}
                     </span>
                   </h1>
@@ -181,7 +187,7 @@ export default function HeroCarousel() {
         ))}
 
         {/* Height placeholder - auto-height based on content */}
-        <div className="h-auto md:h-96 min-h-80"></div>
+        <div className="h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px]"></div>
 
         {/* Indicators/Dots */}
         <div className="hidden md:absolute md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:z-20 md:flex gap-3">
