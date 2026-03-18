@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get('skip') || '0');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    const where: any = {};
+    const where: Prisma.ProductWhereInput = {};
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -26,20 +27,30 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-      include: {
-        _count: {
-          select: { orderItems: true, reviews: true },
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          sku: true,
+          price: true,
+          comparePrice: true,
+          stock: true,
+          isDigital: true,
+          isActive: true,
+          images: true,
+          _count: {
+            select: { orderItems: true },
+          },
         },
-      },
-    });
-
-    // Get total count for pagination
-    const totalCount = await prisma.product.count({ where });
+      }),
+      prisma.product.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,

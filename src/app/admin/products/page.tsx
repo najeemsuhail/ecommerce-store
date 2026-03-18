@@ -11,6 +11,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [showImporter, setShowImporter] = useState(false);
@@ -33,6 +34,14 @@ export default function AdminProducts() {
   };
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  useEffect(() => {
     fetchProducts();
 
     // Listen for storage changes (login/logout in other tabs)
@@ -42,7 +51,7 @@ export default function AdminProducts() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [searchTerm, currentPage]);
+  }, [debouncedSearchTerm, currentPage]);
 
   const fetchProducts = async () => {
     const token = localStorage.getItem('token');
@@ -55,7 +64,7 @@ export default function AdminProducts() {
       let url = '/api/admin/products';
       const params = new URLSearchParams();
       
-      if (searchTerm) params.append('search', searchTerm);
+      if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
       params.append('skip', String((currentPage - 1) * productsPerPage));
       params.append('limit', String(productsPerPage));
       
@@ -311,11 +320,14 @@ export default function AdminProducts() {
             type="text"
             placeholder="🔍 Search products by name..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-          {products.length === 0 && searchTerm && (
-            <p className="text-sm text-gray-600 mt-2">No products found matching "{searchTerm}"</p>
+          {products.length === 0 && debouncedSearchTerm && (
+            <p className="text-sm text-gray-600 mt-2">No products found matching "{debouncedSearchTerm}"</p>
           )}
         </div>
 

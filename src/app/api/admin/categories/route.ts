@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const categories = await prisma.category.findMany({
-      include: {
-        children: true,
-        parent: true,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        parentId: true,
         _count: {
-          select: { products: true }
-        }
+          select: { products: true },
+        },
       },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
     });
 
     return NextResponse.json(categories);
