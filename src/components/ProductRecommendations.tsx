@@ -28,6 +28,7 @@ interface ProductRecommendationsProps {
   productId?: string; // For similar products
   category?: string; // For category-specific recommendations
   userId?: string; // For personalized recommendations
+  excludeProductIds?: string[];
   limit?: number;
   title?: string;
   showTitle?: boolean;
@@ -40,6 +41,7 @@ export default function ProductRecommendations({
   productId,
   category,
   userId,
+  excludeProductIds = [],
   limit = 4,
   title,
   showTitle = true,
@@ -51,6 +53,7 @@ export default function ProductRecommendations({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recommendationType, setRecommendationType] = useState<string>('');
+  const excludeIdsKey = excludeProductIds.join('|');
   const { addItem } = useCart();
   const { isInWishlist, groups, removeItemFromGroup } = useWishlist();
   const [wishlistModal, setWishlistModal] = useState({
@@ -67,11 +70,13 @@ export default function ProductRecommendations({
       try {
         setLoading(true);
         const params = new URLSearchParams();
+        const resolvedExcludeIds = excludeIdsKey ? excludeIdsKey.split('|').filter(Boolean) : [];
         params.append('limit', limit.toString());
 
         if (productId) params.append('productId', productId);
         if (category) params.append('category', category);
         if (userId) params.append('userId', userId);
+        resolvedExcludeIds.forEach((id) => params.append('excludeId', id));
 
         const response = await fetch(`/api/products/recommendations?${params}`);
         const data = await response.json();
@@ -82,7 +87,7 @@ export default function ProductRecommendations({
         } else {
           setError(data.error);
         }
-      } catch (err) {
+      } catch {
         setError('Failed to load recommendations');
       } finally {
         setLoading(false);
@@ -90,7 +95,7 @@ export default function ProductRecommendations({
     };
 
     fetchRecommendations();
-  }, [productId, category, userId, limit]);
+  }, [productId, category, userId, excludeIdsKey, limit]);
 
   if (loading) {
     return (

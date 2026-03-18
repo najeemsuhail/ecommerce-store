@@ -46,14 +46,10 @@ export default function HomePage() {
 
   const fetchBestSellers = async () => {
     try {
-      const response = await fetch('/api/products');
+      const response = await fetch('/api/products/recommendations?mode=bestsellers&limit=8');
       const data = await response.json();
       if (data.success) {
-        // Sort by average rating and take top 8
-        const sorted = data.products
-          .sort((a: any, b: any) => (b.averageRating || 0) - (a.averageRating || 0))
-          .slice(0, 8);
-        setBestSellers(sorted);
+        setBestSellers(data.recommendations ?? []);
       }
     } catch (error) {
       console.error('Failed to fetch best sellers');
@@ -171,6 +167,7 @@ export default function HomePage() {
               limit={8}
               title="Trending Now"
               showTitle={true}
+              excludeProductIds={bestSellers.map((product) => product.id)}
               onAddToCart={handleAddToCartRecommendations}
             />
           </div>

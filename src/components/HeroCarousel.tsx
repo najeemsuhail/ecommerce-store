@@ -130,11 +130,11 @@ export default function HeroCarousel() {
               />
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 
             {/* Content */}
-            <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-20 min-h-[220px] sm:min-h-[320px] md:min-h-[420px] lg:min-h-[520px] pb-20 md:pb-16 flex items-center">
-              <div className="text-center space-y-6">
+            <div className="relative mx-auto flex h-[320px] max-w-7xl items-center px-4 py-6 sm:h-[380px] sm:py-8 md:h-[420px] md:py-12 lg:h-[520px] lg:py-16">
+              <div className="w-full text-center space-y-4 sm:space-y-5 md:space-y-6">
                 {/* Badge */}
                 {/* <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all duration-300 group">
                   <span className="text-xl">{s.badgeEmoji}</span>
@@ -143,25 +143,25 @@ export default function HeroCarousel() {
                 </div> */}
 
                 {/* Main heading */}
-                <div className="space-y-2">
-                  <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                <div className="space-y-1 sm:space-y-2">
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                     <span className="block text-white drop-shadow-2xl">{s.mainHeading}</span>
-                    <span className="block text-white drop-shadow-2xl text-4xl md:text-6xl font-black">
+                    <span className="block text-white drop-shadow-2xl text-3xl sm:text-5xl md:text-6xl font-black">
                       {s.subHeading}
                     </span>
                   </h1>
                 </div>
 
                 {/* Subtitle */}
-                <p className="text-xs md:text-base text-gray-200 max-w-2xl mx-auto drop-shadow-lg leading-relaxed">
+                <p className="mx-auto max-w-xl text-[11px] leading-relaxed text-gray-200 drop-shadow-lg sm:text-sm md:max-w-2xl md:text-base">
                   {s.description}
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-2 justify-center items-center pt-3">
+                <div className="flex justify-center pt-1 sm:pt-3">
                   <Link
                     href={s.primaryCTA.href}
-                    className="group relative px-4 py-2 md:px-6 md:py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold text-xs md:text-sm rounded-full shadow-lg hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 flex items-center gap-2 overflow-hidden whitespace-nowrap"
+                    className="group relative flex w-full max-w-[220px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-purple-500/50 sm:w-auto sm:max-w-none sm:px-6 sm:py-2"
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                     <span className="relative">{s.primaryCTA.label}</span>
@@ -187,7 +187,7 @@ export default function HeroCarousel() {
         ))}
 
         {/* Height placeholder - auto-height based on content */}
-        <div className="h-[220px] sm:h-[320px] md:h-[420px] lg:h-[520px]"></div>
+        <div className="h-[320px] sm:h-[380px] md:h-[420px] lg:h-[520px]"></div>
 
         {/* Indicators/Dots */}
         <div className="hidden md:absolute md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:z-20 md:flex gap-3">

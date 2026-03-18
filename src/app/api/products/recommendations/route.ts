@@ -38,10 +38,14 @@ export async function GET(request: NextRequest) {
   try {
     let recommendationSource: 'elasticsearch' | 'meilisearch' | 'database' = 'database';
     const searchParams = request.nextUrl.searchParams;
+    const mode = searchParams.get('mode');
     const productId = searchParams.get('productId');
     const category = searchParams.get('category');
     const userId = searchParams.get('userId');
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '4'), 1), 20);
+    const excludeIds = Array.from(
+      new Set(searchParams.getAll('excludeId').filter((id) => typeof id === 'string' && id.length > 0))
+    );
 
     const json = (payload: unknown, status = 200) =>
       NextResponse.json(payload, {
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest) {
       const rankMap = new Map(ids.map((id, index) => [id, index]));
       const products = await prisma.product.findMany({
         where: {
-          id: { in: ids },
+          id: excludeIds.length > 0 ? { in: ids, notIn: excludeIds } : { in: ids },
           isActive: true,
         },
         include: {
@@ -75,6 +79,88 @@ export async function GET(request: NextRequest) {
           (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
       );
     };
+
+    const withMetrics = (items: RecommendationProduct[]) =>
+      items.map((p) => {
+        const totalSales = p.orderItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
+        return {
+          ...p,
+          averageRating:
+            p.reviews.length > 0
+              ? Math.round(
+                  (p.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / p.reviews.length) * 2
+                ) / 2
+              : 0,
+          reviewCount: p.reviews.length,
+          totalSales,
+        };
+      });
+
+    if (mode === 'bestsellers') {
+      const salesGroups = await prisma.orderItem.groupBy({
+        by: ['productId'],
+        _sum: {
+          quantity: true,
+        },
+        where: excludeIds.length > 0 ? { productId: { notIn: excludeIds } } : undefined,
+        orderBy: {
+          _sum: {
+            quantity: 'desc',
+          },
+        },
+        take: limit * 4,
+      });
+
+      const bestSellers = await fetchProductsByRankedIds(salesGroups.map((group) => group.productId));
+
+      if (bestSellers.length < limit) {
+        const fallback = await prisma.product.findMany({
+          where: {
+            isActive: true,
+            ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+          },
+          take: Math.max(limit * 2, 16),
+          include: {
+            reviews: {
+              select: {
+                rating: true,
+              },
+            },
+            orderItems: {
+              select: {
+                quantity: true,
+              },
+            },
+          },
+          orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+        });
+
+        const seen = new Set(bestSellers.map((product) => product.id));
+        for (const product of fallback) {
+          if (!seen.has(product.id)) {
+            bestSellers.push(product);
+            seen.add(product.id);
+          }
+          if (bestSellers.length >= limit) break;
+        }
+      }
+
+      const ranked = withMetrics(bestSellers)
+        .sort((a, b) => {
+          const salesDiff = (b.totalSales ?? 0) - (a.totalSales ?? 0);
+          if (salesDiff !== 0) return salesDiff;
+          const reviewDiff = (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+          if (reviewDiff !== 0) return reviewDiff;
+          return (b.averageRating ?? 0) - (a.averageRating ?? 0);
+        })
+        .slice(0, limit);
+
+      return json({
+        success: true,
+        recommendations: ranked,
+        recommendationType: 'bestsellers',
+      });
+    }
 
     const fetchIdsFromElasticsearch = async (params: {
       categories?: string[];
@@ -190,7 +276,7 @@ export async function GET(request: NextRequest) {
         recommendations = await prisma.product.findMany({
           where: {
             isActive: true,
-            id: { not: productId },
+            id: excludeIds.length > 0 ? { not: productId, notIn: excludeIds } : { not: productId },
             OR: [
               ...(product.categories.length > 0
                 ? [
@@ -262,6 +348,7 @@ export async function GET(request: NextRequest) {
         recommendations = await prisma.product.findMany({
           where: {
             isActive: true,
+            ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
             categories: {
               some: {
                 category: {
@@ -374,7 +461,12 @@ export async function GET(request: NextRequest) {
         recommendations = await prisma.product.findMany({
           where: {
             isActive: true,
-            id: { notIn: Array.from(purchasedIds) },
+            id: {
+              notIn:
+                excludeIds.length > 0
+                  ? Array.from(new Set([...Array.from(purchasedIds), ...excludeIds]))
+                  : Array.from(purchasedIds),
+            },
             OR: [
               ...(purchasedCategoryIds.size > 0
                 ? [
@@ -425,7 +517,7 @@ export async function GET(request: NextRequest) {
       try {
         const result = await searchProductIdsFromElasticsearch({
           from: 0,
-          size: limit,
+          size: limit + excludeIds.length,
           sort: 'featured-newest',
           includeFacets: false,
         });
@@ -440,7 +532,10 @@ export async function GET(request: NextRequest) {
 
     if (trending.length === 0) {
       trending = await prisma.product.findMany({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
+        },
         take: limit,
         include: {
           reviews: {
@@ -466,24 +561,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const withMetrics = trending.map((p) => {
-      const totalSales = p.orderItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
-      return {
-        ...p,
-        averageRating:
-          p.reviews.length > 0
-            ? Math.round(
-                (p.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / p.reviews.length) * 2
-              ) / 2
-            : 0,
-        reviewCount: p.reviews.length,
-        totalSales,
-      };
-    });
-
     return json({
       success: true,
-      recommendations: withMetrics,
+      recommendations: withMetrics(trending).slice(0, limit),
       recommendationType: 'trending',
     });
   } catch (error) {
