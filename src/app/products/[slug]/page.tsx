@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
+import { formatPrice } from '@/lib/currency';
 import { getProductDetailBySlug } from '@/lib/productDetail';
 import ProductImageGallery from './ProductImageGallery';
 import ProductPurchasePanel from './ProductPurchasePanel';
@@ -89,32 +90,9 @@ async function ProductDetailContent({ slug }: { slug: string }) {
             <div className="rounded-lg bg-light-theme p-6 shadow-lg">
               <h1 className="mb-2 text-3xl font-bold">{product.name}</h1>
 
-              {product.brand && <p className="mb-1 text-gray-600">Brand: {product.brand}</p>}
-
-              {product.categories.length > 0 && (
-                <div className="mb-4">
-                  <span className="text-gray-600">Categories: </span>
-                  {product.categories.map((cat, idx) => (
-                    <span
-                      key={cat.category?.id || cat.categoryId}
-                      className="mr-2 inline-block text-sm font-medium text-primary-theme"
-                    >
-                      {cat.category?.name || cat.categoryId}
-                      {idx < product.categories.length - 1 && ','}
-                    </span>
-                  ))}
-                </div>
-              )}
-
               <div className="mb-6">
                 <div className="mb-2 flex items-center gap-4">
-                  <span className="text-4xl font-bold text-primary-theme">
-                    {'â‚¹'}
-                    {product.price.toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
+                  <span className="text-4xl font-bold text-primary-theme">{formatPrice(product.price)}</span>
                 </div>
               </div>
 
