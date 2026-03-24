@@ -1,93 +1,89 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Layout from '@/components/Layout';
 import BlogCard from '@/components/BlogCard';
-import Link from 'next/link';
+import { getPublishedBlogs } from '@/lib/blog';
 
-export default function BlogPage() {
-  const [blogs, setBlogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<any>(null);
+export const revalidate = 300;
 
-  useEffect(() => {
-    fetchBlogs();
-  }, [page]);
+type Props = {
+  searchParams?: Promise<{ page?: string }>;
+};
 
-  const fetchBlogs = async () => {
-    try {
-      const response = await fetch(`/api/blog?page=${page}&limit=9`);
-      const data = await response.json();
-      if (data.success) {
-        setBlogs(data.blogs);
-        setPagination(data.pagination);
-      }
-    } catch (error) {
-      console.error('Failed to fetch blogs');
-    } finally {
-      setLoading(false);
-    }
-  };
+function buildBlogPageHref(page: number) {
+  return page <= 1 ? '/blog' : `/blog?page=${page}`;
+}
+
+export default async function BlogPage({ searchParams }: Props) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const rawPage = resolvedSearchParams.page;
+  const parsedPage = Number.parseInt(rawPage ?? '1', 10);
+  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const { blogs, pagination } = await getPublishedBlogs(currentPage, 9);
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Blog</h1>
-            <p className="text-xl text-blue-100">
-              Tips, trends, and insights for smart shopping
-            </p>
+      <div className="theme-page-shell min-h-screen">
+        <div className="px-4 py-16">
+          <div className="mx-auto max-w-6xl text-center">
+            <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/20 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--primary)_78%,black)_0%,color-mix(in_srgb,var(--gradient-accent)_74%,black)_100%)] px-6 py-12 text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)]">
+              <div className="mx-auto mb-4 h-1 w-20 rounded-full bg-white/70" />
+              <h1 className="mb-4 text-4xl font-bold md:text-5xl">Our Blog</h1>
+              <p className="mx-auto max-w-2xl text-xl text-white/80">
+                Tips, trends, and insights for smart shopping
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Blog List */}
-        <div className="max-w-6xl mx-auto px-4 py-16">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : blogs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">No blogs available yet</p>
+        <div className="mx-auto max-w-6xl px-4 pb-16">
+          {blogs.length === 0 ? (
+            <div className="theme-surface py-12 text-center">
+              <p className="theme-info-note">No blogs available yet</p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
                 {blogs.map((blog) => (
                   <BlogCard
                     key={blog.id}
-                    id={blog.id}
                     title={blog.title}
                     slug={blog.slug}
-                    excerpt={blog.excerpt}
-                    featuredImage={blog.featuredImage}
-                    author={blog.author}
-                    createdAt={blog.createdAt}
+                    excerpt={blog.excerpt ?? undefined}
+                    featuredImage={blog.featuredImage ?? undefined}
+                    author={blog.author ?? undefined}
+                    createdAt={blog.createdAt.toISOString()}
                   />
                 ))}
               </div>
 
-              {/* Pagination */}
-              {pagination && pagination.pages > 1 && (
-                <div className="flex justify-center gap-2">
-                  {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                          page === p
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
+              {pagination.pages > 1 && (
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    href={buildBlogPageHref(Math.max(currentPage - 1, 1))}
+                    className={`theme-cta-secondary min-w-24 ${currentPage === 1 ? 'pointer-events-none opacity-50' : ''}`}
+                    aria-disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Link>
+
+                  {Array.from({ length: pagination.pages }, (_, index) => index + 1).map((page) => (
+                    <Link
+                      key={page}
+                      href={buildBlogPageHref(page)}
+                      className={page === currentPage ? 'theme-cta-primary min-w-12' : 'theme-cta-secondary min-w-12'}
+                      aria-current={page === currentPage ? 'page' : undefined}
+                    >
+                      {page}
+                    </Link>
+                  ))}
+
+                  <Link
+                    href={buildBlogPageHref(Math.min(currentPage + 1, pagination.pages))}
+                    className={`theme-cta-secondary min-w-24 ${currentPage === pagination.pages ? 'pointer-events-none opacity-50' : ''}`}
+                    aria-disabled={currentPage === pagination.pages}
+                  >
+                    Next
+                  </Link>
                 </div>
               )}
             </>

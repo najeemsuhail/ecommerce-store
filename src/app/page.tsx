@@ -161,7 +161,7 @@ export default function HomePage() {
             type="bestseller"
           />
         )}
-        <section className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-50">
+        <section className="theme-section-shell py-16 md:py-20">
           <div className="max-w-7xl mx-auto px-4">
             <ProductRecommendations 
               limit={8}

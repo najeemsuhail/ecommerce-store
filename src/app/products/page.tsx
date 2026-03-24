@@ -1002,10 +1002,10 @@ function ProductsContent() {
                         </span>
                       )}
                       {product.isActive && (
-                        <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-2">
+                        <div className="theme-product-hover absolute inset-0 hidden items-center justify-center gap-2 transition-opacity duration-300 md:flex md:opacity-0 md:group-hover:opacity-100">
                           <button
                             onClick={(e) => handleAddToCart(product, e)}
-                            className="bg-white text-blue-600 p-2 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105"
+                            className="theme-action-fab p-2"
                             title="Add to Cart"
                           >
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -1014,10 +1014,10 @@ function ProductsContent() {
                           </button>
                           <button
                             onClick={(e) => handleWishlistToggle(product, e)}
-                            className={`p-2 rounded-full transition-all duration-300 transform hover:scale-105 ${
+                            className={`theme-action-fab theme-action-fab-danger p-2 ${
                               isInWishlist(product.id)
-                                ? 'bg-red-500 text-white'
-                                : 'bg-white text-gray-600 hover:text-red-500'
+                                ? 'theme-wishlist-active'
+                                : ''
                             }`}
                             title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                           >
@@ -1079,17 +1079,17 @@ function ProductsContent() {
                         <div className="flex gap-1 md:hidden items-center justify-between">
                           <button
                             onClick={(e) => handleAddToCart(product, e)}
-                            className="flex-1 bg-blue-600 text-white px-2 py-2 rounded-md hover:bg-blue-700 transition-all font-medium text-xs"
+                            className="theme-button-primary flex-1 px-2 py-2 font-medium text-xs"
                             title="Add to Cart"
                           >
                             Add to Cart
                           </button>
                           <button
                             onClick={(e) => handleWishlistToggle(product, e)}
-                            className={`p-2 rounded-md transition-all ${
+                            className={`theme-icon-button theme-icon-button-danger p-2 ${
                               isInWishlist(product.id)
-                                ? 'bg-red-500 text-white hover:bg-red-600'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                ? 'theme-wishlist-active'
+                                : ''
                             }`}
                             title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                           >

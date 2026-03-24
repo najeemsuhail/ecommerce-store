@@ -13,21 +13,17 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
   const hasMore = categories.length > 6;
 
   return (
-    <section className="bg-white py-16">
+    <section className="theme-section-shell py-16">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="mb-2 text-2xl font-bold text-gray-900 md:text-4xl lg:text-5xl">
-              <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                Collections
-              </span>
+            <div className="theme-heading-rule mb-3 h-1 w-16" />
+            <h2 className="mb-2 text-2xl font-bold text-dark-theme md:text-4xl lg:text-5xl">
+              <span className="theme-heading-accent">Collections</span>
             </h2>
-            <p className="text-sm text-gray-600 md:text-lg">Browse curated collections</p>
+            <p className="theme-info-note text-sm md:text-lg">Browse curated collections</p>
           </div>
-          <Link
-            href="/categories"
-            className="w-fit whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-colors hover:bg-blue-700 hover:shadow-lg md:px-6 md:text-base"
-          >
+          <Link href="/categories" className="theme-cta-primary w-fit whitespace-nowrap">
             View All {hasMore && `(${categories.length})`}
           </Link>
         </div>
@@ -37,9 +33,9 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
             <Link
               key={category.id}
               href={`/products?category=${encodeURIComponent(category.name)}`}
-              className="group relative overflow-hidden rounded-2xl bg-slate-900 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
+              className="theme-product-card group relative overflow-hidden"
             >
-              <div className="absolute inset-0">
+              <div className="theme-product-media absolute inset-0">
                 {category.imageUrl ? (
                   <img
                     src={category.imageUrl}
@@ -48,7 +44,7 @@ export default function CategoryCarousel({ categories }: CategoryCarouselProps) 
                     loading="lazy"
                   />
                 ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-blue-500 via-cyan-500 to-emerald-500" />
+                  <div className="h-full w-full bg-[linear-gradient(135deg,color-mix(in_srgb,var(--primary)_88%,white)_0%,color-mix(in_srgb,var(--gradient-accent)_82%,white)_100%)]" />
                 )}
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />

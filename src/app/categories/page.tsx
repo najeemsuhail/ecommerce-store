@@ -31,22 +31,23 @@ export default async function CategoriesPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="mb-12 rounded-[2rem] border border-slate-200 bg-[linear-gradient(135deg,#f8fbff_0%,#eef6ff_45%,#ffffff_100%)] px-6 py-10 text-center shadow-sm md:mb-16 md:px-10 md:py-14">
-            <h1 className="mb-4 text-2xl font-bold text-gray-900 md:text-4xl lg:text-5xl">
-              <span className="bg-gradient-to-r from-sky-600 via-blue-700 to-slate-900 bg-clip-text text-transparent">
-                All collections
-              </span>
-            </h1>
-            <p className="mx-auto max-w-2xl text-sm text-slate-600 md:text-lg">
-              Browse all available product collections in one clean, consistent view.
-            </p>
+      <div className="theme-page-shell min-h-screen">
+        <div className="px-4 py-16">
+          <div className="mx-auto max-w-6xl text-center">
+            <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/20 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--primary)_78%,black)_0%,color-mix(in_srgb,var(--gradient-accent)_74%,black)_100%)] px-6 py-12 text-white shadow-[0_18px_45px_rgba(15,23,42,0.18)]">
+              <div className="mx-auto mb-4 h-1 w-20 rounded-full bg-white/70" />
+              <h1 className="mb-4 text-3xl font-bold md:text-5xl">All collections</h1>
+              <p className="mx-auto max-w-2xl text-sm text-white/80 md:text-lg">
+                Browse all available product collections in one clean, consistent view.
+              </p>
+            </div>
           </div>
+        </div>
 
+        <div className="mx-auto max-w-7xl px-4 pb-16">
           {categories.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-600 text-lg">No collections available</p>
+            <div className="theme-surface py-20 text-center">
+              <p className="theme-info-note text-lg">No collections available</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
@@ -61,10 +62,7 @@ export default async function CategoriesPage() {
           )}
 
           <div className="mt-16 text-center">
-            <Link
-              href="/"
-              className="inline-block rounded-full bg-slate-900 px-8 py-3 font-semibold text-white transition-colors hover:bg-slate-800"
-            >
+            <Link href="/" className="theme-cta-secondary">
               &larr; Back to Home
             </Link>
           </div>

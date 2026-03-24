@@ -1,9 +1,6 @@
-'use client';
-
 import Link from 'next/link';
 
 interface BlogCardProps {
-  id: string;
   title: string;
   slug: string;
   excerpt?: string;
@@ -13,7 +10,6 @@ interface BlogCardProps {
 }
 
 export default function BlogCard({
-  id,
   title,
   slug,
   excerpt,
@@ -28,27 +24,27 @@ export default function BlogCard({
   });
 
   return (
-    <Link href={`/blog/${slug}`}>
-      <div className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden h-full cursor-pointer">
+    <Link href={`/blog/${slug}`} className="block h-full">
+      <div className="theme-product-card group h-full overflow-hidden">
         {featuredImage && (
-          <div className="w-full h-48 bg-gray-200 overflow-hidden">
+          <div className="theme-product-media h-48 w-full overflow-hidden">
             <img
               src={featuredImage}
               alt={title}
-              className="w-full h-full object-cover hover:scale-105 transition-transform"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
           </div>
         )}
         <div className="p-6">
-          <h3 className="text-lg font-bold mb-2 line-clamp-2 hover:text-blue-600">
+          <h3 className="mb-2 line-clamp-2 text-lg font-bold text-dark-theme transition-colors group-hover:text-primary-theme">
             {title}
           </h3>
           {excerpt && (
-            <p className="text-gray-600 text-sm mb-4 line-clamp-3">{excerpt}</p>
+            <p className="theme-info-note mb-4 line-clamp-3 text-sm">{excerpt}</p>
           )}
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="theme-info-note flex items-center justify-between gap-3 text-xs">
             <span>{date}</span>
-            {author && <span>{author}</span>}
+            {author && <span className="truncate">{author}</span>}
           </div>
         </div>
       </div>
