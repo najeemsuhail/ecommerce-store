@@ -43,7 +43,7 @@ export default function HeroCarousel() {
               />
             </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+            <div className="theme-hero-overlay absolute inset-0"></div>
 
             <div className="relative mx-auto flex h-[320px] max-w-7xl items-center px-4 py-6 sm:h-[380px] sm:py-8 md:h-[420px] md:py-12 lg:h-[520px] lg:py-16">
               <div className="w-full space-y-4 text-center sm:space-y-5 md:space-y-6">
@@ -63,9 +63,8 @@ export default function HeroCarousel() {
                 <div className="flex justify-center pt-1 sm:pt-3">
                   <Link
                     href={slide.primaryCTA.href}
-                    className="group relative flex w-full max-w-[220px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-purple-500/50 sm:w-auto sm:max-w-none sm:px-6 sm:py-2"
+                    className="theme-hero-button group relative flex w-full max-w-[220px] items-center justify-center gap-2 overflow-hidden whitespace-nowrap px-4 py-2.5 text-sm font-bold text-white transition-all duration-300 hover:scale-105 sm:w-auto sm:max-w-none sm:px-6 sm:py-2"
                   >
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                     <span className="relative">{slide.primaryCTA.label}</span>
                     <svg
                       className="relative h-3 w-3 transition-transform group-hover:translate-x-1"
@@ -91,7 +90,7 @@ export default function HeroCarousel() {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`rounded-full transition-all duration-300 ${
-                  index === activeSlide ? 'h-3 w-8 bg-white' : 'h-3 w-3 bg-white/50 hover:bg-white/70'
+                  index === activeSlide ? 'theme-hero-dot-active h-3 w-8' : 'h-3 w-3 bg-white/50 hover:bg-white/70'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
-import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 
@@ -27,7 +26,6 @@ interface FeaturedProductsSectionProps {
 }
 
 export default function FeaturedProductsSection({ products, onQuickAdd }: FeaturedProductsSectionProps) {
-  const { addItem } = useCart();
   const { isInWishlist, groups, removeItemFromGroup } = useWishlist();
   const [wishlistModal, setWishlistModal] = useState({
     isOpen: false,
@@ -65,27 +63,27 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
   if (products.length === 0) return null;
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+    <section className="theme-section-shell py-20">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-5xl font-bold mb-4 text-gray-900">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h2 className="theme-section-heading text-5xl font-bold mb-4">
+            <span className="theme-heading-accent">
               Featured
             </span>{' '}
-            <span className="text-gray-900">Products</span>
+            <span>Products</span>
           </h2>
-          <p className="text-xl text-gray-600 font-medium">Hand-picked items just for you</p>
+          <p className="text-xl text-text-light font-medium">Hand-picked items just for you</p>
         </div>
         
         <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
           <div
             key={product.id}
-            className="group bg-light-theme rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary hover:-translate-y-2"
+            className="theme-product-card group overflow-hidden"
             style={{ animationDelay: `${index * 100}ms` }}
           >
             <Link href={`/products/${product.slug}`} scroll={true} className="block">
-              <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+              <div className="theme-product-media relative h-64 overflow-hidden">
                 {product.images?.[0] ? (
                   <img
                     src={product.images[0]}
@@ -101,10 +99,10 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                 )}
                 {/* Sale badge removed */}
                 {product.isActive !== false && (
-                  <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
+                  <div className="theme-product-hover absolute inset-0 hidden items-center justify-center gap-4 transition-opacity duration-300 md:flex md:opacity-0 md:group-hover:opacity-100">
                     <button
                       onClick={() => onQuickAdd(product)}
-                      className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                      className="theme-action-fab p-3"
                       title="Add to Cart"
                     >
                       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -113,10 +111,10 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
+                      className={`theme-action-fab theme-action-fab-danger p-3 ${
                         isInWishlist(product.id)
-                          ? 'bg-red-500 text-white'
-                          : 'bg-white text-gray-600 hover:text-red-500'
+                          ? 'theme-wishlist-active'
+                          : ''
                       }`}
                       title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -132,17 +130,17 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                   <div className="flex gap-2 md:hidden items-center p-4 border-t border-border-color">
                     <button
                       onClick={() => onQuickAdd(product)}
-                      className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                      className="theme-button-primary flex-1 px-4 py-2 font-medium text-sm"
                       title="Add to Cart"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`p-2.5 rounded-lg transition-all ${
+                      className={`theme-icon-button theme-icon-button-danger p-2.5 ${
                         isInWishlist(product.id)
-                          ? 'bg-red-500 text-white hover:bg-red-600'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'theme-wishlist-active'
+                          : ''
                       }`}
                       title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -187,7 +185,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                 <Link
                   href={`/products/${product.slug}`}
                   scroll={true}
-                  className="px-4 py-2.5 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:text-primary-theme transition-all duration-300 flex items-center justify-center"
+                  className="theme-button-secondary px-4 py-2.5 flex items-center justify-center"
                   title="View Details"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +202,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
       <div className="text-center mt-16">
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-white hover:scale-105"
+              className="theme-button-primary inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-lg"
             >
               View All Products
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

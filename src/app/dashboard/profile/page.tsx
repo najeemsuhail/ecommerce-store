@@ -141,7 +141,7 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-light-theme rounded-lg shadow p-6">
+        <div className="theme-surface p-6">
           <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -153,7 +153,7 @@ export default function ProfilePage() {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="theme-form-input"
                 placeholder="John Doe"
               />
             </div>
@@ -166,9 +166,9 @@ export default function ProfilePage() {
                 type="email"
                 value={formData.email}
                 disabled
-                className="w-full px-4 py-2 border rounded-lg bg-gray-100 cursor-not-allowed"
+                className="theme-form-input"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-lighter mt-1">
                 Email cannot be changed
               </p>
             </div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="theme-form-input"
                 placeholder="+91 9876543210"
               />
             </div>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="btn-full-primary"
+              className="theme-cta-primary w-full"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                   type="password"
                   value={passwordData.currentPassword}
                   onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="theme-form-input"
                   placeholder="Enter current password"
                   required
                 />
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                   type="password"
                   value={passwordData.newPassword}
                   onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="theme-form-input"
                   placeholder="Enter new password"
                   required
                 />
@@ -235,7 +235,7 @@ export default function ProfilePage() {
                   type="password"
                   value={passwordData.confirmPassword}
                   onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="theme-form-input"
                   placeholder="Confirm new password"
                   required
                 />
@@ -250,7 +250,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={passwordSaving}
-                className="btn-full-primary"
+                className="theme-cta-primary w-full"
               >
                 {passwordSaving ? 'Saving...' : 'Update Password'}
               </button>
@@ -259,11 +259,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Account Info */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="theme-surface p-6">
           <h3 className="font-bold text-lg mb-4">Account Information</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Account Created:</span>
+              <span className="theme-info-note">Account Created:</span>
               <span className="font-semibold">
                 {new Date(user?.createdAt).toLocaleDateString('en-IN', {
                   day: 'numeric',
@@ -273,7 +273,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">User ID:</span>
+              <span className="theme-info-note">User ID:</span>
               <span className="font-mono text-xs">{user?.id.substring(0, 12)}...</span>
             </div>
           </div>

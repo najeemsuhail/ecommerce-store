@@ -201,12 +201,12 @@ export default function CheckoutFlowPage() {
   if (items.length === 0) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="theme-page-shell min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
             
               <Link href="/products"
-              className="btn-block-primary"
+              className="theme-cta-primary"
             >
               Continue Shopping
             </Link>
@@ -356,7 +356,7 @@ export default function CheckoutFlowPage() {
         onClose={() => setNotification({ isVisible: false, message: '' })}
       />
 
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="theme-page-shell min-h-screen py-8">
         <div className="max-w-6xl mx-auto px-4">
           {/* Header */}
           <div className="mb-8">
@@ -368,12 +368,12 @@ export default function CheckoutFlowPage() {
             <div className="lg:col-span-2">
               <form onSubmit={handleCheckout} noValidate className="space-y-6">
                 {/* Coupon Section */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="theme-surface p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-2xl">🎟️</span>
                     <h2 className="text-xl font-bold">Apply Coupon Code</h2>
                   </div>
-                  <p className="text-sm text-gray-600 mb-4">Have a coupon code? Apply it here to get a discount on your order.</p>
+                  <p className="theme-info-note text-sm mb-4">Have a coupon code? Apply it here to get a discount on your order.</p>
                   <CouponInput 
                     orderTotal={subtotal}
                     onCouponApplied={handleCouponApplied}
@@ -382,19 +382,19 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 {/* Payment Method Selection */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="theme-surface p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-primary-theme" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h10m4 0a1 1 0 100-2 1 1 0 000 2zM7 3h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
                     </svg>
                     <h2 className="text-xl font-bold">Payment Method</h2>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    <label className={`theme-option-card flex items-start gap-3 p-4 cursor-pointer ${
                       paymentMethod === 'razorpay'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'theme-option-card-active'
+                        : ''
                     }`}>
                       <input
                         type="radio"
@@ -402,19 +402,19 @@ export default function CheckoutFlowPage() {
                         value="razorpay"
                         checked={paymentMethod === 'razorpay'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'razorpay')}
-                        className="w-5 h-5 mt-0.5 text-blue-600"
+                        className="theme-check w-5 h-5 mt-0.5"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900">Online Payment</div>
-                        <div className="text-sm text-gray-600">UPI, Card, Net Banking, Wallet</div>
+                        <div className="font-semibold text-dark-theme">Online Payment</div>
+                        <div className="theme-info-note text-sm">UPI, Card, Net Banking, Wallet</div>
                         <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" className="h-5 mt-2" />
                       </div>
                     </label>
 
-                    <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    <label className={`theme-option-card flex items-start gap-3 p-4 cursor-pointer ${
                       paymentMethod === 'cod'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        ? 'theme-option-card-active'
+                        : ''
                     }`}>
                       <input
                         type="radio"
@@ -422,11 +422,11 @@ export default function CheckoutFlowPage() {
                         value="cod"
                         checked={paymentMethod === 'cod'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'cod')}
-                        className="w-5 h-5 mt-0.5 text-blue-600"
+                        className="theme-check w-5 h-5 mt-0.5"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900">Cash on Delivery</div>
-                        <div className="text-sm text-gray-600">Pay on delivery</div>
+                        <div className="font-semibold text-dark-theme">Cash on Delivery</div>
+                        <div className="theme-info-note text-sm">Pay on delivery</div>
                         {paymentMethod === 'cod' && (
                           <div className="text-xs text-orange-600 mt-2 font-medium">💰 +{formatPrice(codFee)} handling fee</div>
                         )}
@@ -436,9 +436,9 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 {/* Shipping Information */}
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="theme-surface p-6">
                   <div className="flex items-center gap-2 mb-6">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-primary-theme" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8c4.627-1.332 6.39-1.332 11 0M5 8v10c0 1.657.895 3 2 3h12c1.105 0 2-1.343 2-3V8M5 8l7-3m7 3l-7-3" />
                     </svg>
                     <h2 className="text-xl font-bold">Shipping Address</h2>
@@ -448,17 +448,17 @@ export default function CheckoutFlowPage() {
                   {savedAddresses.length > 0 && (
                     <div className="mb-6 pb-6 border-b">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-semibold text-gray-700">Your saved addresses</h3>
-                        <Link href="/dashboard/addresses" className="text-xs text-blue-600 hover:underline">
+                        <h3 className="font-semibold text-gray-theme">Your saved addresses</h3>
+                        <Link href="/dashboard/addresses" className="theme-inline-link text-xs underline">
                           Manage
                         </Link>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {savedAddresses.map((addr, index) => (
-                          <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          <label key={index} className={`theme-option-card relative flex items-start gap-3 p-4 cursor-pointer ${
                             !useNewShippingAddress && selectedShippingAddressIndex === index
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                              ? 'theme-option-card-active'
+                              : ''
                           }`}>
                             <input
                               type="radio"
@@ -468,23 +468,23 @@ export default function CheckoutFlowPage() {
                                 setUseNewShippingAddress(false);
                                 setSelectedShippingAddressIndex(index);
                               }}
-                              className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0"
+                              className="theme-check w-5 h-5 mt-0.5 flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <div className="font-semibold text-gray-900">{addr.name}</div>
+                                <div className="font-semibold text-dark-theme">{addr.name}</div>
                                 {addr.isDefault && (
                                   <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
                                     Default
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-600">{addr.address}</div>
-                              <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
+                              <div className="theme-info-note text-sm">{addr.address}</div>
+                              <div className="theme-info-note text-sm">{addr.city}, {addr.postalCode}</div>
                               {addr.phone && <div className="text-xs text-gray-500 mt-1">☎ {addr.phone}</div>}
                             </div>
                             {!useNewShippingAddress && selectedShippingAddressIndex === index && (
-                              <div className="absolute top-4 right-4 text-blue-600">
+                              <div className="absolute top-4 right-4 text-primary-theme">
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                 </svg>
@@ -494,22 +494,22 @@ export default function CheckoutFlowPage() {
                         ))}
                       </div>
                       
-                      <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
+                      <label className="theme-option-card flex items-center gap-3 p-4 border-dashed cursor-pointer mt-3">
                         <input
                           type="radio"
                           name="shippingAddressOption"
                           checked={useNewShippingAddress}
                           onChange={() => setUseNewShippingAddress(true)}
-                          className="w-5 h-5 text-blue-600"
+                          className="theme-check w-5 h-5"
                         />
-                        <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
+                        <span className="text-sm font-medium text-gray-theme">+ Add a new address</span>
                       </label>
                     </div>
                   )}
 
                   {useNewShippingAddress && (
                     <div className="mb-6 pb-6 border-b">
-                      <h3 className="font-semibold text-gray-700 mb-4">Enter shipping address</h3>
+                      <h3 className="font-semibold text-gray-theme mb-4">Enter shipping address</h3>
                     </div>
                   )}
 
@@ -527,7 +527,7 @@ export default function CheckoutFlowPage() {
                           onChange={(e) =>
                             setShippingAddress({ ...shippingAddress, name: e.target.value })
                           }
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="theme-form-input"
                         />
                       </div>
 
@@ -542,7 +542,7 @@ export default function CheckoutFlowPage() {
                           onChange={(e) =>
                             setShippingAddress({ ...shippingAddress, phone: e.target.value })
                           }
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="theme-form-input"
                           placeholder="+91 9876543210"
                         />
                       </div>
@@ -558,7 +558,7 @@ export default function CheckoutFlowPage() {
                           onChange={(e) =>
                             setShippingAddress({ ...shippingAddress, address: e.target.value })
                           }
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="theme-form-input"
                         />
                       </div>
 
@@ -571,7 +571,7 @@ export default function CheckoutFlowPage() {
                           onChange={(e) =>
                             setShippingAddress({ ...shippingAddress, city: e.target.value })
                           }
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="theme-form-input"
                         />
                       </div>
 
@@ -589,7 +589,7 @@ export default function CheckoutFlowPage() {
                               postalCode: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="theme-form-input"
                           placeholder="400001"
                         />
                       </div>
@@ -597,14 +597,14 @@ export default function CheckoutFlowPage() {
                   </div>
 
                   {/* Delivery Pincode Checker - Optional check */}
-                  <div className="my-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-gray-700 mb-3">Want to check if we deliver to your area?</p>
+                  <div className="theme-muted-panel my-6 p-4">
+                    <p className="theme-info-note text-sm mb-3">Want to check if we deliver to your area?</p>
                     <DeliveryPinChecker />
                   </div>
 
                   {/* Billing Address Same as Shipping - OUTSIDE hidden shipping form */}
                   <div className="pt-4 border-t">
-                    <label className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer">
+                    <label className="theme-option-card flex items-center gap-3 p-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={billingSameAsShipping}
@@ -615,9 +615,9 @@ export default function CheckoutFlowPage() {
                             setSelectedBillingAddressIndex(null);
                           }
                         }}
-                        className="w-5 h-5 rounded"
+                        className="theme-check w-5 h-5 rounded"
                       />
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-gray-theme">
                         Billing address same as shipping
                       </span>
                     </label>
@@ -627,7 +627,7 @@ export default function CheckoutFlowPage() {
                   {!billingSameAsShipping && (
                     <div className="pt-6 border-t">
                       <div className="flex items-center gap-2 mb-6">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6 text-primary-theme" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <h3 className="text-lg font-bold">Billing Address</h3>
@@ -636,13 +636,13 @@ export default function CheckoutFlowPage() {
                       {/* Saved Addresses Selection for Billing */}
                       {isLoggedIn && savedAddresses.length > 0 && (
                         <div className="mb-6 pb-6 border-b">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-3">Use a saved address</h4>
+                          <h4 className="text-sm font-semibold text-gray-theme mb-3">Use a saved address</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {savedAddresses.map((addr, index) => (
-                              <label key={index} className={`relative flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              <label key={index} className={`theme-option-card relative flex items-start gap-3 p-4 cursor-pointer ${
                                 !useNewBillingAddress && selectedBillingAddressIndex === index
-                                  ? 'border-blue-500 bg-blue-50'
-                                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                  ? 'theme-option-card-active'
+                                  : ''
                               }`}>
                                 <input
                                   type="radio"
@@ -652,15 +652,15 @@ export default function CheckoutFlowPage() {
                                     setUseNewBillingAddress(false);
                                     setSelectedBillingAddressIndex(index);
                                   }}
-                                  className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0 cursor-pointer"
+                                  className="theme-check w-5 h-5 mt-0.5 flex-shrink-0 cursor-pointer"
                                 />
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-semibold text-gray-900 text-sm">{addr.name}</div>
-                                  <div className="text-sm text-gray-600">{addr.address}</div>
-                                  <div className="text-sm text-gray-600">{addr.city}, {addr.postalCode}</div>
+                                  <div className="font-semibold text-dark-theme text-sm">{addr.name}</div>
+                                  <div className="theme-info-note text-sm">{addr.address}</div>
+                                  <div className="theme-info-note text-sm">{addr.city}, {addr.postalCode}</div>
                                 </div>
                                 {!useNewBillingAddress && selectedBillingAddressIndex === index && (
-                                  <div className="absolute top-4 right-4 text-blue-600">
+                                  <div className="absolute top-4 right-4 text-primary-theme">
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
@@ -670,22 +670,22 @@ export default function CheckoutFlowPage() {
                             ))}
                           </div>
                           
-                          <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-all mt-3">
+                          <label className="theme-option-card flex items-center gap-3 p-4 border-dashed cursor-pointer mt-3">
                             <input
                               type="radio"
                               name="billingAddressOption"
                               checked={useNewBillingAddress}
                               onChange={() => setUseNewBillingAddress(true)}
-                              className="w-5 h-5 text-blue-600 cursor-pointer"
+                              className="theme-check w-5 h-5 cursor-pointer"
                             />
-                            <span className="text-sm font-medium text-gray-700">+ Add a new address</span>
+                            <span className="text-sm font-medium text-gray-theme">+ Add a new address</span>
                           </label>
                         </div>
                       )}
 
                       {(savedAddresses.length === 0 || useNewBillingAddress) && (
                         <div className="mb-6 pb-6 border-b">
-                          <h4 className="font-semibold text-gray-700 mb-4">Enter billing address</h4>
+                          <h4 className="font-semibold text-gray-theme mb-4">Enter billing address</h4>
                         </div>
                       )}
 
@@ -701,7 +701,7 @@ export default function CheckoutFlowPage() {
                             onChange={(e) =>
                               setBillingAddress({ ...billingAddress, name: e.target.value })
                             }
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="theme-form-input"
                           />
                         </div>
 
@@ -716,7 +716,7 @@ export default function CheckoutFlowPage() {
                             onChange={(e) =>
                               setBillingAddress({ ...billingAddress, address: e.target.value })
                             }
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="theme-form-input"
                           />
                         </div>
 
@@ -729,7 +729,7 @@ export default function CheckoutFlowPage() {
                             onChange={(e) =>
                               setBillingAddress({ ...billingAddress, city: e.target.value })
                             }
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="theme-form-input"
                           />
                         </div>
 
@@ -747,7 +747,7 @@ export default function CheckoutFlowPage() {
                                 postalCode: e.target.value,
                               })
                             }
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="theme-form-input"
                             placeholder="400001"
                           />
                         </div>
@@ -762,7 +762,7 @@ export default function CheckoutFlowPage() {
                             onChange={(e) =>
                               setBillingAddress({ ...billingAddress, country: e.target.value })
                             }
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="theme-form-input"
                           />
                         </div>
                       </div>
@@ -771,7 +771,7 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 {message && (
-                  <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                  <div className="flex items-start gap-3 p-4 bg-danger-light border border-danger-theme text-danger-theme rounded-lg">
                     <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
@@ -782,7 +782,7 @@ export default function CheckoutFlowPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="theme-cta-primary disabled:bg-gray-400 disabled:cursor-not-allowed w-full"
                 >
                   {loading && (
                     <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -798,13 +798,13 @@ export default function CheckoutFlowPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-light-theme rounded-lg shadow p-6 sticky top-8">
+              <div className="theme-summary-card p-6 sticky top-8">
                 <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
                 <div className="space-y-3 mb-4">
                   {items.map((item) => (
                     <div key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId} className="flex gap-3">
-                      <div className="w-16 h-16 bg-gray-200 rounded flex-shrink-0">
+                      <div className="w-16 h-16 bg-gray-light rounded flex-shrink-0">
                         {item.image && (
                           <img
                             src={item.image}
@@ -816,9 +816,9 @@ export default function CheckoutFlowPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-sm truncate">{item.name}</p>
                         {item.variantName && (
-                          <p className="text-xs text-gray-500">{item.variantName}</p>
+                          <p className="text-xs text-text-lighter">{item.variantName}</p>
                         )}
-                        <p className="text-sm text-gray-600">
+                        <p className="theme-info-note text-sm">
                           Qty: {item.quantity} × {formatPrice(item.price)}
                         </p>
                       </div>
@@ -830,22 +830,22 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between theme-info-note">
                     <span>Subtotal</span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
 
-                  <div className="flex justify-between text-gray-600">
+                  <div className="flex justify-between theme-info-note">
                     <span>Shipping</span>
                     {shippingCost === 0 && hasPhysicalProducts ? (
-                      <span className="text-green-600 font-semibold">FREE</span>
+                      <span className="theme-success-text font-semibold">FREE</span>
                     ) : (
                       <span>{formatPrice(shippingCost)}</span>
                     )}
                   </div>
 
                   {hasPhysicalProducts && totalPrice < 1000 && (
-                    <div className="text-xs text-green-600">
+                    <div className="theme-success-text text-xs">
                       Add {formatPrice(1000 - totalPrice)} more for FREE shipping!
                     </div>
                   )}
@@ -858,7 +858,7 @@ export default function CheckoutFlowPage() {
                   )}
 
                   {appliedDiscount > 0 && (
-                    <div className="flex justify-between text-green-600 font-semibold">
+                    <div className="flex justify-between theme-success-text font-semibold">
                       <span>Coupon Discount ({appliedCouponCode})</span>
                       <span>-{formatPrice(appliedDiscount)}</span>
                     </div>
@@ -871,7 +871,7 @@ export default function CheckoutFlowPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm theme-info-note">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -885,9 +885,9 @@ export default function CheckoutFlowPage() {
           </div>
 
           {/* Product Recommendations - Full Width */}
-          <div className="mt-12 -mx-4 md:-mx-8 bg-gradient-to-b from-white to-gray-50 px-4 md:px-8 py-12 md:py-16">
+          <div className="theme-section-shell mt-12 -mx-4 md:-mx-8 px-4 md:px-8 py-12 md:py-16">
             <div className="max-w-6xl mx-auto">
-              <h3 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Add Items to Your Order</h3>
+              <h3 className="theme-section-heading text-3xl md:text-4xl font-bold mb-2">Add Items to Your Order</h3>
               <p className="text-text-light mb-8">Enhance your order with these recommended products</p>
               <ProductRecommendations 
                 limit={4}

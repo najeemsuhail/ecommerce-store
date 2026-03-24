@@ -37,8 +37,8 @@ export default function ProductCarousel({
   type = 'default',
 }: ProductCarouselProps) {
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [, setCanScrollLeft] = useState(false);
+  const [, setCanScrollRight] = useState(true);
   const [notification, setNotification] = useState<{
     message: string;
     visible: boolean;
@@ -89,19 +89,14 @@ export default function ProductCarousel({
   const scroll = (direction: 'left' | 'right') => {
     const element = carouselRef.current;
     if (element) {
-      // Default: 1 item per scroll (w-80 = 320px) + gap (gap-6 = 24px) = 344px
-      // For bestseller on mobile: 2 items per scroll
       let itemWidth = 344;
-      if (type === 'bestseller') {
-        if (window.innerWidth < 640) {
-          itemWidth = 344 * 2 + 24; // 2 items + 1 gap
-        }
+      if (type === 'bestseller' && window.innerWidth < 640) {
+        itemWidth = 344 * 2 + 24;
       }
-      if (direction === 'left') {
-        element.scrollBy({ left: -itemWidth, behavior: 'smooth' });
-      } else {
-        element.scrollBy({ left: itemWidth, behavior: 'smooth' });
-      }
+      element.scrollBy({
+        left: direction === 'left' ? -itemWidth : itemWidth,
+        behavior: 'smooth',
+      });
       setTimeout(checkScroll, 300);
     }
   };
@@ -159,20 +154,15 @@ export default function ProductCarousel({
 
       <div className="mb-12">
         <h2 className="text-4xl font-bold mb-4">
-          <span className="text-primary-theme">
-            {title}
-          </span>
+          <span className="theme-heading-accent">{title}</span>
         </h2>
-        {description && (
-          <p className="text-text-light text-lg">{description}</p>
-        )}
+        {description && <p className="text-text-light text-lg">{description}</p>}
       </div>
 
       <div className="relative group">
-        {/* Left Navigation Button */}
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-20 btn-primary-theme shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -ml-6 opacity-0 group-hover:opacity-100"
+          className="theme-button-primary absolute left-0 top-1/2 z-20 -ml-6 -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100"
           aria-label="Scroll left"
         >
           <svg
@@ -190,29 +180,33 @@ export default function ProductCarousel({
           </svg>
         </button>
 
-        {/* Carousel Container */}
         <div
           ref={carouselRef}
           className="flex gap-6 overflow-x-auto scroll-smooth"
-          style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{
+            scrollBehavior: 'smooth',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
         >
-          {/* Hide scrollbar for all browsers */}
           <style>{`
             div::-webkit-scrollbar {
               display: none;
             }
           `}</style>
-          {products.map((product, idx) => (
+          {products.map((product) => (
             <div
               key={product.id}
               className={
-                type === 'bestseller' && typeof window !== 'undefined' && window.innerWidth < 640
-                  ? 'flex-shrink-0 w-1/2 min-w-[50vw] group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary'
-                  : 'flex-shrink-0 w-80 group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary'
+                type === 'bestseller' &&
+                typeof window !== 'undefined' &&
+                window.innerWidth < 640
+                  ? 'theme-product-card group/card flex-shrink-0 w-1/2 min-w-[50vw] overflow-hidden'
+                  : 'theme-product-card group/card flex-shrink-0 w-80 overflow-hidden'
               }
             >
               <Link href={`/products/${product.slug}`} scroll={true} className="block">
-                <div className="relative h-64 bg-bg-gray overflow-hidden">
+                <div className="theme-product-media relative h-64 overflow-hidden">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -236,12 +230,11 @@ export default function ProductCarousel({
                       </svg>
                     </div>
                   )}
-                  {/* Sale badge removed */}
                   {product.isActive !== false && (
-                    <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover/card:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
+                    <div className="theme-product-hover absolute inset-0 hidden items-center justify-center gap-4 transition-opacity duration-300 md:flex md:opacity-0 md:group-hover/card:opacity-100">
                       <button
                         onClick={(e) => handleAddToCart(product, e)}
-                        className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                        className="theme-action-fab p-3"
                         title="Add to Cart"
                       >
                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -250,10 +243,8 @@ export default function ProductCarousel({
                       </button>
                       <button
                         onClick={(e) => handleWishlistClick(product, e)}
-                        className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
-                          isInWishlist(product.id)
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white text-gray-600 hover:text-red-500'
+                        className={`theme-action-fab theme-action-fab-danger p-3 ${
+                          isInWishlist(product.id) ? 'theme-wishlist-active' : ''
                         }`}
                         title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
@@ -266,7 +257,6 @@ export default function ProductCarousel({
                 </div>
               </Link>
 
-              {/* Card Content - show based on type */}
               {type === 'default' ? (
                 <div className="p-5">
                   <Link href={`/products/${product.slug}`} scroll={true}>
@@ -281,7 +271,7 @@ export default function ProductCarousel({
                           e.stopPropagation();
                           handleAddToCart(product, e);
                         }}
-                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                        className="theme-button-primary flex-1 px-4 py-2 font-medium text-sm"
                         title="Add to Cart"
                       >
                         Add to Cart
@@ -291,10 +281,8 @@ export default function ProductCarousel({
                           e.stopPropagation();
                           handleWishlistClick(product, e);
                         }}
-                        className={`p-2.5 rounded-lg transition-all ${
-                          isInWishlist(product.id)
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        className={`theme-icon-button theme-icon-button-danger p-2.5 ${
+                          isInWishlist(product.id) ? 'theme-wishlist-active' : ''
                         }`}
                         title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
@@ -318,10 +306,7 @@ export default function ProductCarousel({
                     </div>
                     {product.averageRating && product.averageRating > 0 && (
                       <div className="flex items-center gap-1 text-warning text-sm">
-                        <svg
-                          className="w-4 h-4 fill-current"
-                          viewBox="0 0 20 20"
-                        >
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20">
                           <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                         </svg>
                         <span className="font-semibold">{product.averageRating}</span>
@@ -332,10 +317,8 @@ export default function ProductCarousel({
                   <div className="flex gap-2">
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
-                        isInWishlist(product.id)
-                          ? 'bg-danger/20 text-danger border-2 border-danger'
-                          : 'bg-bg-gray text-text-light border-2 border-border-color hover:border-danger hover:text-danger'
+                      className={`theme-button-secondary flex-1 px-4 py-3 font-bold ${
+                        isInWishlist(product.id) ? 'theme-wishlist-active' : ''
                       }`}
                       title="Add to wishlist"
                     >
@@ -344,10 +327,9 @@ export default function ProductCarousel({
                   </div>
                 </div>
               ) : (
-                /* Minimal card for bestseller - only title */
-                <div className="p-3 bg-white">
+                <div className="p-3 bg-white-theme">
                   <Link href={`/products/${product.slug}`} scroll={true}>
-                    <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover/card:text-primary-theme transition-colors">
+                    <h3 className="font-semibold text-sm text-dark-theme line-clamp-2 group-hover/card:text-primary-theme transition-colors">
                       {product.name}
                     </h3>
                   </Link>
@@ -358,7 +340,7 @@ export default function ProductCarousel({
                           e.stopPropagation();
                           handleAddToCart(product, e);
                         }}
-                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                        className="theme-button-primary flex-1 px-4 py-2 font-medium text-sm"
                         title="Add to Cart"
                       >
                         Add to Cart
@@ -368,10 +350,8 @@ export default function ProductCarousel({
                           e.stopPropagation();
                           handleWishlistClick(product, e);
                         }}
-                        className={`p-2.5 rounded-lg transition-all ${
-                          isInWishlist(product.id)
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        className={`theme-icon-button theme-icon-button-danger p-2.5 ${
+                          isInWishlist(product.id) ? 'theme-wishlist-active' : ''
                         }`}
                         title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
@@ -387,10 +367,9 @@ export default function ProductCarousel({
           ))}
         </div>
 
-        {/* Right Navigation Button */}
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-20 gradient-primary-accent text-white-theme shadow-2xl rounded-full p-3 hover:shadow-3xl hover:scale-110 transition-all duration-300 -mr-6 opacity-0 group-hover:opacity-100"
+          className="theme-button-primary absolute right-0 top-1/2 z-20 -mr-6 -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100"
           aria-label="Scroll right"
         >
           <svg

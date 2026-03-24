@@ -63,8 +63,8 @@ export default function Header() {
   }, []);
 
   return (
-    <nav className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto py-4">
+    <nav className="theme-header sticky top-0 z-50">
+      <div className="theme-header-inner">
         <div className="flex justify-between items-center gap-4">
 
           {/* LEFT: Logo + Menu */}
@@ -180,7 +180,7 @@ export default function Header() {
               {/* Account Dropdown Menu */}
               {accountMenuOpen && (
                 <div className="absolute right-0 top-full pt-2 w-48 z-50">
-                  <div className="bg-light-theme border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                  <div className="theme-account-menu overflow-hidden">
                     {!isLoggedIn ? (
                       <Link
                         href="/auth"
@@ -251,8 +251,8 @@ export default function Header() {
           
           {/* Full Screen Menu */}
           <div 
-            className="fixed inset-x-0 top-16 bottom-0 box-border md:hidden z-50 flex flex-col overflow-y-auto border-t-2 border-gray-200 px-6 py-8 shadow-2xl"
-            style={{ backgroundColor: '#ffffff', height: 'calc(100vh - 4rem)' }}
+            className="theme-mobile-panel fixed inset-x-0 top-16 bottom-0 box-border md:hidden z-50 flex flex-col overflow-y-auto px-6 py-8 shadow-2xl"
+            style={{ height: 'calc(100vh - 4rem)' }}
           >
             {/* Close Button */}
             <button

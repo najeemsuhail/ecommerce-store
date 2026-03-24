@@ -534,7 +534,6 @@ export default function FacetFilter({
               rootCategories.map((category) => {
                 const children = childrenByParent.get(category.id) || [];
                 const isExpanded = expandedCategoryIds.has(category.id);
-                const count = categoryCountById.get(category.id) ?? 0;
                 return (
                   <div key={category.id} className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
@@ -548,9 +547,6 @@ export default function FacetFilter({
                         <span className="text-gray-700 min-w-0 break-words">{category.name}</span>
                       </label>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                          {count}
-                        </span>
                         {children.length > 0 && (
                           <button
                             type="button"
@@ -576,9 +572,6 @@ export default function FacetFilter({
                                 className="w-4 h-4 rounded border-gray-300"
                               />
                               <span className="text-gray-700 min-w-0 break-words">{child.name}</span>
-                            </span>
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 flex-shrink-0">
-                              {categoryCountById.get(child.id) ?? 0}
                             </span>
                           </label>
                         ))}
@@ -638,9 +631,6 @@ export default function FacetFilter({
                             className="w-4 h-4 rounded"
                           />
                           <span className="text-sm text-gray-700">{opt.value}</span>
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                            {opt.count}
-                          </span>
                         </label>
                       )) : null
                     ) : attr.type === 'color' ? (
@@ -675,9 +665,6 @@ export default function FacetFilter({
                               style={{ backgroundColor: opt.value }}
                             />
                             <span className="text-sm text-gray-700">{opt.value}</span>
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                              {opt.count}
-                            </span>
                           </div>
                         </label>
                       )) : null
@@ -708,9 +695,6 @@ export default function FacetFilter({
                             className="w-4 h-4 rounded"
                           />
                           <span className="text-sm text-gray-700">{opt.value}</span>
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                            {opt.count}
-                          </span>
                         </label>
                       )) : null
                     )}

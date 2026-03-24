@@ -133,9 +133,9 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="theme-page-shell min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            <h1 className="text-3xl font-bold text-dark-theme mb-4">
               Your cart is empty
             </h1>
             <p className="text-text-light mb-6">
@@ -144,7 +144,7 @@ export default function CartPage() {
 
             <Link
               href="/products"
-              className="inline-block bg-primary-theme text-white-theme px-6 py-3 rounded-lg hover:bg-primary-hover"
+              className="theme-cta-primary"
             >
               Browse Products
             </Link>
@@ -162,13 +162,13 @@ export default function CartPage() {
         onClose={() => setNotification({ ...notification, isVisible: false })}
       />
 
-      <div className="min-h-screen bg-bg-gray py-4 md:py-8">
+      <div className="theme-page-shell min-h-screen py-4 md:py-8">
         <div className="max-w-6xl mx-auto px-3 md:px-4">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-3">
             <h1 className="text-2xl md:text-3xl font-bold">Shopping Cart</h1>
             <button
               onClick={clearCart}
-              className="text-danger hover:text-danger text-xs md:text-sm"
+              className="theme-inline-link text-xs md:text-sm underline"
             >
               Clear Cart
             </button>
@@ -180,10 +180,10 @@ export default function CartPage() {
               {items.map((item) => (
                 <div
                   key={item.variantId ? `${item.productId}-${item.variantId}` : item.productId}
-                  className="bg-white rounded-xl shadow-md p-3 md:p-6 flex items-center gap-3 md:gap-6 border border-gray-100"
+                  className="theme-surface p-3 md:p-6 flex items-center gap-3 md:gap-6"
                 >
                   {/* Product Image */}
-                  <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200">
+                  <div className="theme-product-media flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200">
                     {item.image ? (
                       <Image
                         src={item.image}
@@ -213,27 +213,27 @@ export default function CartPage() {
                     )}
                     <div className="flex items-center gap-2 mb-2">
                       {item.isDigital && (
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">Digital</span>
+                        <span className="text-xs bg-primary-light text-primary-theme px-2 py-1 rounded">Digital</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       {/* Quantity Controls */}
-                      <div className="flex items-center border rounded overflow-hidden">
+                      <div className="flex items-center border border-gray-theme rounded overflow-hidden">
                         <button
                           disabled={item.quantity <= 1}
                           onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
-                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-50 text-sm"
+                          className="px-2 py-1 theme-info-note hover:bg-light-gray-theme disabled:opacity-50 text-sm"
                         >−</button>
-                        <span className="px-3 py-1 border-x text-sm bg-gray-50">{item.quantity}</span>
+                        <span className="px-3 py-1 border-x border-gray-theme text-sm bg-light-gray-theme">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
-                          className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
+                          className="px-2 py-1 theme-info-note hover:bg-light-gray-theme text-sm"
                         >+</button>
                       </div>
                       {/* Remove Button */}
                       <button
                         onClick={() => removeItem(item.productId, item.variantId)}
-                        className="text-xs text-red-500 hover:underline ml-2"
+                        className="theme-inline-link text-xs underline ml-2"
                       >Remove</button>
                     </div>
                   </div>
@@ -243,28 +243,28 @@ export default function CartPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-light-theme rounded-lg shadow p-4 md:p-6 sticky top-4 md:top-8">
+              <div className="theme-summary-card p-4 md:p-6 sticky top-4 md:top-8">
                 <h2 className="text-lg md:text-xl font-bold mb-4">
                   Order Summary
                 </h2>
 
                 <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-gray-600 text-sm md:text-base">
+                  <div className="flex justify-between theme-info-note text-sm md:text-base">
                     <span>Subtotal ({totalItems} items)</span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
 
-                  <div className="flex justify-between text-gray-600 text-sm md:text-base">
+                  <div className="flex justify-between theme-info-note text-sm md:text-base">
                     <span>Shipping</span>
                     {shippingCost === 0 && hasPhysicalProducts ? (
-                      <span className="text-green-600 font-semibold">FREE</span>
+                      <span className="theme-success-text font-semibold">FREE</span>
                     ) : (
                       <span>{formatPrice(shippingCost)}</span>
                     )}
                   </div>
 
                   {hasPhysicalProducts && totalPrice < 1000 && (
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-text-lighter">
                       Add {formatPrice(1000 - totalPrice)} more for FREE shipping!
                     </div>
                   )}
@@ -277,14 +277,14 @@ export default function CartPage() {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full bg-primary-theme text-white-theme py-2 md:py-3 rounded-lg hover:bg-primary-hover font-medium text-sm md:text-base"
+                  className="theme-cta-primary w-full"
                 >
                   Proceed to Checkout
                 </button>
 
                 <Link
                   href="/products"
-                  className="block text-center text-blue-600 hover:underline mt-4 text-sm md:text-base"
+                  className="theme-cta-secondary mt-4 w-full"
                 >
                   Continue Shopping
                 </Link>

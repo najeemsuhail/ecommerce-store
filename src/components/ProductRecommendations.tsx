@@ -161,10 +161,10 @@ export default function ProductRecommendations({
     <section className={`py-12 ${className}`}>
       {showTitle && (
         <div className="mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+          <h2 className="theme-section-heading text-3xl md:text-4xl font-bold">
             {getTitle()}
           </h2>
-          <div className="mt-2 h-1 w-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded"></div>
+          <div className="theme-heading-rule mt-2 h-1 w-20"></div>
         </div>
       )}
 
@@ -172,11 +172,15 @@ export default function ProductRecommendations({
         {products.map((product) => (
           <div
             key={product.id}
-            className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-500"
+            className="theme-product-card group overflow-hidden"
           >
             {/* Product Image */}
-            <Link href={`/products/${product.slug}`} scroll={true}>
-              <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+            <Link
+              href={`/products/${product.slug}`}
+              scroll={true}
+              onClick={() => onProductClick?.(product)}
+            >
+              <div className="theme-product-media relative h-56 overflow-hidden">
                 {product.images?.[0] ? (
                   <Image
                     src={product.images[0]}
@@ -201,7 +205,7 @@ export default function ProductRecommendations({
                 {/* Sale badge removed */}
 
                 {/* Add to Cart Button on Hover */}
-                    <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
+                    <div className="theme-product-hover absolute inset-0 hidden items-center justify-center gap-4 transition-opacity duration-300 md:flex md:opacity-0 md:group-hover:opacity-100">
                   {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) ? (
                     <>
                       <button
@@ -219,7 +223,7 @@ export default function ProductRecommendations({
                           });
                           onAddToCart?.(product);
                         }}
-                        className="bg-white text-blue-600 hover:bg-blue-600 hover:text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110"
+                        className="theme-action-fab p-3"
                         title="Add to Cart"
                       >
                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -228,10 +232,10 @@ export default function ProductRecommendations({
                       </button>
                       <button
                         onClick={(e) => handleWishlistClick(product, e)}
-                        className={`p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${
+                        className={`theme-action-fab theme-action-fab-danger p-3 ${
                           isInWishlist(product.id)
-                            ? 'bg-red-500 text-white'
-                            : 'bg-white text-gray-600 hover:text-red-500'
+                            ? 'theme-wishlist-active'
+                            : ''
                         }`}
                         title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                       >
@@ -249,8 +253,12 @@ export default function ProductRecommendations({
             {recommendationType !== 'trending' && (
               <div className="p-4">
                 {/* Title */}
-                <Link href={`/products/${product.slug}`} scroll={true}>
-                  <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[3rem]">
+                <Link
+                  href={`/products/${product.slug}`}
+                  scroll={true}
+                  onClick={() => onProductClick?.(product)}
+                >
+                  <h3 className="font-semibold text-dark-theme line-clamp-2 group-hover:text-primary-theme transition-colors min-h-[3rem]">
                     {product.name}
                   </h3>
                 </Link>
@@ -271,17 +279,17 @@ export default function ProductRecommendations({
                         });
                         onAddToCart?.(product);
                       }}
-                      className="flex-1 min-w-0 bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-xs leading-none whitespace-nowrap"
+                      className="theme-button-primary flex-1 min-w-0 px-2 py-2 font-medium text-xs leading-none whitespace-nowrap"
                       title="Add to Cart"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`shrink-0 w-9 h-9 p-0 rounded-lg transition-all flex items-center justify-center ${
+                      className={`theme-icon-button theme-icon-button-danger shrink-0 w-9 h-9 p-0 flex items-center justify-center ${
                         isInWishlist(product.id)
-                          ? 'bg-red-500 text-white hover:bg-red-600'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'theme-wishlist-active'
+                          : ''
                       }`}
                       title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -299,19 +307,19 @@ export default function ProductRecommendations({
                       <svg className="w-4 h-4 fill-yellow-400" viewBox="0 0 20 20">
                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                       </svg>
-                      <span className="text-sm font-semibold text-gray-700">
+                      <span className="text-sm font-semibold text-gray-theme">
                         {product.averageRating}
                       </span>
                     </div>
                     {product.reviewCount && product.reviewCount > 0 && (
-                      <span className="text-xs text-gray-500">({product.reviewCount} reviews)</span>
+                      <span className="text-xs text-text-lighter">({product.reviewCount} reviews)</span>
                     )}
                   </div>
                 )}
 
                 {/* Price */}
                 <div className="flex items-center gap-2 my-3">
-                  <span className="text-xl font-bold text-blue-600">
+                  <span className="text-xl font-bold text-primary-theme">
                     {formatPrice(product.price)}
                   </span>
                   {product.comparePrice && (
@@ -325,12 +333,16 @@ export default function ProductRecommendations({
 
             {/* For Trending - Only show title */}
             {recommendationType === 'trending' && (
-              <div className="p-3 bg-white">
-                <Link href={`/products/${product.slug}`} scroll={true}>
-                  <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {product.name}
-                  </h3>
-                </Link>
+                <div className="p-3 bg-white-theme">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    scroll={true}
+                    onClick={() => onProductClick?.(product)}
+                  >
+                    <h3 className="font-semibold text-sm text-dark-theme line-clamp-2 group-hover:text-primary-theme transition-colors">
+                      {product.name}
+                    </h3>
+                  </Link>
                 {product.isActive !== false && (product.isDigital || !product.stock || product.stock > 0) && (
                   <div className="flex gap-1.5 md:hidden items-stretch pt-3">
                     <button
@@ -348,17 +360,17 @@ export default function ProductRecommendations({
                         });
                         onAddToCart?.(product);
                       }}
-                      className="flex-1 min-w-0 bg-blue-600 text-white px-2 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-xs leading-none whitespace-nowrap"
+                      className="theme-button-primary flex-1 min-w-0 px-2 py-2 font-medium text-xs leading-none whitespace-nowrap"
                       title="Add to Cart"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`shrink-0 w-9 h-9 p-0 rounded-lg transition-all flex items-center justify-center ${
+                      className={`theme-icon-button theme-icon-button-danger shrink-0 w-9 h-9 p-0 flex items-center justify-center ${
                         isInWishlist(product.id)
-                          ? 'bg-red-500 text-white hover:bg-red-600'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          ? 'theme-wishlist-active'
+                          : ''
                       }`}
                       title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >

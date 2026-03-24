@@ -111,7 +111,7 @@ export default function CheckDeliveryPage() {
             </p>
             <a
               href="/products"
-              className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
+              className="theme-cta-primary"
             >
               Browse Products →
             </a>

@@ -352,7 +352,7 @@ export default function WishlistPage() {
             <div className="text-center mt-8">
               <Link
                 href="/products"
-                className="btn-block-primary"
+                className="theme-cta-primary"
               >
                 Continue Shopping
               </Link>

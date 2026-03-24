@@ -57,10 +57,10 @@ export default function RecentlyViewedSection() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Recently Viewed</h2>
+          <h2 className="theme-section-heading text-3xl font-bold">Recently Viewed</h2>
           <button
             onClick={clearRecentlyViewed}
-            className="text-sm text-red-600 hover:text-red-700 underline"
+            className="theme-inline-link text-sm underline"
           >
             Clear History
           </button>
@@ -69,10 +69,10 @@ export default function RecentlyViewedSection() {
         {/* Products Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6">
           {recentlyViewed.map((product) => (
-            <div key={product.id} className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-blue-500">
+            <div key={product.id} className="theme-product-card group overflow-hidden">
               {/* Product Image */}
               <Link href={`/products/${product.slug}`} scroll={true}>
-                <div className="relative overflow-hidden bg-gray-100 h-48">
+                <div className="theme-product-media relative overflow-hidden h-48">
                   <Image
                     src={product.images?.[0] || '/images/products/default.png'}
                     alt={product.name}
@@ -81,7 +81,7 @@ export default function RecentlyViewedSection() {
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   {/* Add to Cart Button on Hover */}
-                  <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
+                  <div className="theme-product-hover absolute inset-0 hidden items-center justify-center gap-4 transition-opacity duration-300 md:flex md:opacity-0 md:group-hover:opacity-100">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -96,7 +96,7 @@ export default function RecentlyViewedSection() {
                           weight: product.weight || undefined,
                         });
                       }}
-                      className="bg-white text-blue-600 p-3 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-110"
+                      className="theme-action-fab p-3"
                       title="Add to Cart"
                     >
                       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -105,10 +105,10 @@ export default function RecentlyViewedSection() {
                     </button>
                     <button
                       onClick={(e) => handleWishlistClick(product, e)}
-                      className={`p-3 rounded-full transition-all duration-300 transform hover:scale-110 ${
+                      className={`theme-action-fab theme-action-fab-danger p-3 ${
                         isInWishlist(product.id)
-                          ? 'bg-red-500 text-white'
-                          : 'bg-white text-gray-600 hover:text-red-500'
+                          ? 'theme-wishlist-active'
+                          : ''
                       }`}
                       title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
@@ -125,7 +125,7 @@ export default function RecentlyViewedSection() {
                 <Link
                   href={`/products/${product.slug}`}
                   scroll={true}
-                  className="block h-10 overflow-hidden text-sm font-semibold leading-5 text-gray-900 hover:text-blue-600"
+                  className="block h-10 overflow-hidden text-sm font-semibold leading-5 text-dark-theme hover:text-primary-theme"
                   title={product.name}
                 >
                   <span className="line-clamp-2">{product.name}</span>
@@ -145,17 +145,17 @@ export default function RecentlyViewedSection() {
                         weight: product.weight || undefined,
                       });
                     }}
-                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
+                    className="theme-button-primary flex-1 px-4 py-2 font-medium text-sm"
                     title="Add to Cart"
                   >
                     Add to Cart
                   </button>
                   <button
                     onClick={(e) => handleWishlistClick(product, e)}
-                    className={`p-2.5 rounded-lg transition-all ${
+                    className={`theme-icon-button theme-icon-button-danger p-2.5 ${
                       isInWishlist(product.id)
-                        ? 'bg-red-500 text-white hover:bg-red-600'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'theme-wishlist-active'
+                        : ''
                     }`}
                     title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                   >

@@ -151,13 +151,13 @@ export default function AddressesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="bg-light-theme rounded-lg shadow p-6">
+        <div className="theme-surface p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Saved Addresses</h2>
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="btn-block-primary-md"
+                className="theme-cta-primary"
               >
                 + Add New Address
               </button>
@@ -166,7 +166,7 @@ export default function AddressesPage() {
 
           {/* Add/Edit Form */}
           {showForm && (
-            <div className="mb-6 p-6 border-2 border-primary-theme rounded-lg bg-primary-light">
+            <div className="theme-surface theme-surface-accent mb-6 p-6">
               <h3 className="font-bold text-lg mb-4">
                 {editingIndex !== null ? 'Edit Address' : 'Add New Address'}
               </h3>
@@ -181,7 +181,7 @@ export default function AddressesPage() {
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="theme-form-input"
                     />
                   </div>
 
@@ -194,7 +194,7 @@ export default function AddressesPage() {
                       required
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="theme-form-input"
                     />
                   </div>
                 </div>
@@ -208,7 +208,7 @@ export default function AddressesPage() {
                     required
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="theme-form-input"
                   />
                 </div>
 
@@ -220,7 +220,7 @@ export default function AddressesPage() {
                       required
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="theme-form-input"
                     />
                   </div>
 
@@ -231,7 +231,7 @@ export default function AddressesPage() {
                       required
                       value={formData.postalCode}
                       onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="theme-form-input"
                     />
                   </div>
 
@@ -242,7 +242,7 @@ export default function AddressesPage() {
                       required
                       value={formData.country}
                       onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="theme-form-input"
                     />
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function AddressesPage() {
                     id="isDefault"
                     checked={formData.isDefault}
                     onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                    className="w-4 h-4"
+                    className="theme-check w-4 h-4"
                   />
                   <label htmlFor="isDefault" className="text-sm font-medium">
                     Set as default address
@@ -263,14 +263,14 @@ export default function AddressesPage() {
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="btn-primary-md"
+                    className="theme-cta-primary"
                   >
                     {editingIndex !== null ? 'Update Address' : 'Save Address'}
                   </button>
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-100 font-semibold"
+                    className="theme-cta-secondary"
                   >
                     Cancel
                   </button>
@@ -281,12 +281,12 @@ export default function AddressesPage() {
 
           {/* Addresses List */}
           {addresses.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-text-lighter">
               <p className="mb-4">No saved addresses</p>
               {!showForm && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="btn-block-primary"
+                  className="theme-cta-primary"
                 >
                   Add Your First Address
                 </button>
@@ -297,8 +297,8 @@ export default function AddressesPage() {
               {addresses.map((address, index) => (
                 <div
                   key={index}
-                  className={`border-2 rounded-lg p-4 ${
-                    address.isDefault ? 'border-blue-600 bg-blue-50' : 'border-gray-200'
+                  className={`theme-option-card p-4 ${
+                    address.isDefault ? 'theme-option-card-active' : ''
                   }`}
                 >
                   {address.isDefault && (
@@ -307,23 +307,23 @@ export default function AddressesPage() {
                     </span>
                   )}
                   <p className="font-semibold">{address.name}</p>
-                  <p className="text-sm text-gray-600">{address.phone}</p>
-                  <p className="text-sm text-gray-700 mt-2">{address.address}</p>
-                  <p className="text-sm text-gray-700">
+                  <p className="theme-info-note text-sm">{address.phone}</p>
+                  <p className="text-sm text-gray-theme mt-2">{address.address}</p>
+                  <p className="text-sm text-gray-theme">
                     {address.city}, {address.postalCode}
                   </p>
-                  <p className="text-sm text-gray-700">{address.country}</p>
+                  <p className="text-sm text-gray-theme">{address.country}</p>
 
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleEdit(index)}
-                      className="flex-1 bg-primary-theme text-white-theme py-2 rounded-lg hover:bg-primary-hover text-sm"
+                      className="theme-button-primary flex-1 py-2 text-sm"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(index)}
-                      className="px-4 py-2 border-2 border-danger-theme text-danger-theme rounded-lg hover:bg-danger-light text-sm"
+                      className="theme-button-secondary px-4 py-2 text-sm theme-wishlist-active"
                     >
                       Delete
                     </button>

@@ -71,7 +71,7 @@ export default function Footer() {
   }));
 
   return (
-    <footer className="mt-auto border-t border-slate-800 bg-gradient-to-b from-slate-900 via-slate-900 to-black py-16 text-white">
+    <footer className="theme-footer mt-auto border-t border-slate-800 py-16 text-white">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-5">
           <div className="space-y-4">
@@ -84,7 +84,7 @@ export default function Footer() {
                 <a
                   key={social.label}
                   href={social.url}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 transition-all duration-300 hover:scale-110 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500"
+                  className="theme-social-link flex h-10 w-10 items-center justify-center transition-all duration-300 hover:scale-110"
                   aria-label={social.label}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -97,7 +97,7 @@ export default function Footer() {
               ))}
             </div>
             <div className="flex flex-col gap-2 border-t border-slate-700 pt-4 text-xs text-gray-400">
-              <Link href="/unsubscribe" className="transition hover:text-blue-400">
+              <Link href="/unsubscribe" className="transition hover:text-primary-theme">
                 Manage Newsletter
               </Link>
             </div>
@@ -106,26 +106,26 @@ export default function Footer() {
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">Products</h3>
             <ul className="space-y-3">
-              <li><Link href="/products" className="font-medium text-gray-300 transition hover:text-blue-400">All Products</Link></li>
-              <li><Link href="/products?isFeatured=true" className="font-medium text-gray-300 transition hover:text-blue-400">Featured</Link></li>
-              <li><Link href="/products?category=sales" className="font-medium text-gray-300 transition hover:text-blue-400">On Sale</Link></li>
-              <li><Link href="/products?sort=new" className="font-medium text-gray-300 transition hover:text-blue-400">New Arrivals</Link></li>
+              <li><Link href="/products" className="font-medium text-gray-300 transition hover:text-primary-theme">All Products</Link></li>
+              <li><Link href="/products?isFeatured=true" className="font-medium text-gray-300 transition hover:text-primary-theme">Featured</Link></li>
+              <li><Link href="/products?category=sales" className="font-medium text-gray-300 transition hover:text-primary-theme">On Sale</Link></li>
+              <li><Link href="/products?sort=new" className="font-medium text-gray-300 transition hover:text-primary-theme">New Arrivals</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">Support</h3>
             <ul className="space-y-3">
-              <li><Link href="/contact" className="font-medium text-gray-300 transition hover:text-blue-400">Contact Us</Link></li>
-              <li><Link href="/faq" className="font-medium text-gray-300 transition hover:text-blue-400">FAQs</Link></li>
+              <li><Link href="/contact" className="font-medium text-gray-300 transition hover:text-primary-theme">Contact Us</Link></li>
+              <li><Link href="/faq" className="font-medium text-gray-300 transition hover:text-primary-theme">FAQs</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="mb-6 text-lg font-bold text-white">Company</h3>
             <ul className="space-y-3">
-              <li><Link href="/about" className="font-medium text-gray-300 transition hover:text-blue-400">About Us</Link></li>
-              <li><Link href="/blog" className="font-medium text-gray-300 transition hover:text-blue-400">Blog</Link></li>
+              <li><Link href="/about" className="font-medium text-gray-300 transition hover:text-primary-theme">About Us</Link></li>
+              <li><Link href="/blog" className="font-medium text-gray-300 transition hover:text-primary-theme">Blog</Link></li>
             </ul>
           </div>
 
@@ -152,12 +152,12 @@ export default function Footer() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
                 disabled={subscribeStatus === 'loading'}
-                className="min-w-0 w-full flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder-gray-400 transition focus:border-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-w-0 w-full flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder-gray-400 transition focus:border-primary-theme focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={subscribeStatus === 'loading'}
-                className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 xl:w-auto"
+                className="theme-hero-button w-full rounded-lg px-4 py-3 font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 xl:w-auto"
               >
                 {subscribeStatus === 'loading' ? '...' : '->'}
               </button>
@@ -181,10 +181,10 @@ export default function Footer() {
           <div className="mb-4 flex flex-col items-center justify-between gap-4 md:flex-row">
             <p className="text-sm text-gray-400">&copy; 2026 {storeName} All rights reserved.</p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <Link href="/privacy-policy" className="transition hover:text-blue-400">Privacy Policy</Link>
-              <Link href="/terms-of-service" className="transition hover:text-blue-400">Terms of Service</Link>
-              <Link href="/refund-policy" className="transition hover:text-blue-400">Refund Policy</Link>
-              <Link href="/contact" className="transition hover:text-blue-400">Contact</Link>
+              <Link href="/privacy-policy" className="transition hover:text-primary-theme">Privacy Policy</Link>
+              <Link href="/terms-of-service" className="transition hover:text-primary-theme">Terms of Service</Link>
+              <Link href="/refund-policy" className="transition hover:text-primary-theme">Refund Policy</Link>
+              <Link href="/contact" className="transition hover:text-primary-theme">Contact</Link>
             </div>
           </div>
         </div>

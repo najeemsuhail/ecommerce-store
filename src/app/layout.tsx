@@ -37,9 +37,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getStoreSettings();
+  const themeKey = ['default', 'minimal', 'modern'].includes(settings.themeKey)
+    ? settings.themeKey
+    : 'default';
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme={themeKey} suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

@@ -118,13 +118,13 @@ function OrderSuccessContent() {
 
             <div className="space-y-3">
               <Link href="/products"
-                className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center"
+                className="theme-cta-primary w-full"
               >
                 Continue Shopping
               </Link>
-              
+               
               <Link href="/dashboard/orders"
-                className="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors text-center border-2 border-blue-600"
+                className="theme-cta-secondary w-full"
               >
                 View My Orders
               </Link>

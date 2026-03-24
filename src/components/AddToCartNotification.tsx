@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface AddToCartNotificationProps {
   message: string;
@@ -20,13 +20,13 @@ export default function AddToCartNotification({
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [isVisible, onClose]);
+  }, [isVisible, message, onClose]);
 
   if (!isVisible || !message) return null;
 
   return (
     <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right duration-300">
-      <div className="bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl flex items-center gap-3 max-w-xs">
+      <div className="theme-notification px-6 py-4 flex items-center gap-3 max-w-xs">
         <svg
           className="w-5 h-5 flex-shrink-0"
           fill="currentColor"
