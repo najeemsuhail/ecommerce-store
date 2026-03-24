@@ -62,6 +62,51 @@ export type ContactPageContent = {
   closingDescription: string;
 };
 
+export type FaqItem = {
+  question: string;
+  answer: string;
+};
+
+export type RelatedLink = {
+  title: string;
+  description: string;
+  href: string;
+  icon?: string;
+};
+
+export type FaqPageContent = {
+  title: string;
+  subtitle: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  intro: string;
+  faqs: FaqItem[];
+  supportTitle: string;
+  supportDescription: string;
+  supportLinks: Array<{ label: string; href: string }>;
+  relatedLinks: RelatedLink[];
+};
+
+export type LegalSection = {
+  title: string;
+  paragraphs: string[];
+  bullets?: string[];
+  numbered?: string[];
+  accent?: boolean;
+};
+
+export type LegalPageContent = {
+  title: string;
+  subtitle: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  effectiveDate: string;
+  sections: LegalSection[];
+  contactTitle: string;
+  contactDescription: string;
+  contactLines: string[];
+};
+
 function requireStringField(value: unknown, fieldName: string): string {
   if (typeof value !== 'string' || !value.trim()) {
     throw new Error(`ContentPage is missing required field: ${fieldName}`);
@@ -120,6 +165,73 @@ function parseContactLinks(value: unknown): ContactLink[] | undefined {
     .filter((link) => link.label && link.href);
 
   return links.length > 0 ? links : undefined;
+}
+
+function parseFaqs(value: unknown): FaqItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((item) => ({
+      question: typeof item.question === 'string' ? item.question : '',
+      answer: typeof item.answer === 'string' ? item.answer : '',
+    }))
+    .filter((item) => item.question && item.answer);
+}
+
+function parseRelatedLinks(value: unknown): RelatedLink[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((item) => ({
+      title: typeof item.title === 'string' ? item.title : '',
+      description: typeof item.description === 'string' ? item.description : '',
+      href: typeof item.href === 'string' ? item.href : '',
+      icon: typeof item.icon === 'string' ? item.icon : undefined,
+    }))
+    .filter((item) => item.title && item.description && item.href);
+}
+
+function parseLabelLinks(value: unknown): Array<{ label: string; href: string }> {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((item) => ({
+      label: typeof item.label === 'string' ? item.label : '',
+      href: typeof item.href === 'string' ? item.href : '',
+    }))
+    .filter((item) => item.label && item.href);
+}
+
+function parseLegalSections(value: unknown): LegalSection[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isRecord)
+    .map((section) => ({
+      title: typeof section.title === 'string' ? section.title : '',
+      paragraphs: parseParagraphs(section.paragraphs),
+      bullets: parseChecklist(section.bullets),
+      numbered: parseChecklist(section.numbered),
+      accent: section.accent === true,
+    }))
+    .filter(
+      (section) =>
+        section.title &&
+        (section.paragraphs.length > 0 ||
+          (section.bullets?.length ?? 0) > 0 ||
+          (section.numbered?.length ?? 0) > 0)
+    );
 }
 
 function parseCards(value: unknown): ContactCard[] {
@@ -232,5 +344,77 @@ export async function getContactPageContent(): Promise<ContactPageContent> {
     successDescription: requireStringField(payload.successDescription, 'contact.payload.successDescription'),
     closingTitle: requireStringField(payload.closingTitle, 'contact.payload.closingTitle'),
     closingDescription: requireStringField(payload.closingDescription, 'contact.payload.closingDescription'),
+  };
+}
+
+async function getRequiredContentPageRecord(slug: string): Promise<ContentPageRecord> {
+  const page = await getContentPageRecord(slug);
+
+  if (!page) {
+    throw new Error(`ContentPage row not found for slug "${slug}". Insert the row before loading the page.`);
+  }
+
+  return page;
+}
+
+export async function getFaqPageContent(): Promise<FaqPageContent> {
+  const page = await getRequiredContentPageRecord('faq');
+  const payload = isRecord(page.payload) ? page.payload : {};
+  const faqs = parseFaqs(payload.faqs);
+  const supportLinks = parseLabelLinks(payload.supportLinks);
+  const relatedLinks = parseRelatedLinks(payload.relatedLinks);
+
+  if (faqs.length === 0) {
+    throw new Error('ContentPage "faq" is missing valid payload.faqs content.');
+  }
+
+  if (supportLinks.length === 0) {
+    throw new Error('ContentPage "faq" is missing valid payload.supportLinks content.');
+  }
+
+  if (relatedLinks.length === 0) {
+    throw new Error('ContentPage "faq" is missing valid payload.relatedLinks content.');
+  }
+
+  return {
+    title: page.title,
+    subtitle: page.subtitle ?? '',
+    metaTitle: page.metaTitle,
+    metaDescription: page.metaDescription,
+    intro: requireStringField(payload.intro, 'faq.payload.intro'),
+    faqs,
+    supportTitle: requireStringField(payload.supportTitle, 'faq.payload.supportTitle'),
+    supportDescription: requireStringField(payload.supportDescription, 'faq.payload.supportDescription'),
+    supportLinks,
+    relatedLinks,
+  };
+}
+
+export async function getLegalPageContent(
+  slug: 'privacy-policy' | 'refund-policy' | 'terms-of-service'
+): Promise<LegalPageContent> {
+  const page = await getRequiredContentPageRecord(slug);
+  const payload = isRecord(page.payload) ? page.payload : {};
+  const sections = parseLegalSections(payload.sections);
+  const contactLines = parseParagraphs(payload.contactLines);
+
+  if (sections.length === 0) {
+    throw new Error(`ContentPage "${slug}" is missing valid payload.sections content.`);
+  }
+
+  if (contactLines.length === 0) {
+    throw new Error(`ContentPage "${slug}" is missing valid payload.contactLines content.`);
+  }
+
+  return {
+    title: page.title,
+    subtitle: page.subtitle ?? '',
+    metaTitle: page.metaTitle,
+    metaDescription: page.metaDescription,
+    effectiveDate: requireStringField(payload.effectiveDate, `${slug}.payload.effectiveDate`),
+    sections,
+    contactTitle: requireStringField(payload.contactTitle, `${slug}.payload.contactTitle`),
+    contactDescription: requireStringField(payload.contactDescription, `${slug}.payload.contactDescription`),
+    contactLines,
   };
 }
