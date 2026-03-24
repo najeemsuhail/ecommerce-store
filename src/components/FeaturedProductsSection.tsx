@@ -84,7 +84,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
             className="group bg-light-theme rounded-2xl shadow-md hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary hover:-translate-y-2"
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            <Link href={`/products/${product.slug}`} className="block">
+            <Link href={`/products/${product.slug}`} scroll={true} className="block">
               <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                 {product.images?.[0] ? (
                   <img
@@ -99,7 +99,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
                     </svg>
                   </div>
                 )}
-                // ...sale badge removed...
+                {/* Sale badge removed */}
                 {product.isActive !== false && (
                   <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                     <button
@@ -156,7 +156,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
             </Link>
             
             <div className="p-5">
-              <Link href={`/products/${product.slug}`}>
+              <Link href={`/products/${product.slug}`} scroll={true}>
                 <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-primary-theme transition-colors min-h-[3.5rem]">
                   {product.name}
                 </h3>
@@ -186,6 +186,7 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
               <div className="flex gap-2 justify-center">
                 <Link
                   href={`/products/${product.slug}`}
+                  scroll={true}
                   className="px-4 py-2.5 border-2 border-gray-theme rounded-lg hover:border-primary-theme hover:text-primary-theme transition-all duration-300 flex items-center justify-center"
                   title="View Details"
                 >

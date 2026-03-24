@@ -71,7 +71,7 @@ export default function RecentlyViewedSection() {
           {recentlyViewed.map((product) => (
             <div key={product.id} className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-blue-500">
               {/* Product Image */}
-              <Link href={`/products/${product.slug}`}>
+              <Link href={`/products/${product.slug}`} scroll={true}>
                 <div className="relative overflow-hidden bg-gray-100 h-48">
                   <Image
                     src={product.images?.[0] || '/images/products/default.png'}
@@ -124,6 +124,7 @@ export default function RecentlyViewedSection() {
               <div className="p-3">
                 <Link
                   href={`/products/${product.slug}`}
+                  scroll={true}
                   className="block h-10 overflow-hidden text-sm font-semibold leading-5 text-gray-900 hover:text-blue-600"
                   title={product.name}
                 >

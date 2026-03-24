@@ -186,7 +186,7 @@ export default function SearchAutocomplete({
   const handleSelectSuggestion = (suggestion: Suggestion) => {
     startTransition(() => {
     if (suggestion.type === 'product') {
-      router.push(`/products/${suggestion.slug}`);
+      router.push(`/products/${suggestion.slug}`, { scroll: true });
     } else if (suggestion.type === 'category') {
       router.push(`/products?category=${encodeURIComponent(suggestion.name)}`);
     } else if (suggestion.type === 'tag') {
@@ -220,9 +220,16 @@ export default function SearchAutocomplete({
     try {
       const response = await fetch('/api/products?isFeatured=true&limit=6');
       const data = await response.json();
-      if (data.success && Array.isArray(data.products)) {
-        setFocusProducts(
-          data.products.map((product: any) => ({
+        if (data.success && Array.isArray(data.products)) {
+          setFocusProducts(
+          data.products.map((product: {
+            id: string;
+            name: string;
+            slug: string;
+            price: number;
+            images?: string[];
+            brand?: string;
+          }) => ({
             type: 'product' as const,
             id: product.id,
             name: product.name,
@@ -394,7 +401,7 @@ export default function SearchAutocomplete({
                         onClick={handleSearch}
                         className="w-full px-4 py-3 text-sm font-semibold text-primary hover:text-primary-dark transition-colors flex items-center justify-center gap-2"
                       >
-                        <span>Search all results for "{query}"</span>
+                        <span>{`Search all results for "${query}"`}</span>
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
@@ -518,7 +525,7 @@ export default function SearchAutocomplete({
                     <svg className="mx-auto w-12 h-12 text-text-lighter mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <p className="text-sm text-text-lighter font-medium">No results for "{query}"</p>
+                    <p className="text-sm text-text-lighter font-medium">{`No results for "${query}"`}</p>
                     <button
                       onClick={handleSearch}
                       className="mt-3 text-xs text-primary hover:text-primary-dark font-semibold"

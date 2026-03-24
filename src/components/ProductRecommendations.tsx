@@ -175,7 +175,7 @@ export default function ProductRecommendations({
             className="group bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:border-blue-500"
           >
             {/* Product Image */}
-            <Link href={`/products/${product.slug}`}>
+            <Link href={`/products/${product.slug}`} scroll={true}>
               <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
                 {product.images?.[0] ? (
                   <Image
@@ -249,7 +249,7 @@ export default function ProductRecommendations({
             {recommendationType !== 'trending' && (
               <div className="p-4">
                 {/* Title */}
-                <Link href={`/products/${product.slug}`}>
+                <Link href={`/products/${product.slug}`} scroll={true}>
                   <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors min-h-[3rem]">
                     {product.name}
                   </h3>
@@ -326,7 +326,7 @@ export default function ProductRecommendations({
             {/* For Trending - Only show title */}
             {recommendationType === 'trending' && (
               <div className="p-3 bg-white">
-                <Link href={`/products/${product.slug}`}>
+                <Link href={`/products/${product.slug}`} scroll={true}>
                   <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
                     {product.name}
                   </h3>

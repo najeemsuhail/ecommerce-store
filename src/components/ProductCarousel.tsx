@@ -211,7 +211,7 @@ export default function ProductCarousel({
                   : 'flex-shrink-0 w-80 group/card bg-light-theme rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-border-color hover:border-primary'
               }
             >
-              <Link href={`/products/${product.slug}`} className="block">
+              <Link href={`/products/${product.slug}`} scroll={true} className="block">
                 <div className="relative h-64 bg-bg-gray overflow-hidden">
                   {product.images?.[0] ? (
                     <img
@@ -236,7 +236,7 @@ export default function ProductCarousel({
                       </svg>
                     </div>
                   )}
-                  // ...sale badge removed...
+                  {/* Sale badge removed */}
                   {product.isActive !== false && (
                     <div className="absolute inset-0 bg-black/40 hidden md:opacity-0 md:group-hover/card:opacity-100 md:flex transition-opacity duration-300 items-center justify-center gap-4">
                       <button
@@ -269,7 +269,7 @@ export default function ProductCarousel({
               {/* Card Content - show based on type */}
               {type === 'default' ? (
                 <div className="p-5">
-                  <Link href={`/products/${product.slug}`}>
+                  <Link href={`/products/${product.slug}`} scroll={true}>
                     <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-primary-theme transition-colors min-h-[3.5rem]">
                       {product.name}
                     </h3>
@@ -346,7 +346,7 @@ export default function ProductCarousel({
               ) : (
                 /* Minimal card for bestseller - only title */
                 <div className="p-3 bg-white">
-                  <Link href={`/products/${product.slug}`}>
+                  <Link href={`/products/${product.slug}`} scroll={true}>
                     <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 group-hover/card:text-primary-theme transition-colors">
                       {product.name}
                     </h3>

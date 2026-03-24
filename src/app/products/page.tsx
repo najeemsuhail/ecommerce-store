@@ -940,6 +940,7 @@ function ProductsContent() {
                           <Link
                             key={item.id}
                             href={`/products/${item.slug}`}
+                            scroll={true}
                             className="rounded-lg border border-border-200 p-3 hover:shadow-md transition-shadow"
                           >
                             <div className="aspect-square bg-bg-200 rounded mb-3 overflow-hidden">
@@ -975,6 +976,7 @@ function ProductsContent() {
                     <Link
                       key={product.id}
                       href={`/products/${product.slug}`}
+                      scroll={true}
                       className="bg-light-theme rounded-lg shadow hover:shadow-lg transition-shadow overflow-hidden group animate-fadeIn"
                       style={{
                         animationDelay: `${(index % itemsPerLoad) * 50}ms`,
