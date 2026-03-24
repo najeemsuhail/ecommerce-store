@@ -289,3 +289,21 @@ model Newsletter {
 
   @@index([email])
 }
+
+model StoreSettings {
+  id                String   @id @default(cuid())
+  storeName         String   @default("OnlyInKani")
+  domain            String?
+  logoUrl           String?
+  seoTitle          String?
+  seoDescription    String?
+  footerDescription String?
+  contactEmail      String?
+  contactPhone      String?
+  themeKey          String   @default("default")
+  heroSlides        Json?
+  socialLinks       Json?
+  footerHighlights  Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

@@ -6,8 +6,10 @@ import "./globals.css";
 // '@/styles/themes/minimal.css'  -> Clean & Minimal
 // '@/styles/themes/modern.css'   -> Vibrant & Bold
 import { CartProvider } from "@/contexts/CartContext";
+import { StoreSettingsProvider } from "@/contexts/StoreSettingsContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
+import { getStoreSettings } from "@/lib/storeSettings";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,29 +21,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "onlyinkani.in - Your Ultimate Online Store for Unique Products",
-  description: "onlyinkani.in is your go-to destination for unique and high-quality products. Discover exclusive deals, new arrivals, and more.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getStoreSettings();
 
-export default function RootLayout({
+  return {
+    title: settings.seoTitle,
+    description: settings.seoDescription,
+    metadataBase: settings.domain ? new URL(settings.domain) : undefined,
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getStoreSettings();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CartProvider>
-          <WishlistProvider>
-            <RecentlyViewedProvider>
-              {children}
-            </RecentlyViewedProvider>
-          </WishlistProvider>
-        </CartProvider>
+        <StoreSettingsProvider value={settings}>
+          <CartProvider>
+            <WishlistProvider>
+              <RecentlyViewedProvider>
+                {children}
+              </RecentlyViewedProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </StoreSettingsProvider>
       </body>
     </html>
   );

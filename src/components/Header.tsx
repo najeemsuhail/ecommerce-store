@@ -8,24 +8,19 @@ import SearchAutocomplete from './SearchAutocomplete';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { useStoreSettings } from '@/contexts/StoreSettingsContext';
 
 export default function Header() {
+  const { logoUrl, storeName } = useStoreSettings();
   const router = useRouter();
   const pathname = usePathname();
   const { totalItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
       setIsLoggedIn(!!token);
@@ -65,7 +60,7 @@ export default function Header() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [isMounted]);
+  }, []);
 
   return (
     <nav className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -77,8 +72,8 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Image 
-                src="/images/logo/brand-logo.png?t=1" 
-                alt="OnlyInKani Logo" 
+                src={logoUrl}
+                alt={`${storeName} logo`}
                 width={200} 
                 height={80}
                 className="rounded-lg"
@@ -129,7 +124,7 @@ export default function Header() {
                 About
               </Link>
               
-              {isMounted && isLoggedIn && (
+              {isLoggedIn && (
                 <Link 
                   href="/dashboard" 
                   className={`font-medium transition-colors ${
@@ -141,7 +136,7 @@ export default function Header() {
                   Dashboard
                 </Link>
               )}
-              {isMounted && isAdmin && (
+              {isAdmin && (
                 <Link 
                   href="/admin" 
                   className={`font-medium transition-colors ${
@@ -175,7 +170,7 @@ export default function Header() {
               <button
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
                 className="text-gray-theme hover:text-primary-theme transition-colors cursor-pointer"
-                title={isMounted && isLoggedIn ? 'Account' : 'Login'}
+                title={isLoggedIn ? 'Account' : 'Login'}
                 aria-haspopup="menu"
                 aria-expanded={accountMenuOpen}
               >
@@ -183,7 +178,7 @@ export default function Header() {
               </button>
 
               {/* Account Dropdown Menu */}
-              {isMounted && accountMenuOpen && (
+              {accountMenuOpen && (
                 <div className="absolute right-0 top-full pt-2 w-48 z-50">
                   <div className="bg-light-theme border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                     {!isLoggedIn ? (
@@ -225,7 +220,7 @@ export default function Header() {
             <Link href="/cart" className="relative text-gray-theme hover:text-primary-theme transition-colors" title="Shopping Cart">
               <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
-              {isMounted && totalItems > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-danger text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold" style={{backgroundColor: '#dc2626'}}>
                   {totalItems}
                 </span>
@@ -348,9 +343,9 @@ export default function Header() {
                     : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
                 }`}
               >
-                {isMounted && isLoggedIn ? 'Dashboard' : 'Login / Register'}
+                {isLoggedIn ? 'Dashboard' : 'Login / Register'}
               </button>
-              {isMounted && isAdmin && (
+              {isAdmin && (
                 <Link 
                   href="/admin" 
                   onClick={() => setMenuOpen(false)} 
