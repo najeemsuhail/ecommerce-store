@@ -241,11 +241,15 @@ function parseCards(value: unknown): ContactCard[] {
 
   return value
     .filter(isRecord)
-    .map((card) => ({
+    .map((card): ContactCard => ({
       iconKey:
-        card.iconKey === 'email' || card.iconKey === 'location' || card.iconKey === 'hours'
-          ? card.iconKey
-          : 'email',
+        card.iconKey === 'email'
+          ? 'email'
+          : card.iconKey === 'location'
+            ? 'location'
+            : card.iconKey === 'hours'
+              ? 'hours'
+              : 'email',
       title: typeof card.title === 'string' ? card.title : '',
       lines: parseParagraphs(card.lines),
       links: parseContactLinks(card.links),
