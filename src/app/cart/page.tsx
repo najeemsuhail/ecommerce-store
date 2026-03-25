@@ -297,7 +297,7 @@ export default function CartPage() {
             <ProductRecommendations 
               limit={4}
               showTitle={true}
-              title="Customers Also Bought"
+              title="Similar Products You May Like"
               onAddToCart={handleAddToCart}
             />
           </div>
