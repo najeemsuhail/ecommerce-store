@@ -37,7 +37,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const settings = await getStoreSettings();
-  const themeKey = ['default', 'minimal', 'modern'].includes(settings.themeKey)
+  const themeKey = ['default', 'minimal', 'modern', 'green'].includes(settings.themeKey)
     ? settings.themeKey
     : 'default';
 
