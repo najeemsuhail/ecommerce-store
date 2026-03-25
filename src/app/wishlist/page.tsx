@@ -174,7 +174,7 @@ export default function WishlistPage() {
                 placeholder="Collection name (e.g., Birthday Gifts, Home Decor)"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm lg:text-base"
+                className="theme-form-input flex-1 text-sm lg:text-base"
               />
               <button
                 type="submit"
@@ -222,7 +222,7 @@ export default function WishlistPage() {
                           type="text"
                           value={renameText}
                           onChange={(e) => setRenameText(e.target.value)}
-                          className="flex-1 px-2 py-1 rounded text-gray-900 text-sm"
+                          className="theme-form-input flex-1 px-2 py-1 text-sm text-gray-900"
                           autoFocus
                         />
                         <button

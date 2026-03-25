@@ -359,7 +359,12 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.theme-form-input {
+.theme-form-input,
+.theme-form-select,
+.theme-form-textarea,
+.form-input,
+.form-select,
+.form-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
@@ -368,23 +373,42 @@ body {
   color: var(--text-dark);
   background: color-mix(in srgb, var(--bg-light) 98%, white);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  font-family: inherit;
 }
 
-.theme-form-input:hover {
+.theme-form-input:hover,
+.theme-form-select:hover,
+.theme-form-textarea:hover,
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
   border-color: color-mix(in srgb, var(--primary) 25%, var(--border-color));
 }
 
-.theme-form-input:focus {
+.theme-form-input:focus,
+.theme-form-select:focus,
+.theme-form-textarea:focus,
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
 }
 
-.theme-form-input::placeholder {
+.theme-form-input::placeholder,
+.theme-form-textarea::placeholder,
+.form-input::placeholder,
+.form-textarea::placeholder {
   color: var(--text-lighter);
 }
 
-.theme-form-input:disabled {
+.theme-form-input:disabled,
+.theme-form-select:disabled,
+.theme-form-textarea:disabled,
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
   background: color-mix(in srgb, var(--bg-gray) 80%, white);
   color: color-mix(in srgb, var(--text-dark) 56%, white);
   cursor: not-allowed;
@@ -1032,33 +1056,6 @@ html[data-theme='modern'] .theme-product-media {
 
 .hover-bg-gray-light:hover {
   background-color: var(--bg-gray);
-}
-
-/* Form Styles */
-.form-input,
-.form-select,
-.form-textarea {
-  width: 100%;
-  padding: var(--form-padding);
-  border-radius: var(--form-border-radius);
-  border: var(--form-border-width) solid var(--border-color);
-  font-size: var(--font-size-base);
-  color: var(--text-dark);
-  background-color: var(--bg-light);
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
-}
-
-.form-input::placeholder {
-  color: var(--text-lighter);
 }
 
 /* Card Styles */

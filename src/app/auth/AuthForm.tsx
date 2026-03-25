@@ -319,7 +319,7 @@ export default function AuthForm() {
                   value={forgotEmail}
                   onChange={e => setForgotEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                   className="theme-form-input"
                   placeholder="Enter your email"
                 />
               </div>
@@ -368,7 +368,7 @@ export default function AuthForm() {
                   value={resetToken}
                   onChange={e => setResetToken(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                   className="theme-form-input"
                   placeholder="Paste the token from your email"
                 />
               </div>
@@ -380,7 +380,7 @@ export default function AuthForm() {
                   value={resetPassword}
                   onChange={e => setResetPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                   className="theme-form-input"
                   placeholder="Enter new password"
                 />
               </div>
@@ -392,7 +392,7 @@ export default function AuthForm() {
                   value={resetConfirm}
                   onChange={e => setResetConfirm(e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                   className="theme-form-input"
                   placeholder="Confirm new password"
                 />
               </div>
@@ -451,7 +451,7 @@ export default function AuthForm() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                     className="theme-form-input"
                     placeholder="Kani Malar"
                   />
                 </div>
@@ -471,7 +471,7 @@ export default function AuthForm() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                 className="theme-form-input"
                 placeholder="kanimalar@onlyinkani.in"
               />
             </div>
@@ -487,7 +487,7 @@ export default function AuthForm() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                 className="theme-form-input"
                 placeholder="**********"
               />
             </div>

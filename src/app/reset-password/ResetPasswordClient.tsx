@@ -86,7 +86,7 @@ export default function ResetPasswordClient() {
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="Token from your email"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              className="theme-form-input"
               required
             />
           </div>
@@ -98,7 +98,7 @@ export default function ResetPasswordClient() {
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              className="theme-form-input"
               required
             />
           </div>
@@ -110,7 +110,7 @@ export default function ResetPasswordClient() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              className="theme-form-input"
               required
             />
           </div>

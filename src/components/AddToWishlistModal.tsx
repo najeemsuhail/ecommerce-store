@@ -194,7 +194,7 @@ export default function AddToWishlistModal({
                     placeholder="Collection name..."
                     value={newGroupName}
                     onChange={(e) => setNewGroupName(e.target.value)}
-                    className="flex-1 rounded-lg border px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="theme-form-input flex-1 text-sm"
                   />
                   <button
                     type="submit"

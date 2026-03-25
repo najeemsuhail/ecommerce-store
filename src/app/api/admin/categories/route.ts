@@ -9,6 +9,12 @@ export async function GET() {
         name: true,
         slug: true,
         parentId: true,
+        imageUrl: true,
+        children: {
+          select: {
+            id: true,
+          },
+        },
         _count: {
           select: { products: true },
         },

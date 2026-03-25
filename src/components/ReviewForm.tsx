@@ -148,7 +148,7 @@ export default function ReviewForm({ productId, productName, onReviewSubmitted }
             rows={4}
             maxLength={1000}
             disabled={isLoading}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
+            className="theme-form-textarea resize-none"
           />
           <p className="text-xs text-gray-500 mt-1">
             {comment.length}/1000 characters
