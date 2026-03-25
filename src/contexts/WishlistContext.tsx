@@ -258,20 +258,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const item = data.item as WishlistItem;
-        setGroups((prev) =>
-          prev.map((group) => {
-            if (group.id !== groupId) return group;
-            if (group.items.some((existingItem) => existingItem.productId === productId)) {
-              return group;
-            }
-            return {
-              ...group,
-              items: [...group.items, item],
-            };
-          })
-        );
+        await refreshWishlist();
         setError(null);
         return true;
       } else {
@@ -284,7 +271,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setError('Failed to add item');
       return false;
     }
-  }, [getToken]);
+  }, [getToken, refreshWishlist]);
 
   const removeItemFromGroup = useCallback(async (groupId: string, productId: string) => {
     const token = getToken();

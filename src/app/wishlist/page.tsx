@@ -327,20 +327,16 @@ export default function WishlistPage() {
                   )}
 
                   {/* Delete Collection Button */}
-                  <div className="border-t p-4">
-                    {isDefaultGroup ? (
-                      <div className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 text-center text-sm font-medium text-slate-500">
-                        Default collection cannot be deleted
-                      </div>
-                    ) : (
+                  {!isDefaultGroup && (
+                    <div className="border-t p-4">
                       <button
                         onClick={() => deleteGroup(group.id)}
                         className="w-full rounded-lg border border-danger-theme py-2 font-medium text-danger-theme transition-colors hover:bg-danger-light hover:text-danger-theme"
                       >
                         Delete Collection
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 );
               })}
