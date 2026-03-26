@@ -16,7 +16,8 @@ type OrderSuccessItem = {
   price: number;
   product?: {
     name?: string | null;
-  } | null;
+    isDigital?: boolean;
+  };
 };
 
 type OrderSuccessOrder = {
@@ -24,6 +25,8 @@ type OrderSuccessOrder = {
   total: number;
   paymentMethod?: string | null;
   status: string;
+  createdAt?: string;
+  updatedAt?: string;
   items?: OrderSuccessItem[];
 };
 
