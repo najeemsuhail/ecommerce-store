@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { trackAddToCart } from '@/lib/analytics';
 
 interface CartItem {
   productId: string;
@@ -27,32 +28,44 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+function getStoredCartItems(): CartItem[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    setIsHydrated(true);
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Failed to parse cart from localStorage:', error);
-        localStorage.removeItem('cart');
-      }
-    }
-  }, []);
+  const savedCart = localStorage.getItem('cart');
+  if (!savedCart) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(savedCart) as CartItem[];
+  } catch (error) {
+    console.error('Failed to parse cart from localStorage:', error);
+    localStorage.removeItem('cart');
+    return [];
+  }
+}
+
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [items, setItems] = useState<CartItem[]>(() => getStoredCartItems());
 
   // Save cart to localStorage whenever it changes (only after hydration)
   useEffect(() => {
-    if (isHydrated) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('cart', JSON.stringify(items));
     }
-  }, [items, isHydrated]);
+  }, [items]);
 
   const addItem = (item: CartItem) => {
+    trackAddToCart({
+      item_id: item.productId,
+      item_name: item.name,
+      item_variant: item.variantName,
+      price: item.price,
+      quantity: item.quantity,
+    });
+
     setItems((prevItems) => {
       // Check for existing item with same productId AND variantId
       const existingItem = prevItems.find(

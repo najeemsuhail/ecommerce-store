@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
@@ -11,46 +11,169 @@ import CouponInput from '@/components/CouponInput';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import { formatPrice } from '@/lib/currency';
 import { calculateShippingCost } from '@/lib/shipping';
+import { trackBeginCheckout } from '@/lib/analytics';
+
+type RazorpayPaymentResponse = {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayInstance = {
+  open: () => void;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme: {
+    color: string;
+  };
+  handler: (response: RazorpayPaymentResponse) => Promise<void>;
+  modal: {
+    ondismiss: () => void;
+  };
+};
+
+type SavedAddress = {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault?: boolean;
+};
+
+type AddressForm = {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+
+type BillingAddressForm = {
+  name: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+};
+
+type RecommendationProduct = {
+  id: string;
+  name: string;
+  price: number;
+  slug: string;
+  images?: string[];
+  isDigital?: boolean;
+  weight?: number | null;
+};
+
+type StoredCheckoutUser = {
+  address?: SavedAddress[];
+};
+
+const EMPTY_SHIPPING_ADDRESS: AddressForm = {
+  name: '',
+  phone: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  country: 'India',
+};
+
+const EMPTY_BILLING_ADDRESS: BillingAddressForm = {
+  name: '',
+  address: '',
+  city: '',
+  postalCode: '',
+  country: 'India',
+};
+
+function getStoredAddresses(): SavedAddress[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  const userData = localStorage.getItem('user');
+  if (!userData) {
+    return [];
+  }
+
+  const user = JSON.parse(userData) as StoredCheckoutUser;
+  return user.address || [];
+}
+
+function getDefaultAddressIndex(addresses: SavedAddress[]): number | null {
+  const defaultIndex = addresses.findIndex((addr) => addr.isDefault);
+  return defaultIndex === -1 ? null : defaultIndex;
+}
+
+function mapSavedAddressToShipping(address: SavedAddress): AddressForm {
+  return {
+    name: address.name,
+    phone: address.phone,
+    address: address.address,
+    city: address.city,
+    postalCode: address.postalCode,
+    country: address.country,
+  };
+}
+
+function mapSavedAddressToBilling(address: SavedAddress): BillingAddressForm {
+  return {
+    name: address.name,
+    address: address.address,
+    city: address.city,
+    postalCode: address.postalCode,
+    country: address.country,
+  };
+}
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
 
 export default function CheckoutFlowPage() {
   const router = useRouter();
   const { items, totalPrice, clearCart, addItem } = useCart();
+  const initialSavedAddresses = getStoredAddresses();
+  const defaultShippingAddressIndex = getDefaultAddressIndex(initialSavedAddresses);
+  const beginCheckoutTracked = useRef(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [orderId, setOrderId] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
   const [notification, setNotification] = useState({ isVisible: false, message: '' });
 
   // Saved addresses
-  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
-  const [selectedShippingAddressIndex, setSelectedShippingAddressIndex] = useState<number | null>(null);
+  const [savedAddresses] = useState<SavedAddress[]>(initialSavedAddresses);
+  const [selectedShippingAddressIndex, setSelectedShippingAddressIndex] = useState<number | null>(defaultShippingAddressIndex);
   const [selectedBillingAddressIndex, setSelectedBillingAddressIndex] = useState<number | null>(null);
-  const [useNewShippingAddress, setUseNewShippingAddress] = useState(true);
+  const [useNewShippingAddress, setUseNewShippingAddress] = useState(defaultShippingAddressIndex === null);
   const [useNewBillingAddress, setUseNewBillingAddress] = useState(false);
 
   // Form data
-  const [shippingAddress, setShippingAddress] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'India',
-  });
+  const [shippingAddress, setShippingAddress] = useState<AddressForm>(
+    defaultShippingAddressIndex === null
+      ? EMPTY_SHIPPING_ADDRESS
+      : mapSavedAddressToShipping(initialSavedAddresses[defaultShippingAddressIndex])
+  );
 
-  const [billingAddress, setBillingAddress] = useState({
-    name: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'India',
-  });
+  const [billingAddress, setBillingAddress] = useState<BillingAddressForm>(EMPTY_BILLING_ADDRESS);
 
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
 
@@ -65,7 +188,7 @@ export default function CheckoutFlowPage() {
     setAppliedCouponId(couponId);
   };
 
-  const handleAddToCartRecommendations = (product: any) => {
+  const handleAddToCartRecommendations = (product: RecommendationProduct) => {
     addItem({
       productId: product.id,
       name: product.name,
@@ -85,80 +208,6 @@ export default function CheckoutFlowPage() {
   // Check if user is logged in
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const isLoggedIn = !!token;
-
-  // Load saved addresses on component mount
-  useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      const addresses = user.address || [];
-      setSavedAddresses(addresses);
-      
-      // Auto-select the default address if it exists
-      const defaultIndex = addresses.findIndex((addr: any) => addr.isDefault);
-      if (defaultIndex !== -1) {
-        setSelectedShippingAddressIndex(defaultIndex);
-        setUseNewShippingAddress(false);
-      }
-    }
-  }, []);
-
-  // Update form when selected address changes
-  useEffect(() => {
-    if (!useNewShippingAddress && selectedShippingAddressIndex !== null) {
-      const selected = savedAddresses[selectedShippingAddressIndex];
-      setShippingAddress({
-        name: selected.name,
-        phone: selected.phone,
-        address: selected.address,
-        city: selected.city,
-        postalCode: selected.postalCode,
-        country: selected.country,
-      });
-    } else if (useNewShippingAddress) {
-      // Clear form when entering new address
-      setShippingAddress({
-        name: '',
-        phone: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'India',
-      });
-    }
-  }, [useNewShippingAddress, selectedShippingAddressIndex, savedAddresses]);
-
-  // Update billing address form when selected address changes
-  useEffect(() => {
-    if (!billingSameAsShipping && !useNewBillingAddress && selectedBillingAddressIndex !== null) {
-      const selected = savedAddresses[selectedBillingAddressIndex];
-      setBillingAddress({
-        name: selected.name,
-        address: selected.address,
-        city: selected.city,
-        postalCode: selected.postalCode,
-        country: selected.country,
-      });
-    } else if (billingSameAsShipping) {
-      // Clear billing form when billing same as shipping
-      setBillingAddress({
-        name: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'India',
-      });
-    } else if (useNewBillingAddress) {
-      // Clear form when entering new billing address
-      setBillingAddress({
-        name: '',
-        address: '',
-        city: '',
-        postalCode: '',
-        country: 'India',
-      });
-    }
-  }, [useNewBillingAddress, selectedBillingAddressIndex, savedAddresses, billingSameAsShipping]);
 
   // Redirect to login if not logged in
   useEffect(() => {
@@ -186,6 +235,24 @@ export default function CheckoutFlowPage() {
   const codFee = paymentMethod === 'cod' ? 20.0 : 0; // COD handling fee
   const subtotal = totalPrice + shippingCost + codFee;
   const total = Math.max(0, subtotal - appliedDiscount);
+
+  useEffect(() => {
+    if (items.length === 0 || beginCheckoutTracked.current) {
+      return;
+    }
+
+    trackBeginCheckout(
+      items.map((item) => ({
+        item_id: item.productId,
+        item_name: item.name,
+        item_variant: item.variantName,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      total
+    );
+    beginCheckoutTracked.current = true;
+  }, [items, total]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -259,8 +326,6 @@ export default function CheckoutFlowPage() {
         return;
       }
 
-      setOrderId(orderResult.order.id);
-
       // Handle payment based on selected method
       if (paymentMethod === 'cod') {
         // COD: Mark order as COD and redirect to success
@@ -270,7 +335,7 @@ export default function CheckoutFlowPage() {
         // Razorpay: Continue with payment flow
         await handleRazorpayPayment(orderResult.order.id);
       }
-    } catch (error) {
+    } catch {
       setMessage('Failed to process order. Please try again.');
       setLoading(false);
     }
@@ -309,7 +374,7 @@ export default function CheckoutFlowPage() {
         theme: {
           color: '#2563eb',
         },
-        handler: async function (response: any) {
+        handler: async function (response: RazorpayPaymentResponse) {
           // Step 4: Verify payment
           const verifyResponse = await fetch('/api/payment/verify', {
             method: 'POST',
@@ -342,7 +407,7 @@ export default function CheckoutFlowPage() {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
       setLoading(false);
-    } catch (error) {
+    } catch {
       setMessage('Failed to process payment. Please try again.');
       setLoading(false);
     }
@@ -467,6 +532,7 @@ export default function CheckoutFlowPage() {
                               onChange={() => {
                                 setUseNewShippingAddress(false);
                                 setSelectedShippingAddressIndex(index);
+                                setShippingAddress(mapSavedAddressToShipping(addr));
                               }}
                               className="theme-check w-5 h-5 mt-0.5 flex-shrink-0"
                             />
@@ -499,7 +565,11 @@ export default function CheckoutFlowPage() {
                           type="radio"
                           name="shippingAddressOption"
                           checked={useNewShippingAddress}
-                          onChange={() => setUseNewShippingAddress(true)}
+                          onChange={() => {
+                            setUseNewShippingAddress(true);
+                            setSelectedShippingAddressIndex(null);
+                            setShippingAddress(EMPTY_SHIPPING_ADDRESS);
+                          }}
                           className="theme-check w-5 h-5"
                         />
                         <span className="text-sm font-medium text-gray-theme">+ Add a new address</span>
@@ -613,6 +683,7 @@ export default function CheckoutFlowPage() {
                           if (e.target.checked) {
                             setUseNewBillingAddress(false);
                             setSelectedBillingAddressIndex(null);
+                            setBillingAddress(EMPTY_BILLING_ADDRESS);
                           }
                         }}
                         className="theme-check w-5 h-5 rounded"
@@ -647,11 +718,12 @@ export default function CheckoutFlowPage() {
                                 <input
                                   type="radio"
                                   name="billingAddressOption"
-                                  checked={!useNewBillingAddress && selectedBillingAddressIndex === index}
-                                  onChange={() => {
-                                    setUseNewBillingAddress(false);
-                                    setSelectedBillingAddressIndex(index);
-                                  }}
+                                checked={!useNewBillingAddress && selectedBillingAddressIndex === index}
+                                onChange={() => {
+                                  setUseNewBillingAddress(false);
+                                  setSelectedBillingAddressIndex(index);
+                                  setBillingAddress(mapSavedAddressToBilling(addr));
+                                }}
                                   className="theme-check w-5 h-5 mt-0.5 flex-shrink-0 cursor-pointer"
                                 />
                                 <div className="flex-1 min-w-0">
@@ -675,7 +747,11 @@ export default function CheckoutFlowPage() {
                               type="radio"
                               name="billingAddressOption"
                               checked={useNewBillingAddress}
-                              onChange={() => setUseNewBillingAddress(true)}
+                              onChange={() => {
+                                setUseNewBillingAddress(true);
+                                setSelectedBillingAddressIndex(null);
+                                setBillingAddress(EMPTY_BILLING_ADDRESS);
+                              }}
                               className="theme-check w-5 h-5 cursor-pointer"
                             />
                             <span className="text-sm font-medium text-gray-theme">+ Add a new address</span>

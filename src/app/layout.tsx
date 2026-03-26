@@ -10,6 +10,7 @@ import { StoreSettingsProvider } from "@/contexts/StoreSettingsContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { getStoreSettings } from "@/lib/storeSettings";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <GoogleAnalytics />
         <StoreSettingsProvider value={settings}>
           <CartProvider>
             <WishlistProvider>

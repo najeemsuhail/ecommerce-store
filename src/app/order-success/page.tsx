@@ -1,18 +1,38 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import { formatPrice } from '@/lib/currency';
 import { getDeliveryEstimateMessage } from '@/lib/deliveryEstimate';
+import { trackPurchase } from '@/lib/analytics';
+
+type OrderSuccessItem = {
+  productId: string;
+  variantId?: string | null;
+  quantity: number;
+  price: number;
+  product?: {
+    name?: string | null;
+  } | null;
+};
+
+type OrderSuccessOrder = {
+  id: string;
+  total: number;
+  paymentMethod?: string | null;
+  status: string;
+  items?: OrderSuccessItem[];
+};
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const paymentMethod = searchParams.get('method');
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderSuccessOrder | null>(null);
+  const trackedOrderId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
@@ -31,6 +51,25 @@ function OrderSuccessContent() {
 
     run();
   }, [orderId]);
+
+  useEffect(() => {
+    if (!order || trackedOrderId.current === order.id) {
+      return;
+    }
+
+    trackPurchase(
+      order.id,
+      (order.items || []).map((item) => ({
+        item_id: item.productId,
+        item_name: item.product?.name || 'Product',
+        item_variant: item.variantId || undefined,
+        price: item.price,
+        quantity: item.quantity,
+      })),
+      order.total
+    );
+    trackedOrderId.current = order.id;
+  }, [order]);
 
   const isCOD = paymentMethod === 'cod' || order?.paymentMethod === 'cod';
   const deliveryEstimateMessage = getDeliveryEstimateMessage(order);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
@@ -8,6 +8,7 @@ import AddToCartNotification from '@/components/AddToCartNotification';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import ShareProduct from '@/components/ShareProduct';
 import { formatPrice } from '@/lib/currency';
+import { trackViewItem } from '@/lib/analytics';
 import type { ProductVariant } from '@/lib/productDetail';
 
 interface ProductPurchasePanelProps {
@@ -38,6 +39,16 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
 
   const activePrice = selectedVariant ? selectedVariant.price : product.price;
   const canPurchase = product.isActive && (!selectedVariant || selectedVariant.isActive !== false);
+
+  useEffect(() => {
+    trackViewItem({
+      item_id: product.id,
+      item_name: product.name,
+      item_variant: selectedVariant?.name,
+      price: activePrice,
+      quantity: 1,
+    });
+  }, [activePrice, product.id, product.name, selectedVariant?.name]);
 
   const handleAddToCart = () => {
     addItem({

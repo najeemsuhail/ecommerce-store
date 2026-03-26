@@ -45,6 +45,14 @@ CLOUDINARY_API_SECRET=your_api_secret
 CLOUDINARY_PRODUCT_IMAGE_FOLDER=products
 ```
 
+## Google Analytics
+
+To enable Google Analytics 4, set:
+
+```env
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
