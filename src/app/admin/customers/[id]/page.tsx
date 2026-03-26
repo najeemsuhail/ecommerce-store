@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { formatPrice } from '@/lib/currency';
 
 interface CustomerDetail {
   id: string;
@@ -156,14 +157,14 @@ export default function CustomerDetailPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-gray-600 text-sm mb-1">Total Spent</div>
               <div className="text-3xl font-bold text-green-600">
-                ₹{customer.stats.totalSpent.toFixed(2)}
+                {formatPrice(customer.stats.totalSpent)}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-gray-600 text-sm mb-1">Avg Order Value</div>
               <div className="text-3xl font-bold text-purple-600">
-                ₹{customer.stats.averageOrderValue.toFixed(2)}
+                {formatPrice(customer.stats.averageOrderValue)}
               </div>
             </div>
 
@@ -279,7 +280,7 @@ export default function CustomerDetailPage() {
                           {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold">
-                          ₹{order.total.toFixed(2)}
+                          {formatPrice(order.total)}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span

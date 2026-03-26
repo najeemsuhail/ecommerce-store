@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { formatPrice } from '@/lib/currency';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -109,7 +110,7 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-gray-600 text-sm mb-1">Total Revenue</div>
             <div className="text-3xl font-bold text-green-600">
-              ₹{stats?.totalRevenue?.toFixed(2) || 0}
+              {formatPrice(stats?.totalRevenue || 0)}
             </div>
           </div>
 
@@ -169,7 +170,7 @@ export default function AdminDashboard() {
                         {order.user?.name || order.guestEmail}
                       </p>
                       <p className="text-xs text-gray-600">
-                        {order.items.length} items • ₹{order.total}
+                        {order.items.length} items - {formatPrice(order.total)}
                       </p>
                     </div>
                     <span
@@ -213,7 +214,7 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-sm">₹{product.price}</p>
+                    <p className="font-bold text-sm">{formatPrice(product.price)}</p>
                   </div>
                 </div>
               ))}

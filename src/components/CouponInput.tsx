@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatPrice } from '@/lib/currency';
 
 interface CouponInputProps {
   orderTotal: number;
@@ -22,11 +23,8 @@ export default function CouponInput({
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [discount, setDiscount] = useState(0);
-  const [appliedCouponId, setAppliedCouponId] = useState<string | null>(null);
 
-  const handleApplyCoupon = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleApplyCoupon = async () => {
     if (!code.trim()) {
       setMessage('Please enter a coupon code');
       setMessageType('error');
@@ -54,7 +52,6 @@ export default function CouponInput({
         setMessage(result.message);
         setMessageType('success');
         setDiscount(result.discount);
-        setAppliedCouponId(result.couponId);
         setCode('');
 
         if (onCouponApplied) {
@@ -64,13 +61,12 @@ export default function CouponInput({
         setMessage(result.message);
         setMessageType('error');
         setDiscount(0);
-        setAppliedCouponId(null);
 
         if (onError) {
           onError(result.message);
         }
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'Failed to validate coupon';
       setMessage(errorMessage);
       setMessageType('error');
@@ -98,7 +94,7 @@ export default function CouponInput({
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold text-green-600">
-              -${discount.toFixed(2)}
+              -{formatPrice(discount)}
             </p>
             <p className="text-xs text-green-600">Discount</p>
           </div>
@@ -121,7 +117,7 @@ export default function CouponInput({
         <button
           type="button"
           disabled={disabled || loading || !code.trim()}
-          onClick={(e) => handleApplyCoupon(e as any)}
+          onClick={handleApplyCoupon}
           className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
@@ -152,7 +148,7 @@ export default function CouponInput({
           <div className="flex justify-between text-sm">
             <span className="text-gray-700">Discount Applied:</span>
             <span className="font-semibold text-green-600">
-              -${discount.toFixed(2)}
+              -{formatPrice(discount)}
             </span>
           </div>
         </div>

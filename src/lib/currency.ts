@@ -4,7 +4,7 @@
  */
 
 export const CURRENCY_CONFIG = {
-  symbol: '₹', // Currency symbol (₹ for INR, $ for USD, € for EUR, £ for GBP, etc.)
+  symbol: '\u20B9', // Currency symbol (₹ for INR, $ for USD, € for EUR, £ for GBP, etc.)
   code: 'INR', // Currency code (ISO 4217)
   name: 'Indian Rupee', // Currency name
   decimals: 2, // Number of decimal places
@@ -26,7 +26,7 @@ export function formatPrice(
   } = {}
 ): string {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  
+
   if (isNaN(numPrice)) {
     return `${options.symbol || CURRENCY_CONFIG.symbol}0.00`;
   }
@@ -77,6 +77,7 @@ export function convertCurrency(
   if (fromCurrency === toCurrency) {
     return amount;
   }
+
   // For now, just return the same amount
   return amount;
 }

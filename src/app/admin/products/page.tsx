@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import ProductImporter from '@/components/ProductImporter';
+import { formatPrice } from '@/lib/currency';
 
 export default function AdminProducts() {
   const router = useRouter();
@@ -432,10 +433,10 @@ export default function AdminProducts() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-semibold">₹{product.price}</p>
+                        <p className="font-semibold">{formatPrice(product.price)}</p>
                         {product.comparePrice && (
                           <p className="text-xs text-gray-500 line-through">
-                            ₹{product.comparePrice}
+                            {formatPrice(product.comparePrice)}
                           </p>
                         )}
                       </td>
@@ -512,7 +513,7 @@ export default function AdminProducts() {
                     <div className="flex-1">
                       <p className="font-bold text-sm text-gray-900">{product.name}</p>
                       <p className="text-xs text-gray-500 mb-2">{product.sku}</p>
-                      <p className="font-semibold text-sm">₹{product.price}</p>
+                      <p className="font-semibold text-sm">{formatPrice(product.price)}</p>
                     </div>
                   </div>
 

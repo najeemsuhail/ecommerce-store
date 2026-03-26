@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { formatPrice } from '@/lib/currency';
 import { formatOrderStatus } from '@/lib/orderStatus';
 
 export default function AdminOrders() {
@@ -358,7 +359,7 @@ export default function AdminOrders() {
                         {new Date(order.createdAt).toLocaleDateString('en-IN')}
                       </td>
                       <td className="px-6 py-4">
-                        <p className="font-semibold">₹{order.total}</p>
+                        <p className="font-semibold">{formatPrice(order.total)}</p>
                         <p className="text-xs text-gray-500">
                           {order.items.length} items
                         </p>
@@ -426,7 +427,7 @@ export default function AdminOrders() {
                         <p className="text-xs text-gray-500">Order ID</p>
                         <p className="text-sm font-mono break-all">{order.id}</p>
                       </div>
-                      <p className="text-sm font-semibold whitespace-nowrap">â‚¹{order.total}</p>
+                      <p className="text-sm font-semibold whitespace-nowrap">{formatPrice(order.total)}</p>
                     </div>
 
                     <div>
@@ -564,11 +565,10 @@ export default function AdminOrders() {
                           {item.product.name}
                         </p>
                         <p className="text-xs text-gray-600">
-                          Qty: {item.quantity} × ₹{item.price}
+                          Qty: {item.quantity} x {formatPrice(item.price)}
                         </p>
                       </div>
-                      <p className="font-semibold">
-                        ₹{(item.quantity * item.price).toFixed(2)}
+                      <p className="font-semibold">                        {formatPrice(item.quantity * item.price)}
                       </p>
                     </div>
                   ))}
@@ -577,16 +577,16 @@ export default function AdminOrders() {
                   <div className="flex justify-between text-sm mb-1">
                     <span>Subtotal:</span>
                     <span>
-                      ₹{(selectedOrder.total - selectedOrder.shippingCost).toFixed(2)}
+                      {formatPrice(selectedOrder.total - selectedOrder.shippingCost)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mb-2">
                     <span>Shipping:</span>
-                    <span>₹{selectedOrder.shippingCost.toFixed(2)}</span>
+                    <span>{formatPrice(selectedOrder.shippingCost)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>₹{selectedOrder.total.toFixed(2)}</span>
+                    <span>{formatPrice(selectedOrder.total)}</span>
                   </div>
                 </div>
               </div>

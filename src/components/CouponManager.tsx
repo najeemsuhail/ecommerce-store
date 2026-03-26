@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatPrice, getCurrencySymbol } from '@/lib/currency';
 
 interface Coupon {
   id: string;
@@ -204,7 +205,7 @@ export default function CouponManager() {
                 className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed ($)</option>
+                <option value="fixed">Fixed ({getCurrencySymbol()})</option>
               </select>
             </div>
             <div>
@@ -370,14 +371,14 @@ export default function CouponManager() {
                 <td className="border p-3">
                   {coupon.discountType === 'percentage'
                     ? `${coupon.discountValue}%`
-                    : `$${coupon.discountValue.toFixed(2)}`}
+                    : formatPrice(coupon.discountValue)}
                   {coupon.maxDiscount && (
                     <span className="text-gray-600 text-sm ml-1">
-                      (max ${coupon.maxDiscount})
+                      (max {formatPrice(coupon.maxDiscount)})
                     </span>
                   )}
                 </td>
-                <td className="border p-3">${coupon.minOrderValue.toFixed(2)}</td>
+                <td className="border p-3">{formatPrice(coupon.minOrderValue)}</td>
                 <td className="border p-3 text-sm">
                   {coupon._count?.usages || 0}
                   {coupon.maxUses && ` / ${coupon.maxUses}`}

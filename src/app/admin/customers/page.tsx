@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
+import { formatPrice } from '@/lib/currency';
 
 interface Customer {
   id: string;
@@ -217,7 +218,7 @@ export default function CustomersPage() {
                           {customer.totalOrders}
                         </td>
                         <td className="px-6 py-4 text-sm text-right font-semibold text-green-600">
-                          ₹{customer.totalOrderValue.toFixed(2)}
+                          {formatPrice(customer.totalOrderValue)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {new Date(customer.createdAt).toLocaleDateString()}

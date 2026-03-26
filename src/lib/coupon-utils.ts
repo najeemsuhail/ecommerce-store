@@ -1,3 +1,4 @@
+import { formatPrice } from '@/lib/currency';
 import prisma from '@/lib/prisma';
 
 export interface ValidateCouponInput {
@@ -72,7 +73,7 @@ export async function validateCoupon(
     if (orderTotal < coupon.minOrderValue) {
       return {
         valid: false,
-        message: `Minimum order value of $${coupon.minOrderValue} required`,
+        message: `Minimum order value of ${formatPrice(coupon.minOrderValue)} required`,
       };
     }
 
