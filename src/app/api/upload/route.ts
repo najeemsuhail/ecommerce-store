@@ -1,7 +1,6 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import { isAdmin } from '@/lib/adminAuth';
 
 export const config = {
   api: {
@@ -13,6 +12,14 @@ export const config = {
 
 export async function POST(request: NextRequest) {
   try {
+    const admin = await isAdmin(request);
+    if (!admin) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -23,7 +30,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -32,7 +38,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { success: false, error: 'File size exceeds 5MB limit' },
@@ -40,32 +45,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads', 'products');
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true });
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+    const folder = process.env.CLOUDINARY_PRODUCT_IMAGE_FOLDER || 'products';
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.',
+        },
+        { status: 500 }
+      );
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8);
-    const ext = file.name.split('.').pop();
-    const filename = `product-${timestamp}-${random}.${ext}`;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = crypto
+      .createHash('sha1')
+      .update(`folder=${folder}&timestamp=${timestamp}${apiSecret}`)
+      .digest('hex');
 
-    // Write file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const filepath = join(uploadsDir, filename);
-    await writeFile(filepath, buffer);
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append('file', file);
+    cloudinaryFormData.append('api_key', apiKey);
+    cloudinaryFormData.append('timestamp', String(timestamp));
+    cloudinaryFormData.append('folder', folder);
+    cloudinaryFormData.append('signature', signature);
 
-    // Return the public URL
-    const publicUrl = `/uploads/products/${filename}`;
+    const uploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: cloudinaryFormData,
+      }
+    );
+
+    const uploadData = await uploadResponse.json();
+    if (!uploadResponse.ok || !uploadData.secure_url) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: uploadData?.error?.message || 'Cloudinary upload failed',
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
-        url: publicUrl,
-        filename: filename,
+        url: uploadData.secure_url,
+        filename: uploadData.public_id,
       },
       { status: 200 }
     );

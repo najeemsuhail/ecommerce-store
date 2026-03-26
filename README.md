@@ -20,6 +20,31 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Admin Access
+
+Admin access is controlled by environment variables and supports multiple email addresses.
+
+Set `ADMIN_EMAILS` to a comma-separated list:
+
+```env
+ADMIN_EMAILS=admin1@example.com,admin2@example.com
+```
+
+If `ADMIN_EMAILS` is not set, the app falls back to `ADMIN_NOTIFICATION_EMAILS`.
+
+## Product Image Uploads
+
+Admin product image uploads use Cloudinary.
+
+Set these environment variables:
+
+```env
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_PRODUCT_IMAGE_FOLDER=products
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

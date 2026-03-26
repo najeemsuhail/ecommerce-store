@@ -3,11 +3,39 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
+type Address = {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+};
+
+type StoredUser = {
+  address?: Address[];
+};
+
+function getStoredAddresses(): Address[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  const userData = localStorage.getItem('user');
+  if (!userData) {
+    return [];
+  }
+
+  const user = JSON.parse(userData) as StoredUser;
+  return user.address || [];
+}
+
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>(() => getStoredAddresses());
   const [showForm, setShowForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Address>({
     name: '',
     phone: '',
     address: '',
@@ -17,9 +45,11 @@ export default function AddressesPage() {
     isDefault: false,
   });
 
-  useEffect(() => {
-    loadAddresses();
+  const loadAddresses = () => {
+    setAddresses(getStoredAddresses());
+  };
 
+  useEffect(() => {
     // Listen for storage changes (login/logout in other tabs)
     const handleStorageChange = () => {
       loadAddresses();
@@ -28,14 +58,6 @@ export default function AddressesPage() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-
-  const loadAddresses = () => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setAddresses(user.address || []);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +94,7 @@ export default function AddressesPage() {
         // Update localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
-          const user = JSON.parse(userData);
+          const user = JSON.parse(userData) as StoredUser;
           user.address = newAddresses;
           localStorage.setItem('user', JSON.stringify(user));
         }
@@ -90,7 +112,7 @@ export default function AddressesPage() {
         setShowForm(false);
         setEditingIndex(null);
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to save address');
     }
   };
@@ -124,12 +146,12 @@ export default function AddressesPage() {
         // Update localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
-          const user = JSON.parse(userData);
+          const user = JSON.parse(userData) as StoredUser;
           user.address = newAddresses;
           localStorage.setItem('user', JSON.stringify(user));
         }
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to delete address');
     }
   };
@@ -151,13 +173,13 @@ export default function AddressesPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="theme-surface p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Saved Addresses</h2>
+        <div className="theme-surface p-4 sm:p-6">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-bold leading-tight sm:text-2xl">Saved Addresses</h2>
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="theme-cta-primary"
+                className="theme-cta-primary w-full text-center sm:w-auto"
               >
                 + Add New Address
               </button>

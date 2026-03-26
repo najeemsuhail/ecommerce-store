@@ -2,8 +2,17 @@ import { NextRequest } from 'next/server';
 import { extractToken, verifyToken } from './auth';
 import prisma from './prisma';
 
-// List of admin emails - You can move this to database later
-const ADMIN_EMAILS = ['suhail.najeem@gmail.com']; // Add your admin email here
+const DEFAULT_ADMIN_EMAILS = ['suhail.najeem@gmail.com'];
+
+export function getAdminEmails(): string[] {
+  const raw = process.env.ADMIN_EMAILS || process.env.ADMIN_NOTIFICATION_EMAILS || '';
+  const emails = raw
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+
+  return emails.length > 0 ? emails : DEFAULT_ADMIN_EMAILS;
+}
 
 export async function isAdmin(request: NextRequest): Promise<boolean> {
   try {
@@ -28,13 +37,12 @@ export async function isAdmin(request: NextRequest): Promise<boolean> {
       return false;
     }
 
-    // Check if email is in admin list
-    return ADMIN_EMAILS.includes(user.email);
-  } catch (error) {
+    return isAdminEmail(user.email);
+  } catch {
     return false;
   }
 }
 
 export function isAdminEmail(email: string): boolean {
-  return ADMIN_EMAILS.includes(email);
+  return getAdminEmails().includes(email.trim().toLowerCase());
 }

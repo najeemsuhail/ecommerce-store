@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractToken, verifyToken } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/adminAuth';
 import prisma from '@/lib/prisma';
-
-const ADMIN_EMAILS = ['suhail.najeem@gmail.com'];
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,9 +26,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ isAdmin: false });
     }
 
-    const isAdmin = ADMIN_EMAILS.includes(user.email);
+    const isAdmin = isAdminEmail(user.email);
     return NextResponse.json({ isAdmin });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ isAdmin: false });
   }
 }

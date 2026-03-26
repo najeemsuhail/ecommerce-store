@@ -218,11 +218,15 @@ export default function EditProductPage() {
 
   const handleFileUpload = async (index: number, file: File) => {
     try {
+      const token = localStorage.getItem('token');
       const formDataForUpload = new FormData();
       formDataForUpload.append('file', file);
 
       const response = await fetch('/api/upload', {
         method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formDataForUpload,
       });
 
