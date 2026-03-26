@@ -7,8 +7,11 @@ import AddToWishlistModal from '@/components/AddToWishlistModal';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
 import ShareProduct from '@/components/ShareProduct';
+import WhatsAppOrderButton from '@/components/WhatsAppOrderButton';
+import { useStoreSettings } from '@/contexts/StoreSettingsContext';
 import { formatPrice } from '@/lib/currency';
 import { trackViewItem } from '@/lib/analytics';
+import { buildProductWhatsAppMessage } from '@/lib/whatsapp';
 import type { ProductVariant } from '@/lib/productDetail';
 
 interface ProductPurchasePanelProps {
@@ -29,6 +32,7 @@ interface ProductPurchasePanelProps {
 export default function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
   const { addItem } = useCart();
   const { isInWishlist } = useWishlist();
+  const { storeName, domain } = useStoreSettings();
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants.length > 0 ? product.variants[0] : null
@@ -39,6 +43,15 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
 
   const activePrice = selectedVariant ? selectedVariant.price : product.price;
   const canPurchase = product.isActive && (!selectedVariant || selectedVariant.isActive !== false);
+  const productUrl = domain ? `${domain.replace(/\/$/, '')}/products/${product.slug}` : undefined;
+  const whatsappMessage = buildProductWhatsAppMessage({
+    storeName,
+    productName: product.name,
+    quantity,
+    price: activePrice,
+    variantName: selectedVariant?.name,
+    productUrl,
+  });
 
   useEffect(() => {
     trackViewItem({
@@ -143,7 +156,7 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
           </div>
 
           <div className="relative flex gap-4">
-            <button onClick={handleAddToCart} className="btn-primary-lg">
+            <button onClick={handleAddToCart} className="btn-primary-lg flex-1">
               Add to Cart - {formatPrice(activePrice * quantity)}
             </button>
 
@@ -165,6 +178,18 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
                 <span className="font-medium">{notificationMessage}</span>
               </div>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <WhatsAppOrderButton
+              message={whatsappMessage}
+              label={`Buy on WhatsApp - ${formatPrice(activePrice * quantity)}`}
+              className="w-full"
+              unavailableLabel="WhatsApp number not set"
+            />
+            <p className="text-sm text-gray-500">
+              Send this product selection to our team and complete the purchase on WhatsApp.
+            </p>
           </div>
         </div>
       )}
