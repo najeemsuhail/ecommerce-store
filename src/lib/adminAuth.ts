@@ -28,9 +28,19 @@ export async function isAdmin(request: NextRequest): Promise<boolean> {
       return false;
     }
 
-    // Check if user exists and is admin
+    // New tokens carry isAdmin directly, which avoids a DB lookup on every admin API request.
+    if (decoded.isAdmin === true) {
+      return true;
+    }
+
+    if (decoded.isAdmin === false) {
+      return false;
+    }
+
+    // Fall back for older tokens that do not include the admin flag.
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
+      select: { email: true },
     });
 
     if (!user) {

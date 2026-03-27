@@ -42,11 +42,6 @@ type ProductListRow = Prisma.ProductGetPayload<{
   select: typeof productListSelect;
 }>;
 
-type ProductWithRating = ProductListRow & {
-  averageRating: number;
-  reviewCount: number;
-};
-
 type ApiFacets = {
   brands: Array<{ name: string; count: number }>;
   categories: Array<{ name: string; id: string; count: number }>;
@@ -384,9 +379,6 @@ export async function GET(request: NextRequest) {
       case 'popular':
         orderBy = { createdAt: 'desc' }; // Could be enhanced with view count
         break;
-      case 'rating':
-        orderBy = { createdAt: 'desc' }; // Will be sorted after calculating ratings
-        break;
       case 'newest':
       default:
         orderBy = { createdAt: 'desc' };
@@ -415,12 +407,29 @@ export async function GET(request: NextRequest) {
         combinedWhere.OR = buildSearchOrConditions(search);
       }
 
-      const totalCount = elasticsearchResult
-        ? elasticsearchResult.total
-        : await prisma.product.count({ where: combinedWhere });
+      if (elasticsearchResult) {
+        responseFacets = responseFacets ?? null;
+      } else {
+        const [totalCountFromDb, builtFacets] = await Promise.all([
+          prisma.product.count({ where: combinedWhere }),
+          shouldIncludeFacets && !responseFacets ? buildDatabaseFacets(combinedWhere) : Promise.resolve(null),
+        ]);
+        if (shouldIncludeFacets && !responseFacets && builtFacets) {
+          responseFacets = builtFacets;
+        }
 
-      if (shouldIncludeFacets && !responseFacets) {
-        responseFacets = await buildDatabaseFacets(combinedWhere);
+        return NextResponse.json(
+          {
+            success: true,
+            products: [],
+            count: 0,
+            total: totalCountFromDb,
+            facets: responseFacets,
+          },
+          {
+            headers: buildResponseHeaders(),
+          }
+        );
       }
 
       return NextResponse.json(
@@ -428,7 +437,7 @@ export async function GET(request: NextRequest) {
           success: true,
           products: [],
           count: 0,
-          total: totalCount,
+          total: elasticsearchResult.total,
           facets: responseFacets,
         },
         {
@@ -515,20 +524,33 @@ export async function GET(request: NextRequest) {
         combinedWhere.OR = buildSearchOrConditions(search);
       }
 
-      products = await prisma.product.findMany({
-        where: combinedWhere,
-        orderBy: elasticsearchResult ? undefined : orderBy,
-        skip: elasticsearchResult ? 0 : skip,
-        take: elasticsearchResult ? undefined : limit,
-        select: productListSelect,
-      });
+      if (elasticsearchResult) {
+        products = await prisma.product.findMany({
+          where: combinedWhere,
+          orderBy: undefined,
+          skip: 0,
+          take: undefined,
+          select: productListSelect,
+        });
+        totalCount = elasticsearchResult.total;
+      } else {
+        const [dbProducts, dbTotalCount, builtFacets] = await Promise.all([
+          prisma.product.findMany({
+            where: combinedWhere,
+            orderBy,
+            skip,
+            take: limit,
+            select: productListSelect,
+          }),
+          prisma.product.count({ where: combinedWhere }),
+          shouldIncludeFacets && !responseFacets ? buildDatabaseFacets(combinedWhere) : Promise.resolve(null),
+        ]);
 
-      totalCount = elasticsearchResult
-        ? elasticsearchResult.total
-        : await prisma.product.count({ where: combinedWhere });
-
-      if (shouldIncludeFacets && !responseFacets) {
-        responseFacets = await buildDatabaseFacets(combinedWhere);
+        products = dbProducts;
+        totalCount = dbTotalCount;
+        if (shouldIncludeFacets && !responseFacets && builtFacets) {
+          responseFacets = builtFacets;
+        }
       }
     }
 
@@ -548,53 +570,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const productIds = products.map((product) => product.id);
-    const ratingGroups = productIds.length
-      ? await prisma.review.groupBy({
-          by: ['productId'],
-          where: {
-            productId: { in: productIds },
-          },
-          _avg: { rating: true },
-          _count: { rating: true },
-        })
-      : [];
-    const ratingMap = new Map(
-      ratingGroups.map((group) => [
-        group.productId,
-        {
-          averageRating: Math.round((group._avg.rating ?? 0) * 10) / 10,
-          reviewCount: group._count.rating,
-        },
-      ])
-    );
-    const productsWithRating: ProductWithRating[] = products.map((product) => {
-      const rating = ratingMap.get(product.id);
-      return {
-        ...product,
-        averageRating: rating?.averageRating ?? 0,
-        reviewCount: rating?.reviewCount ?? 0,
-      };
-    });
-
     // Preserve Elasticsearch ranking order when applicable
     if (elasticsearchResult) {
       const rankMap = new Map(elasticsearchResult.productIds.map((id, index) => [id, index]));
-      productsWithRating.sort(
+      products.sort(
         (a, b) => (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
       );
-    }
-
-    // Sort by rating if requested
-    if (sort === 'rating') {
-      productsWithRating.sort((a, b) => b.averageRating - a.averageRating);
     }
 
     // For union mode, paginate after merging/deduping both result sets.
     const finalProducts =
       shouldUnionSearchAndFacets
-        ? productsWithRating.slice(skip, skip + limit)
-        : productsWithRating;
+        ? products.slice(skip, skip + limit)
+        : products;
 
     return NextResponse.json(
       {

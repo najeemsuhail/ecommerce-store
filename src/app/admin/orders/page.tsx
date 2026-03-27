@@ -6,6 +6,9 @@ import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import { formatPrice } from '@/lib/currency';
 import { formatOrderStatus } from '@/lib/orderStatus';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const ADMIN_ORDERS_CACHE_TTL_MS = 30 * 1000;
 
 export default function AdminOrders() {
   const router = useRouter();
@@ -51,6 +54,14 @@ export default function AdminOrders() {
         url += `?${params.toString()}`;
       }
 
+      const cacheKey = `admin-orders:${token.slice(-16)}:${url}`;
+      const cachedOrders = getClientCache<any[]>(cacheKey);
+      if (cachedOrders) {
+        setOrders(cachedOrders);
+        setAuthError(null);
+        setLoading(false);
+      }
+
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -71,6 +82,7 @@ export default function AdminOrders() {
       if (data.success) {
         setOrders(data.orders);
         setAuthError(null);
+        setClientCache(cacheKey, data.orders, ADMIN_ORDERS_CACHE_TTL_MS);
       } else {
         setAuthError('Failed to load orders.');
       }

@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import { formatPrice } from '@/lib/currency';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const ADMIN_STATS_CACHE_TTL_MS = 30 * 1000;
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -33,6 +36,15 @@ export default function AdminDashboard() {
     }
 
     try {
+      const cacheKey = `admin-stats:${token.slice(-16)}`;
+      const cachedStats = getClientCache<any>(cacheKey);
+      if (cachedStats) {
+        setStats(cachedStats);
+        setIsAdmin(true);
+        setAuthError(null);
+        setLoading(false);
+      }
+
       const response = await fetch('/api/admin/stats', {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -56,6 +68,7 @@ export default function AdminDashboard() {
         setStats(data.stats);
         setIsAdmin(true);
         setAuthError(null);
+        setClientCache(cacheKey, data.stats, ADMIN_STATS_CACHE_TTL_MS);
       } else {
         setAuthError('Failed to load admin data.');
       }

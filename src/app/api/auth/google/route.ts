@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { generateToken, hashPassword } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/adminAuth';
 import { verifyGoogleCredential } from '@/lib/googleAuth';
 
 export async function POST(request: NextRequest) {
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
     const token = generateToken({
       userId: user.id,
       email: user.email,
+      isAdmin: isAdminEmail(user.email),
     });
 
     const cookieStore = await cookies();

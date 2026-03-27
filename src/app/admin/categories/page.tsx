@@ -33,9 +33,9 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
+    const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/admin/categories');
+      const res = await fetch('/api/admin/categories?includeCounts=true');
       if (!res.ok) throw new Error('Failed to fetch categories');
       const data: ApiCategoryRow[] = await res.json();
 

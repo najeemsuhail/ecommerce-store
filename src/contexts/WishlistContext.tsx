@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
 
 export interface WishlistItem {
   id: string;
@@ -35,6 +36,7 @@ interface WishlistContextType {
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
+const WISHLIST_CACHE_TTL_MS = 60 * 1000;
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [groups, setGroups] = useState<WishlistGroup[]>([]);
@@ -51,6 +53,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const getWishlistCacheKey = useCallback((token: string) => {
+    const tokenSuffix = token.slice(-16);
+    return `wishlist:groups:${tokenSuffix}`;
+  }, []);
+
   // Fetch wishlist from API
   const refreshWishlist = useCallback(async () => {
     const token = getToken();
@@ -62,20 +69,30 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      setIsLoading(true);
+      const cacheKey = getWishlistCacheKey(token);
+      const cachedGroups = getClientCache<WishlistGroup[]>(cacheKey);
+      if (cachedGroups) {
+        setGroups(cachedGroups);
+        setIsLoggedIn(true);
+        setError(null);
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+      }
+
       const response = await fetch('/api/wishlist/groups', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        cache: 'no-store',
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Wishlist data received:', data);
-        setGroups(data.groups || []);
+        const nextGroups = data.groups || [];
+        setGroups(nextGroups);
         setIsLoggedIn(true);
         setError(null);
+        setClientCache(cacheKey, nextGroups, WISHLIST_CACHE_TTL_MS);
       } else if (response.status === 401) {
         // Unauthorized - clear local data
         setIsLoggedIn(false);
@@ -170,7 +187,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setError('Failed to create group');
       return null;
     }
-  }, [getToken]);
+  }, [getToken, getWishlistCacheKey]);
 
   const deleteGroup = useCallback(async (groupId: string) => {
     const token = getToken();
@@ -201,7 +218,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
       setError('Failed to delete group');
       return false;
     }
-  }, [getToken]);
+  }, [getToken, getWishlistCacheKey]);
 
   const renameGroup = useCallback(async (groupId: string, newName: string) => {
     const token = getToken();

@@ -10,52 +10,51 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faUser, faShoppingCart, faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useStoreSettings } from '@/contexts/StoreSettingsContext';
 
+function readAdminFlagFromToken(token: string): boolean {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return false;
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    const decoded = JSON.parse(window.atob(padded)) as { isAdmin?: boolean };
+    return decoded.isAdmin === true;
+  } catch {
+    return false;
+  }
+}
+
 export default function Header() {
   const { logoUrl, storeName } = useStoreSettings();
   const router = useRouter();
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const [hasMounted, setHasMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const syncAuthFromStorage = () => {
       const token = localStorage.getItem('token');
       setIsLoggedIn(!!token);
-
-      // Check if user is admin
       if (token) {
-        try {
-          const response = await fetch('/api/auth/admin-check', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          
-          // Only set admin status if response is ok
-          if (response.ok) {
-            const data = await response.json();
-            setIsAdmin(data.isAdmin === true);
-          } else {
-            // Don't set to false on API error - keep previous state
-            console.error('Admin check failed with status:', response.status);
-          }
-        } catch (error) {
-          console.error('Failed to check admin status:', error);
-          // Don't set to false on network error - keep previous state
-        }
+        setIsAdmin(readAdminFlagFromToken(token));
       } else {
         setIsAdmin(false);
       }
     };
 
-    checkAuth();
+    syncAuthFromStorage();
 
     // Listen for storage changes (login/logout in other tabs)
     const handleStorageChange = () => {
-      checkAuth();
+      syncAuthFromStorage();
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -202,6 +201,7 @@ export default function Header() {
                           onClick={() => {
                             localStorage.removeItem('token');
                             setIsLoggedIn(false);
+                            setIsAdmin(false);
                             setAccountMenuOpen(false);
                             router.push('/');
                           }}
@@ -220,7 +220,7 @@ export default function Header() {
             <Link href="/cart" className="relative text-gray-theme hover:text-primary-theme transition-colors" title="Shopping Cart">
               <FontAwesomeIcon icon={faShoppingCart} className="w-5 h-5" />
 
-              {totalItems > 0 && (
+              {hasMounted && totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-danger text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold" style={{backgroundColor: '#dc2626'}}>
                   {totalItems}
                 </span>

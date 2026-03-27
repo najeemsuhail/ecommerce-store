@@ -323,7 +323,11 @@ export default function ProductRecommendations({
                     {formatPrice(product.price)}
                   </span>
                   {product.comparePrice && (
-                    <span className="text-text-500 line-through text-sm">
+                    <span
+                      className={`text-text-500 line-through text-sm ${
+                        recommendationType === 'similar' ? 'hidden md:inline' : ''
+                      }`}
+                    >
                       {formatPrice(product.comparePrice)}
                     </span>
                   )}

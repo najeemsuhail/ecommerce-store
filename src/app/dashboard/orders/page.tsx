@@ -9,8 +9,10 @@ import {
   getOrderStatusBadgeClass,
   ORDER_STATUS_FILTERS,
 } from '@/lib/orderStatus';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
 
 const RETURN_WINDOW_HOURS = 48;
+const DASHBOARD_ORDERS_CACHE_TTL_MS = 60 * 1000;
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -31,8 +33,17 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     const token = localStorage.getItem('token');
+    const cacheKey = token ? `orders:list:${token.slice(-16)}` : null;
     
     try {
+      if (cacheKey) {
+        const cachedOrders = getClientCache<any[]>(cacheKey);
+        if (cachedOrders) {
+          setOrders(cachedOrders);
+          setLoading(false);
+        }
+      }
+
       const response = await fetch('/api/orders', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -40,6 +51,9 @@ export default function OrdersPage() {
       const data = await response.json();
       if (data.success) {
         setOrders(data.orders);
+        if (cacheKey) {
+          setClientCache(cacheKey, data.orders, DASHBOARD_ORDERS_CACHE_TTL_MS);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch orders');

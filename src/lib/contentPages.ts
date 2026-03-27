@@ -1,4 +1,4 @@
-import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import prisma from '@/lib/prisma';
 
 type ContentPageRecord = {
@@ -275,23 +275,31 @@ function parsePageCta(value: unknown): PageCta | null {
   return { title, description, label, href, variant };
 }
 
-const getContentPageRecord = cache(async (slug: string): Promise<ContentPageRecord | null> => {
-  const page = await prisma.contentPage.findUnique({
-    where: { slug },
-  });
+async function getContentPageRecord(slug: string): Promise<ContentPageRecord | null> {
+  const getCachedContentPageRecord = unstable_cache(
+    async () => {
+      const page = await prisma.contentPage.findUnique({
+        where: { slug },
+      });
 
-  if (!page) {
-    return null;
-  }
+      if (!page) {
+        return null;
+      }
 
-  return {
-    title: page.title,
-    subtitle: page.subtitle,
-    metaTitle: page.metaTitle,
-    metaDescription: page.metaDescription,
-    payload: page.payload,
-  };
-});
+      return {
+        title: page.title,
+        subtitle: page.subtitle,
+        metaTitle: page.metaTitle,
+        metaDescription: page.metaDescription,
+        payload: page.payload,
+      };
+    },
+    [`content-page:${slug}`],
+    { revalidate: 300, tags: ['content-pages'] }
+  );
+
+  return getCachedContentPageRecord();
+}
 
 export async function getAboutPageContent(): Promise<AboutPageContent> {
   const page = await getContentPageRecord('about');

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { generateToken } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/adminAuth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
     const authToken = generateToken({
       userId: verifiedUser.id,
       email: verifiedUser.email,
+      isAdmin: isAdminEmail(verifiedUser.email),
     });
 
     const { password: _, ...userWithoutPassword } = verifiedUser;
@@ -115,6 +117,7 @@ export async function GET(request: NextRequest) {
     const authToken = generateToken({
       userId: verifiedUser.id,
       email: verifiedUser.email,
+      isAdmin: isAdminEmail(verifiedUser.email),
     });
 
     return NextResponse.redirect(

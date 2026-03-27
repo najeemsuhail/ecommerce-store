@@ -6,6 +6,9 @@ import Link from 'next/link';
 import AdminLayout from '@/components/AdminLayout';
 import ProductImporter from '@/components/ProductImporter';
 import { formatPrice } from '@/lib/currency';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const ADMIN_PRODUCTS_CACHE_TTL_MS = 30 * 1000;
 
 export default function AdminProducts() {
   const router = useRouter();
@@ -13,6 +16,7 @@ export default function AdminProducts() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [authError, setAuthError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [showImporter, setShowImporter] = useState(false);
@@ -52,7 +56,7 @@ export default function AdminProducts() {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [debouncedSearchTerm, currentPage]);
+  }, [debouncedSearchTerm, statusFilter, currentPage]);
 
   const fetchProducts = async () => {
     const token = localStorage.getItem('token');
@@ -66,11 +70,21 @@ export default function AdminProducts() {
       const params = new URLSearchParams();
       
       if (debouncedSearchTerm) params.append('search', debouncedSearchTerm);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
       params.append('skip', String((currentPage - 1) * productsPerPage));
       params.append('limit', String(productsPerPage));
       
       if (params.toString()) {
         url += `?${params.toString()}`;
+      }
+
+      const cacheKey = `admin-products:${url}`;
+      const cachedData = getClientCache<{ products: any[]; total: number }>(cacheKey);
+      if (cachedData) {
+        setProducts(cachedData.products);
+        setTotalProducts(cachedData.total);
+        setAuthError(null);
+        setLoading(false);
       }
 
       const response = await fetch(url, {
@@ -94,6 +108,10 @@ export default function AdminProducts() {
         setProducts(data.products);
         setTotalProducts(data.total || data.products.length);
         setAuthError(null);
+        setClientCache(cacheKey, {
+          products: data.products,
+          total: data.total || data.products.length,
+        }, ADMIN_PRODUCTS_CACHE_TTL_MS);
       } else {
         setAuthError('Failed to load products.');
       }
@@ -315,20 +333,38 @@ export default function AdminProducts() {
           </div>
         )}
 
-        {/* Search */}
+        {/* Search and Filters */}
         <div className="mb-6">
-          <input
-            type="text"
-            placeholder="🔍 Search products by name..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          {products.length === 0 && debouncedSearchTerm && (
-            <p className="text-sm text-gray-600 mt-2">No products found matching "{debouncedSearchTerm}"</p>
+          <div className="flex flex-col gap-3 md:flex-row">
+            <input
+              type="text"
+              placeholder="🔍 Search products by name or SKU..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value as 'all' | 'active' | 'inactive');
+                setCurrentPage(1);
+              }}
+              className="w-full md:w-52 px-4 py-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All statuses</option>
+              <option value="active">Active only</option>
+              <option value="inactive">Inactive only</option>
+            </select>
+          </div>
+          {products.length === 0 && (debouncedSearchTerm || statusFilter !== 'all') && (
+            <p className="text-sm text-gray-600 mt-2">
+              No products found
+              {debouncedSearchTerm ? ` matching "${debouncedSearchTerm}"` : ''}
+              {statusFilter !== 'all' ? ` with ${statusFilter} status` : ''}.
+            </p>
           )}
         </div>
 

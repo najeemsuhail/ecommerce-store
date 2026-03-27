@@ -13,6 +13,9 @@ import FeaturesSection from '@/components/FeaturesSection';
 import LatestBlogPostsSection from '@/components/LatestBlogPostsSection';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import RecentlyViewedSection from '@/components/RecentlyViewedSection';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const STORE_HOME_CACHE_TTL_MS = 5 * 60 * 1000;
 
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -25,19 +28,15 @@ export default function HomePage() {
   });
   const { totalItems, addItem } = useCart();
 
-  useEffect(() => {
-    fetchFeaturedProducts();
-    fetchBestSellers();
-    fetchCategories();
-    fetchStats();
-  }, []);
-
   const fetchFeaturedProducts = async () => {
+    const cacheKey = 'home:featured-products';
     try {
       const response = await fetch('/api/products?isFeatured=true');
       const data = await response.json();
       if (data.success) {
-        setFeaturedProducts(data.products.slice(0, 8));
+        const nextProducts = data.products.slice(0, 8);
+        setFeaturedProducts(nextProducts);
+        setClientCache(cacheKey, nextProducts, STORE_HOME_CACHE_TTL_MS);
       }
     } catch (error) {
       console.error('Failed to fetch featured products');
@@ -45,11 +44,14 @@ export default function HomePage() {
   };
 
   const fetchBestSellers = async () => {
+    const cacheKey = 'home:best-sellers';
     try {
       const response = await fetch('/api/products/recommendations?mode=bestsellers&limit=8');
       const data = await response.json();
       if (data.success) {
-        setBestSellers(data.recommendations ?? []);
+        const nextProducts = data.recommendations ?? [];
+        setBestSellers(nextProducts);
+        setClientCache(cacheKey, nextProducts, STORE_HOME_CACHE_TTL_MS);
       }
     } catch (error) {
       console.error('Failed to fetch best sellers');
@@ -57,6 +59,7 @@ export default function HomePage() {
   };
 
   const fetchCategories = async () => {
+    const cacheKey = 'home:categories';
     try {
       const response = await fetch('/api/admin/categories');
       const data = await response.json();
@@ -79,7 +82,9 @@ export default function HomePage() {
         );
         
         const shuffledCategories = [...uniqueCategories].sort(() => Math.random() - 0.5);
-        setCategories(shuffledCategories.slice(0, 6));
+        const nextCategories = shuffledCategories.slice(0, 6);
+        setCategories(nextCategories);
+        setClientCache(cacheKey, nextCategories, STORE_HOME_CACHE_TTL_MS);
       }
     } catch (error) {
       console.error('Failed to fetch categories');
@@ -87,20 +92,50 @@ export default function HomePage() {
   };
 
   const fetchStats = async () => {
+    const cacheKey = 'home:stats';
     try {
       const response = await fetch('/api/products');
       const data = await response.json();
       if (data.success) {
-        setStats({
+        const nextStats = {
           products: data.count,
           customers: 1000,
           orders: 500,
-        });
+        };
+        setStats(nextStats);
+        setClientCache(cacheKey, nextStats, STORE_HOME_CACHE_TTL_MS);
       }
     } catch (error) {
       console.error('Failed to fetch stats');
     }
   };
+
+  useEffect(() => {
+    const cachedFeaturedProducts = getClientCache<any[]>('home:featured-products');
+    if (cachedFeaturedProducts) {
+      setFeaturedProducts(cachedFeaturedProducts);
+    }
+
+    const cachedBestSellers = getClientCache<any[]>('home:best-sellers');
+    if (cachedBestSellers) {
+      setBestSellers(cachedBestSellers);
+    }
+
+    const cachedCategories = getClientCache<Array<{ name: string; id: string; slug: string; imageUrl?: string | null }>>('home:categories');
+    if (cachedCategories) {
+      setCategories(cachedCategories);
+    }
+
+    const cachedStats = getClientCache<{ products: number; customers: number; orders: number }>('home:stats');
+    if (cachedStats) {
+      setStats(cachedStats);
+    }
+
+    fetchFeaturedProducts();
+    fetchBestSellers();
+    fetchCategories();
+    fetchStats();
+  }, []);
 
   const handleQuickAdd = (product: any) => {
     addItem({

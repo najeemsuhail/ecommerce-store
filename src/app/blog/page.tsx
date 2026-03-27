@@ -51,7 +51,7 @@ export default async function BlogPage({ searchParams }: Props) {
                     excerpt={blog.excerpt ?? undefined}
                     featuredImage={blog.featuredImage ?? undefined}
                     author={blog.author ?? undefined}
-                    createdAt={blog.createdAt.toISOString()}
+                    createdAt={new Date(blog.createdAt).toISOString()}
                   />
                 ))}
               </div>

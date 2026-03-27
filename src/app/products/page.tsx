@@ -10,6 +10,9 @@ import AddToCartNotification from '@/components/AddToCartNotification';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
 import FacetFilter from '@/components/FacetFilter';
 import { formatPrice } from '@/lib/currency';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const STORE_PRODUCTS_CACHE_TTL_MS = 60 * 1000;
 
 interface FacetFilters {
   brands: string[];
@@ -246,13 +249,28 @@ function ProductsContent() {
     fetchProducts(0, false);
   }, [facetFilters, sortBy, searchTerm]);
 
-  // Fetch facets separately (sort does not affect facet counts)
   useEffect(() => {
     fetchFacets(0);
   }, [facetFilters, searchTerm]);
 
   useEffect(() => {
     const fetchBaseFacets = async () => {
+      const cacheKey = 'products:base-facets';
+      const cachedData = getClientCache<FacetData>(cacheKey);
+      if (cachedData) {
+        setDefaultFacets(cachedData);
+        setFacetFilters((prev) => ({
+          ...prev,
+          priceRange:
+            prev.priceRange.min === 0 && prev.priceRange.max === 100000
+              ? {
+                  min: cachedData.priceRange.min > 0 ? cachedData.priceRange.min : 0,
+                  max: cachedData.priceRange.max,
+                }
+              : prev.priceRange,
+        }));
+      }
+
       try {
         const response = await fetch('/api/products?includeFacets=true&facetsOnly=true&skip=0&limit=0', {
           next: { revalidate: 300 },
@@ -260,6 +278,7 @@ function ProductsContent() {
         const data = await response.json();
         if (data.success && data.facets) {
           setDefaultFacets(data.facets);
+          setClientCache(cacheKey, data.facets, STORE_PRODUCTS_CACHE_TTL_MS);
           setFacetFilters((prev) => ({
             ...prev,
             priceRange:
@@ -281,6 +300,16 @@ function ProductsContent() {
 
   useEffect(() => {
     const fetchCategoryHierarchy = async () => {
+      const cacheKey = 'products:category-hierarchy';
+      const cachedData = getClientCache<{
+        hierarchy: CategoryHierarchyItem[];
+        stableCategories: FacetData['categories'];
+      }>(cacheKey);
+      if (cachedData) {
+        setCategoryHierarchy(cachedData.hierarchy);
+        setStableCategoryFacets(cachedData.stableCategories);
+      }
+
       try {
         const response = await fetch('/api/admin/categories', {
           next: { revalidate: 300 },
@@ -304,6 +333,10 @@ function ProductsContent() {
 
         setCategoryHierarchy(normalized);
         setStableCategoryFacets(stableCategories);
+        setClientCache(cacheKey, {
+          hierarchy: normalized,
+          stableCategories,
+        }, STORE_PRODUCTS_CACHE_TTL_MS);
       } catch {
         // If this fails, facet filter gracefully falls back to flat categories.
       }
@@ -330,6 +363,12 @@ function ProductsContent() {
   }, [hasMore, loadingMore, loading, products.length, totalProducts]);
 
   const fetchPopularProducts = useCallback(async () => {
+    const cacheKey = 'products:popular';
+    const cachedData = getClientCache<ProductListItem[]>(cacheKey);
+    if (cachedData) {
+      setPopularProducts(cachedData);
+    }
+
     setPopularProductsLoading(true);
     try {
       const response = await fetch('/api/products?sort=popular&limit=8', {
@@ -337,7 +376,9 @@ function ProductsContent() {
       });
       const data = await response.json();
       if (data.success && Array.isArray(data.products)) {
-        setPopularProducts(data.products.slice(0, 8));
+        const nextProducts = data.products.slice(0, 8);
+        setPopularProducts(nextProducts);
+        setClientCache(cacheKey, nextProducts, STORE_PRODUCTS_CACHE_TTL_MS);
       }
     } catch {
       console.error('Failed to fetch popular products');
@@ -351,42 +392,6 @@ function ProductsContent() {
       fetchPopularProducts();
     }
   }, [loading, products.length, popularProducts.length, popularProductsLoading, fetchPopularProducts]);
-
-  const fetchFacets = async (skip = 0) => {
-    const requestId = ++latestFacetRequestId.current;
-    try {
-      const url = `${buildProductsUrl(skip, 0, true)}&facetsOnly=true`;
-      const response = await fetch(url, {
-        next: { revalidate: 300 },
-      });
-      const data = await response.json();
-      if (requestId !== latestFacetRequestId.current) {
-        return;
-      }
-      if (data.success && data.facets) {
-        const computedFacets: FacetData = data.facets;
-        setFacets(computedFacets);
-        setFacetFilters((prev) => {
-          if (prev.priceRange.max === computedFacets.priceRange.max) {
-            return prev;
-          }
-
-          return {
-            ...prev,
-            priceRange: {
-              min: prev.priceRange.min,
-              max: computedFacets.priceRange.max,
-            },
-          };
-        });
-      }
-    } catch (error) {
-      if (requestId !== latestFacetRequestId.current) {
-        return;
-      }
-      console.error('Failed to fetch facets');
-    }
-  };
 
   const buildProductsUrl = (skip: number, limit: number, includeFacets: boolean) => {
     let url = '/api/products?';
@@ -441,17 +446,72 @@ function ProductsContent() {
     return url;
   };
 
-  const fetchProducts = async (skip = 0, append = false) => {
-    const requestId = ++latestFetchRequestId.current;
-    if (append) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
+  const fetchFacets = async (skip = 0) => {
+    const requestId = ++latestFacetRequestId.current;
+    const url = `${buildProductsUrl(skip, 0, true)}&facetsOnly=true`;
+    const cacheKey = `products:facets:${url}`;
+    const cachedData = getClientCache<FacetData>(cacheKey);
+    if (cachedData) {
+      setFacets(cachedData);
     }
 
     try {
-      const url = buildProductsUrl(skip, itemsPerLoad, false);
+      const response = await fetch(url, {
+        next: { revalidate: 300 },
+      });
+      const data = await response.json();
+      if (requestId !== latestFacetRequestId.current) {
+        return;
+      }
+      if (data.success && data.facets) {
+        const computedFacets: FacetData = data.facets;
+        setFacets(computedFacets);
+        setClientCache(cacheKey, computedFacets, STORE_PRODUCTS_CACHE_TTL_MS);
+        setFacetFilters((prev) => {
+          if (prev.priceRange.max === computedFacets.priceRange.max) {
+            return prev;
+          }
 
+          return {
+            ...prev,
+            priceRange: {
+              min: prev.priceRange.min,
+              max: computedFacets.priceRange.max,
+            },
+          };
+        });
+      }
+    } catch {
+      if (requestId !== latestFacetRequestId.current) {
+        return;
+      }
+      console.error('Failed to fetch facets');
+    }
+  };
+
+  const fetchProducts = async (skip = 0, append = false) => {
+    const requestId = ++latestFetchRequestId.current;
+    const url = buildProductsUrl(skip, itemsPerLoad, false);
+    const cacheKey = `products:list:${url}`;
+    const cachedData = !append
+      ? getClientCache<{ products: ProductListItem[]; total: number }>(cacheKey)
+      : null;
+
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      if (cachedData) {
+        setProducts(cachedData.products);
+        setTotalProducts(cachedData.total);
+        setHasMore(cachedData.products.length < cachedData.total);
+        setLoading(false);
+        return;
+      } else {
+        setLoading(true);
+      }
+    }
+
+    try {
       const response = await fetch(url, {
         next: { revalidate: 300 }, // Revalidate every 5 minutes
       });
@@ -467,9 +527,11 @@ function ProductsContent() {
         setTotalProducts(data.total || data.products.length);
         const loadedCount = append ? skip + data.products.length : data.products.length;
         setHasMore(loadedCount < (data.total || loadedCount));
-
-        if (!append && !data.facets) {
-          setFacets(defaultFacets);
+        if (!append) {
+          setClientCache(cacheKey, {
+            products: data.products,
+            total: data.total || data.products.length,
+          }, STORE_PRODUCTS_CACHE_TTL_MS);
         }
       }
     } catch (error) {
@@ -583,7 +645,6 @@ function ProductsContent() {
             <option value="price-low">Price: Low</option>
             <option value="price-high">Price: High</option>
             <option value="popular">Popular</option>
-            <option value="rating">Rated</option>
           </select>
         </div>
 
@@ -819,7 +880,6 @@ function ProductsContent() {
                     <option value="price-low">Price: Low to High</option>
                     <option value="price-high">Price: High to Low</option>
                     <option value="popular">Most Popular</option>
-                    <option value="rating">Highest Rated</option>
                   </select>
                 </div>
               </div>
@@ -1200,4 +1260,3 @@ export default function ProductsPage() {
     </Layout>
   );
 }
-

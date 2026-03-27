@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { verifyPassword, generateToken } from '@/lib/auth';
+import { isAdminEmail } from '@/lib/adminAuth';
 import { cookies } from 'next/headers';
 
 // Rate limiting map (in production, use Redis)
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
     const token = generateToken({
       userId: user.id,
       email: user.email,
+      isAdmin: isAdminEmail(user.email),
     });
 
     // Set HTTP-only cookie for security

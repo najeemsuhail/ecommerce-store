@@ -5,6 +5,9 @@ import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
 import { formatOrderStatus, getOrderStatusBadgeClass } from '@/lib/orderStatus';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const DASHBOARD_ORDERS_CACHE_TTL_MS = 60 * 1000;
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({
@@ -36,14 +39,33 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     const token = localStorage.getItem('token');
+    const cacheKey = token ? `orders:list:${token.slice(-16)}` : null;
     
     try {
+      if (cacheKey) {
+        const cachedOrders = getClientCache<any[]>(cacheKey);
+        if (cachedOrders) {
+          setStats({
+            totalOrders: cachedOrders.length,
+            pendingOrders: cachedOrders.filter((o: any) =>
+              ['pending', 'processing', 'shipped', 'out_for_delivery'].includes(o.status)
+            ).length,
+            completedOrders: cachedOrders.filter((o: any) => o.status === 'delivered').length,
+          });
+          setRecentOrders(cachedOrders.slice(0, 5));
+          setLoading(false);
+        }
+      }
+
       const response = await fetch('/api/orders', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
       if (data.success) {
+        if (cacheKey) {
+          setClientCache(cacheKey, data.orders, DASHBOARD_ORDERS_CACHE_TTL_MS);
+        }
         setStats({
           totalOrders: data.orders.length,
           pendingOrders: data.orders.filter((o: any) =>

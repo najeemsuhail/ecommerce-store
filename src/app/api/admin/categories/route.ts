@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET() {
+export const revalidate = 300;
+
+export async function GET(request: NextRequest) {
   try {
+    const includeCounts = request.nextUrl.searchParams.get('includeCounts') === 'true';
     const categories = await prisma.category.findMany({
       select: {
         id: true,
@@ -15,14 +18,22 @@ export async function GET() {
             id: true,
           },
         },
-        _count: {
-          select: { products: true },
-        },
+        ...(includeCounts
+          ? {
+              _count: {
+                select: { products: true },
+              },
+            }
+          : {}),
       },
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json(categories);
+    return NextResponse.json(categories, {
+      headers: {
+        'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Error fetching categories:', error);
     return NextResponse.json(

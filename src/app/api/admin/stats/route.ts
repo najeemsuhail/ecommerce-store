@@ -13,27 +13,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get basic counts (fast queries)
-    const [totalOrders, totalProducts, totalUsers] = await Promise.all([
-      prisma.order.count(),
-      prisma.product.count(),
-      prisma.user.count(),
-    ]);
-
-    // Get revenue and orders by status
-    const [totalRevenue, ordersByStatus] = await Promise.all([
-      prisma.order.aggregate({
-        where: { paymentStatus: 'paid' },
-        _sum: { total: true },
-      }),
-      prisma.order.groupBy({
-        by: ['status'],
-        _count: true,
-      }),
-    ]);
-
-    // Get recent orders
-    const recentOrders = await prisma.order.findMany({
+    const totalOrdersPromise = prisma.order.count();
+    const totalProductsPromise = prisma.product.count();
+    const totalUsersPromise = prisma.user.count();
+    const totalRevenuePromise = prisma.order.aggregate({
+      where: { paymentStatus: 'paid' },
+      _sum: { total: true },
+    });
+    const ordersByStatusPromise = prisma.order.groupBy({
+      by: ['status'],
+      _count: true,
+    });
+    const recentOrdersPromise = prisma.order.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -49,14 +40,30 @@ export async function GET(request: NextRequest) {
         },
       },
     });
-
-    // Get top products
-    const topProducts = await prisma.orderItem.groupBy({
+    const topProductsPromise = prisma.orderItem.groupBy({
       by: ['productId'],
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: 'desc' } },
       take: 5,
     });
+
+    const [
+      totalOrders,
+      totalProducts,
+      totalUsers,
+      totalRevenue,
+      ordersByStatus,
+      recentOrders,
+      topProducts,
+    ] = await Promise.all([
+      totalOrdersPromise,
+      totalProductsPromise,
+      totalUsersPromise,
+      totalRevenuePromise,
+      ordersByStatusPromise,
+      recentOrdersPromise,
+      topProductsPromise,
+    ]);
 
     // Get product details for top products
     const topProductIds = topProducts.map((p) => p.productId);

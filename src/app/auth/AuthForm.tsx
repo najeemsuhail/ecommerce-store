@@ -452,7 +452,7 @@ export default function AuthForm() {
                     onChange={handleChange}
                     required
                      className="theme-form-input"
-                    placeholder="Kani Malar"
+                    placeholder="Enter your full name"
                   />
                 </div>
 
@@ -472,7 +472,7 @@ export default function AuthForm() {
                 onChange={handleChange}
                 required
                  className="theme-form-input"
-                placeholder="kanimalar@onlyinkani.in"
+                placeholder="Enter your email address"
               />
             </div>
 

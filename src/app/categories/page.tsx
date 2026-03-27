@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { unstable_cache } from 'next/cache';
 import Layout from '@/components/Layout';
 import prisma from '@/lib/prisma';
 import CategoryCollectionCard from '@/components/CategoryCollectionCard';
@@ -13,17 +14,24 @@ function hashString(value: string): number {
   return hash;
 }
 
+const getTopLevelCategories = unstable_cache(
+  async () =>
+    prisma.category.findMany({
+      where: { parentId: null },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        imageUrl: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ['top-level-categories-page'],
+  { revalidate: 300, tags: ['categories'] }
+);
+
 export default async function CategoriesPage() {
-  const categories = await prisma.category.findMany({
-    where: { parentId: null },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      imageUrl: true,
-    },
-    orderBy: { createdAt: 'desc' },
-  });
+  const categories = await getTopLevelCategories();
 
   const shuffledCategories = [...categories].sort(
     (a, b) => hashString(a.id) - hashString(b.id)

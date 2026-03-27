@@ -30,48 +30,56 @@ export async function GET(request: NextRequest) {
       ],
     } : {};
 
-    // Get total count
-    const totalCount = await prisma.user.count({
-      where: searchFilter,
-    });
-
-    // Get customers with their order stats
-    const customers = await prisma.user.findMany({
-      where: searchFilter,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            orders: true,
+    const [totalCount, customers] = await Promise.all([
+      prisma.user.count({
+        where: searchFilter,
+      }),
+      prisma.user.findMany({
+        where: searchFilter,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: {
+              orders: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
 
-    // Get order totals for each customer
-    const customersWithStats = await Promise.all(
-      customers.map(async (customer) => {
-        const orderStats = await prisma.order.aggregate({
-          where: { userId: customer.id },
-          _sum: { total: true },
-          _count: true,
-        });
+    const customerIds = customers.map((customer) => customer.id);
+    const orderValueRows =
+      customerIds.length > 0
+        ? await prisma.order.groupBy({
+            by: ['userId'],
+            where: {
+              userId: {
+                in: customerIds,
+              },
+            },
+            _sum: { total: true },
+          })
+        : [];
 
-        return {
-          ...customer,
-          totalOrderValue: orderStats._sum.total || 0,
-          totalOrders: orderStats._count,
-        };
-      })
+    const orderValueByUserId = new Map(
+      orderValueRows
+        .filter((row) => row.userId)
+        .map((row) => [row.userId as string, row._sum.total || 0])
     );
+
+    const customersWithStats = customers.map((customer) => ({
+      ...customer,
+      totalOrderValue: orderValueByUserId.get(customer.id) || 0,
+      totalOrders: customer._count.orders,
+    }));
 
     return NextResponse.json({
       success: true,
