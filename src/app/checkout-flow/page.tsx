@@ -613,7 +613,7 @@ export default function CheckoutFlowPage() {
                             setShippingAddress({ ...shippingAddress, phone: e.target.value })
                           }
                           className="theme-form-input"
-                          placeholder="+91 9876543210"
+                          placeholder="Enter 10-digit phone number"
                         />
                       </div>
 
@@ -660,7 +660,7 @@ export default function CheckoutFlowPage() {
                             })
                           }
                           className="theme-form-input"
-                          placeholder="400001"
+                          placeholder="Enter 6-digit PIN code"
                         />
                       </div>
                     </div>
@@ -824,7 +824,7 @@ export default function CheckoutFlowPage() {
                               })
                             }
                             className="theme-form-input"
-                            placeholder="400001"
+                            placeholder="Enter 6-digit PIN code"
                           />
                         </div>
 

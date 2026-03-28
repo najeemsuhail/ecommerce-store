@@ -166,7 +166,7 @@ export default function ContactPageClient({ content }: Props) {
                   onChange={handleChange}
                   required
                   className="theme-form-input"
-                  placeholder="your.email@example.com"
+                  placeholder="Enter your email address"
                 />
               </div>
 
