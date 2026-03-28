@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
 import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
+import { searchProductIdsFromDatabase } from '@/lib/postgresSearch';
 import { getExternalSearchProvider } from '@/lib/searchProvider';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
@@ -272,6 +273,10 @@ export async function GET(request: NextRequest) {
       total: number;
       facets?: ElasticsearchFacets;
     } | null = null;
+    let databaseSearchResult: {
+      productIds: string[];
+      total: number;
+    } | null = null;
     let responseFacets: ApiFacets | null = null;
 
     if (shouldTryElasticsearch) {
@@ -306,6 +311,17 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error('Elasticsearch product search failed, falling back to database search:', error);
       }
+    }
+
+    if (!elasticsearchResult && hasSearch) {
+      const dbFrom = hasNonSearchFilters ? 0 : skip;
+      const dbSize = facetsOnlyRequested ? 10000 : hasNonSearchFilters ? 10000 : limit;
+      databaseSearchResult = await searchProductIdsFromDatabase({
+        query: search as string,
+        from: dbFrom,
+        size: dbSize,
+        sort: sort as 'newest' | 'price-low' | 'price-high' | 'popular' | 'rating',
+      });
     }
 
     // Build facet-only filter object (used independently from text search).
@@ -386,9 +402,11 @@ export async function GET(request: NextRequest) {
 
     if (facetsOnlyRequested) {
       const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
-      if (elasticsearchResult) {
-        if (elasticsearchResult.productIds.length > 0) {
-          combinedWhere.id = { in: elasticsearchResult.productIds };
+      const searchIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds;
+
+      if (searchIds) {
+        if (searchIds.length > 0) {
+          combinedWhere.id = { in: searchIds };
         } else {
           return NextResponse.json(
             {
@@ -407,7 +425,7 @@ export async function GET(request: NextRequest) {
         combinedWhere.OR = buildSearchOrConditions(search);
       }
 
-      if (elasticsearchResult) {
+      if (elasticsearchResult || databaseSearchResult) {
         responseFacets = responseFacets ?? null;
       } else {
         const [totalCountFromDb, builtFacets] = await Promise.all([
@@ -437,7 +455,7 @@ export async function GET(request: NextRequest) {
           success: true,
           products: [],
           count: 0,
-          total: elasticsearchResult.total,
+          total: elasticsearchResult?.total ?? databaseSearchResult?.total ?? 0,
           facets: responseFacets,
         },
         {
@@ -461,6 +479,18 @@ export async function GET(request: NextRequest) {
               isActive: true,
               id: {
                 in: elasticsearchResult.productIds,
+              },
+            },
+            select: productListSelect,
+          });
+        }
+      } else if (databaseSearchResult) {
+        if (databaseSearchResult.productIds.length > 0) {
+          searchProducts = await prisma.product.findMany({
+            where: {
+              isActive: true,
+              id: {
+                in: databaseSearchResult.productIds,
               },
             },
             select: productListSelect,
@@ -500,9 +530,10 @@ export async function GET(request: NextRequest) {
       }
     } else {
       const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
+      const searchIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds || [];
 
-      if (elasticsearchResult) {
-        if (elasticsearchResult.productIds.length === 0) {
+      if (elasticsearchResult || databaseSearchResult) {
+        if (searchIds.length === 0) {
           return NextResponse.json(
             {
               success: true,
@@ -518,7 +549,7 @@ export async function GET(request: NextRequest) {
         }
 
         combinedWhere.id = {
-          in: elasticsearchResult.productIds,
+          in: searchIds,
         };
       } else if (search) {
         combinedWhere.OR = buildSearchOrConditions(search);
@@ -533,6 +564,15 @@ export async function GET(request: NextRequest) {
           select: productListSelect,
         });
         totalCount = elasticsearchResult.total;
+      } else if (databaseSearchResult) {
+        products = await prisma.product.findMany({
+          where: combinedWhere,
+          orderBy: undefined,
+          skip: 0,
+          take: undefined,
+          select: productListSelect,
+        });
+        totalCount = databaseSearchResult.total;
       } else {
         const [dbProducts, dbTotalCount, builtFacets] = await Promise.all([
           prisma.product.findMany({
@@ -570,9 +610,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Preserve Elasticsearch ranking order when applicable
-    if (elasticsearchResult) {
-      const rankMap = new Map(elasticsearchResult.productIds.map((id, index) => [id, index]));
+    // Preserve external or database search ranking order when applicable
+    if (elasticsearchResult || databaseSearchResult) {
+      const rankedIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds || [];
+      const rankMap = new Map(rankedIds.map((id, index) => [id, index]));
       products.sort(
         (a, b) => (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
       );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/lib/elasticsearch';
+import { searchProductsForAutocomplete } from '@/lib/postgresSearch';
 import { getExternalSearchProvider } from '@/lib/searchProvider';
 
 // GET autocomplete suggestions for product search (products + categories + tags)
@@ -81,37 +82,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (products.length === 0) {
-      // Use PostgreSQL raw query fallback for full-text search.
-      products = await prisma.$queryRaw<
-        Array<{
-          id: string;
-          name: string;
-          slug: string;
-          price: number;
-          images: string[];
-          brand: string | null;
-          rank: number;
-        }>
-      >`
-        SELECT DISTINCT p.id, p.name, p.slug, p.price, p.images, p.brand,
-               CASE
-                 WHEN p.name ILIKE ${searchQuery + '%'} THEN 5
-                 WHEN p.name ILIKE ${'%' + searchQuery + '%'} THEN 3
-                 WHEN p.description ILIKE ${'%' + searchQuery + '%'} THEN 2
-                 WHEN p.brand ILIKE ${'%' + searchQuery + '%'} THEN 2
-                 ELSE 1
-               END as rank
-        FROM "Product" p
-        WHERE p."isActive" = true
-          AND (
-            p.name ILIKE ${'%' + searchQuery + '%'}
-            OR p.description ILIKE ${'%' + searchQuery + '%'}
-            OR p.brand ILIKE ${'%' + searchQuery + '%'}
-            OR p.tags && ARRAY[${searchQuery}]
-          )
-        ORDER BY rank DESC, p.name ASC
-        LIMIT ${safeLimit}
-      `;
+      products = await searchProductsForAutocomplete(searchQuery, safeLimit);
     }
 
     // Search categories
