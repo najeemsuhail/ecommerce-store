@@ -129,7 +129,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="min-w-0 md:col-span-2 lg:col-span-1" suppressHydrationWarning>
+          <div className="min-w-0 md:col-span-2 lg:col-span-2" suppressHydrationWarning>
             <h3 className="mb-6 text-lg font-bold text-white">Subscribe</h3>
             <p className="mb-4 text-sm text-white/75">Get exclusive deals and updates delivered to your inbox.</p>
 
