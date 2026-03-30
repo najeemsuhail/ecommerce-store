@@ -50,6 +50,37 @@ export async function sendPasswordResetEmail(user: any, resetToken: string) {
   }
 }
 
+export async function sendEmailOtpEmail(user: { email: string; name?: string | null }, otp: string) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: TRANSACTIONAL_EMAIL,
+      to: user.email,
+      subject: 'Your Sign-In Code - onlyinkani.in',
+      html: `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
+        <h1 style="margin:0 0 16px;font-size:24px;color:#0f172a">Your one-time code</h1>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6">Hi ${user.name || user.email},</p>
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.6">Use this code to continue signing in to your account:</p>
+        <div style="margin:24px 0;padding:16px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;text-align:center">
+          <div style="font-size:32px;letter-spacing:8px;font-weight:700;color:#1d4ed8">${otp}</div>
+        </div>
+        <p style="margin:0 0 12px;font-size:14px;line-height:1.6">This code expires in 10 minutes.</p>
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#475569">If you did not request this code, you can ignore this email.</p>
+      </div>`,
+    });
+
+    if (error) {
+      console.error('Error sending email OTP:', error);
+      return { success: false, error };
+    }
+
+    console.log('Email OTP sent:', data);
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error sending email OTP:', error);
+    return { success: false, error };
+  }
+}
+
 export async function sendOrderConfirmationEmail(order: any) {
   try {
     const email = order.guestEmail || order.user?.email;

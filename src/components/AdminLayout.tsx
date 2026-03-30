@@ -21,6 +21,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { href: '/admin/orders', label: 'Orders' },
     { href: '/admin/customers', label: 'Customers' },
     { href: '/admin/coupons', label: 'Coupons' },
+    { href: '/admin/settings', label: 'Settings' },
   ];
 
   return (

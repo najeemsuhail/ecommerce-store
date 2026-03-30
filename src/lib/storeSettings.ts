@@ -44,6 +44,7 @@ export interface PublicStoreSettings {
   footerDescription: string;
   contactEmail: string | null;
   contactPhone: string | null;
+  codEnabled: boolean;
   themeKey: string;
   heroSlides: StoreHeroSlide[];
   socialLinks: StoreSocialLink[];
@@ -145,6 +146,7 @@ function mapSettings(settings: Record<string, unknown>): PublicStoreSettings {
       typeof settings.contactEmail === 'string' && settings.contactEmail.trim() ? settings.contactEmail : null,
     contactPhone:
       typeof settings.contactPhone === 'string' && settings.contactPhone.trim() ? settings.contactPhone : null,
+    codEnabled: typeof settings.codEnabled === 'boolean' ? settings.codEnabled : true,
     themeKey: typeof settings.themeKey === 'string' && settings.themeKey.trim() ? settings.themeKey : '',
     heroSlides: parseHeroSlides(settings.heroSlides),
     socialLinks: parseSocialLinks(settings.socialLinks),

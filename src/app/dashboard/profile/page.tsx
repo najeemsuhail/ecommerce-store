@@ -3,56 +3,16 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 
+type ProfileUser = {
+  id: string;
+  createdAt: string;
+};
+
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<ProfileUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  // Password update state
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [passwordMessage, setPasswordMessage] = useState('');
-  const [passwordSaving, setPasswordSaving] = useState(false);
-  // Handle password update
-  const handlePasswordUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordSaving(true);
-    setPasswordMessage('');
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordMessage('❌ New passwords do not match');
-      setPasswordSaving(false);
-      return;
-    }
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch('/api/auth/update-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        }),
-      });
-      const data = await response.json();
-      if (data.success) {
-        setPasswordMessage('✅ Password updated successfully!');
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        setPasswordMessage(`❌ ${data.error}`);
-      }
-    } catch (error) {
-      setPasswordMessage('❌ Failed to update password');
-    } finally {
-      setPasswordSaving(false);
-    }
-  };
-
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -62,7 +22,6 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchProfile();
 
-    // Listen for storage changes (login/logout in other tabs)
     const handleStorageChange = () => {
       fetchProfile();
     };
@@ -87,7 +46,7 @@ export default function ProfilePage() {
           phone: data.user.phone || '',
         });
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch profile');
     } finally {
       setLoading(false);
@@ -114,15 +73,14 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage('✅ Profile updated successfully!');
-        // Update localStorage
+        setMessage('Profile updated successfully.');
         localStorage.setItem('user', JSON.stringify(data.user));
         setUser(data.user);
       } else {
-        setMessage(`❌ ${data.error}`);
+        setMessage(data.error || 'Failed to update profile.');
       }
-    } catch (error) {
-      setMessage('❌ Failed to update profile');
+    } catch {
+      setMessage('Failed to update profile.');
     } finally {
       setSaving(false);
     }
@@ -132,7 +90,7 @@ export default function ProfilePage() {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
         </div>
       </DashboardLayout>
     );
@@ -146,9 +104,7 @@ export default function ProfilePage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium mb-1">Full Name</label>
               <input
                 type="text"
                 value={formData.name}
@@ -159,24 +115,13 @@ export default function ProfilePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                disabled
-                className="theme-form-input"
-              />
-              <p className="text-xs text-text-lighter mt-1">
-                Email cannot be changed
-              </p>
+              <label className="block text-sm font-medium mb-1">Email Address</label>
+              <input type="email" value={formData.email} disabled className="theme-form-input" />
+              <p className="text-xs text-text-lighter mt-1">Email cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Phone Number
-              </label>
+              <label className="block text-sm font-medium mb-1">Phone Number</label>
               <input
                 type="tel"
                 value={formData.phone}
@@ -187,89 +132,40 @@ export default function ProfilePage() {
             </div>
 
             {message && (
-              <div className={`p-4 rounded-lg ${
-                message.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-              }`}>
+              <div
+                className={`p-4 rounded-lg ${
+                  message.toLowerCase().includes('success')
+                    ? 'bg-green-50 text-green-700'
+                    : 'bg-red-50 text-red-700'
+                }`}
+              >
                 {message}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="theme-cta-primary w-full"
-            >
+            <button type="submit" disabled={saving} className="theme-cta-primary w-full">
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </form>
-
-          {/* Update Password Form */}
-          <div className="mt-10">
-            <h3 className="font-bold text-lg mb-4">Change Password</h3>
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Current Password</label>
-                <input
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  className="theme-form-input"
-                  placeholder="Enter current password"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">New Password</label>
-                <input
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className="theme-form-input"
-                  placeholder="Enter new password"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className="theme-form-input"
-                  placeholder="Confirm new password"
-                  required
-                />
-              </div>
-              {passwordMessage && (
-                <div className={`p-4 rounded-lg ${
-                  passwordMessage.includes('✅') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                }`}>
-                  {passwordMessage}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={passwordSaving}
-                className="theme-cta-primary w-full"
-              >
-                {passwordSaving ? 'Saving...' : 'Update Password'}
-              </button>
-            </form>
-          </div>
         </div>
 
-        {/* Account Info */}
         <div className="theme-surface p-6">
           <h3 className="font-bold text-lg mb-4">Account Information</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
+              <span className="theme-info-note">Login Method:</span>
+              <span className="font-semibold">Email OTP</span>
+            </div>
+            <div className="flex justify-between">
               <span className="theme-info-note">Account Created:</span>
               <span className="font-semibold">
-                {new Date(user?.createdAt).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
+                {user?.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </span>
             </div>
             <div className="flex justify-between">

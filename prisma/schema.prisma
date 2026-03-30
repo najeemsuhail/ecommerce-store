@@ -13,6 +13,8 @@ model User {
   email          String          @unique
   googleId       String?         @unique
   password       String
+  emailOtpHash   String?
+  emailOtpExpiry DateTime?
   name           String?
   phone          String?
   address        Json?
@@ -300,6 +302,7 @@ model StoreSettings {
   footerDescription String?
   contactEmail      String?
   contactPhone      String?
+  codEnabled        Boolean  @default(true)
   themeKey          String   @default("default")
   heroSlides        Json?
   socialLinks       Json?

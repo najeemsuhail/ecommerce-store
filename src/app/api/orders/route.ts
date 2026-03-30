@@ -315,6 +315,19 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    const requestedPaymentMethod = body.paymentMethod === 'cod' ? 'cod' : 'razorpay';
+    const storeSettings = await prisma.storeSettings.findFirst({
+      orderBy: { createdAt: 'asc' },
+      select: { codEnabled: true },
+    });
+
+    if (requestedPaymentMethod === 'cod' && storeSettings?.codEnabled === false) {
+      return NextResponse.json(
+        { success: false, error: 'Cash on Delivery is currently unavailable' },
+        { status: 400 }
+      );
+    }
+
     // Calculate shipping based on order total
     const hasPhysicalProducts = products.some((p) => !p.isDigital);
     const shippingCost = calculateShippingCost(subtotal, hasPhysicalProducts);
@@ -337,8 +350,8 @@ export async function POST(request: NextRequest) {
         shippingAddress,
         billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
         billingSameAsShipping: billingSameAsShipping || false,
-        paymentMethod: body.paymentMethod || 'razorpay', 
-        paymentStatus: body.paymentMethod === 'cod' ? 'cod_pending' : 'pending',
+        paymentMethod: requestedPaymentMethod,
+        paymentStatus: requestedPaymentMethod === 'cod' ? 'cod_pending' : 'pending',
 
         notes,
         items: {
@@ -388,7 +401,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send order confirmation emails for COD orders
-    if (body.paymentMethod === 'cod') {
+    if (requestedPaymentMethod === 'cod') {
       // Fetch full order details with user for email
       const fullOrder = await prisma.order.findUnique({
         where: { id: order.id },

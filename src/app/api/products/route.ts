@@ -514,10 +514,10 @@ export async function GET(request: NextRequest) {
       });
 
       const mergedById = new Map<string, ProductListRow>();
-      for (const product of searchProducts) {
+      for (const product of facetProducts) {
         mergedById.set(product.id, product);
       }
-      for (const product of facetProducts) {
+      for (const product of searchProducts) {
         if (!mergedById.has(product.id)) {
           mergedById.set(product.id, product);
         }

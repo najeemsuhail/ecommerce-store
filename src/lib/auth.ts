@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -31,7 +32,7 @@ export function generateToken(payload: TokenPayload): string {
 export function verifyToken(token: string): TokenPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as TokenPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -42,4 +43,16 @@ export function extractToken(authHeader: string | null): string | null {
     return null;
   }
   return authHeader.substring(7);
+}
+
+export function generateEmailOtp(): string {
+  return crypto.randomInt(100000, 1000000).toString();
+}
+
+export function hashEmailOtp(otp: string): string {
+  return crypto.createHash('sha256').update(otp).digest('hex');
+}
+
+export function verifyEmailOtp(otp: string, otpHash: string): boolean {
+  return hashEmailOtp(otp) === otpHash;
 }

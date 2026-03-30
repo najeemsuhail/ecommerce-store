@@ -1,0 +1,3 @@
+ALTER TABLE "User"
+ADD COLUMN "emailOtpHash" TEXT,
+ADD COLUMN "emailOtpExpiry" TIMESTAMP(3);

@@ -9,6 +9,7 @@ import ProductRecommendations from '@/components/ProductRecommendations';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import CouponInput from '@/components/CouponInput';
 import DeliveryPinChecker from '@/components/DeliveryPinChecker';
+import { useStoreSettings } from '@/contexts/StoreSettingsContext';
 import { formatPrice } from '@/lib/currency';
 import { calculateShippingCost } from '@/lib/shipping';
 import { trackBeginCheckout } from '@/lib/analytics';
@@ -151,6 +152,7 @@ declare global {
 export default function CheckoutFlowPage() {
   const router = useRouter();
   const { items, totalPrice, clearCart, addItem } = useCart();
+  const { codEnabled } = useStoreSettings();
   const initialSavedAddresses = getStoredAddresses();
   const defaultShippingAddressIndex = getDefaultAddressIndex(initialSavedAddresses);
   const beginCheckoutTracked = useRef(false);
@@ -232,7 +234,8 @@ export default function CheckoutFlowPage() {
   // Calculate totals
   const hasPhysicalProducts = items.some((item) => !item.isDigital);
   const shippingCost = calculateShippingCost(totalPrice, hasPhysicalProducts);
-  const codFee = paymentMethod === 'cod' ? 20.0 : 0; // COD handling fee
+  const effectivePaymentMethod = codEnabled ? paymentMethod : 'razorpay';
+  const codFee = effectivePaymentMethod === 'cod' ? 20.0 : 0; // COD handling fee
   const subtotal = totalPrice + shippingCost + codFee;
   const total = Math.max(0, subtotal - appliedDiscount);
 
@@ -256,13 +259,13 @@ export default function CheckoutFlowPage() {
 
   // Load Razorpay script
   useEffect(() => {
-    if (paymentMethod === 'razorpay') {
+    if (effectivePaymentMethod === 'razorpay') {
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.async = true;
       document.body.appendChild(script);
     }
-  }, [paymentMethod]);
+  }, [effectivePaymentMethod]);
 
   // Redirect if cart is empty
   if (items.length === 0) {
@@ -299,7 +302,7 @@ export default function CheckoutFlowPage() {
         shippingAddress,
         billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
         billingSameAsShipping,
-        paymentMethod,
+        paymentMethod: effectivePaymentMethod,
         couponCode: appliedCouponCode,
         couponId: appliedCouponId,
         discount: appliedDiscount,
@@ -327,7 +330,7 @@ export default function CheckoutFlowPage() {
       }
 
       // Handle payment based on selected method
-      if (paymentMethod === 'cod') {
+      if (effectivePaymentMethod === 'cod') {
         // COD: Mark order as COD and redirect to success
         clearCart();
         router.push(`/order-success?orderId=${orderResult.order.id}&method=cod`);
@@ -455,9 +458,9 @@ export default function CheckoutFlowPage() {
                     <h2 className="text-xl font-bold">Payment Method</h2>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={`grid grid-cols-1 gap-4 ${codEnabled ? 'md:grid-cols-2' : ''}`}>
                     <label className={`theme-option-card flex items-start gap-3 p-4 cursor-pointer ${
-                      paymentMethod === 'razorpay'
+                      effectivePaymentMethod === 'razorpay'
                         ? 'theme-option-card-active'
                         : ''
                     }`}>
@@ -465,7 +468,7 @@ export default function CheckoutFlowPage() {
                         type="radio"
                         name="paymentMethod"
                         value="razorpay"
-                        checked={paymentMethod === 'razorpay'}
+                        checked={effectivePaymentMethod === 'razorpay'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'razorpay')}
                         className="theme-check w-5 h-5 mt-0.5"
                       />
@@ -476,8 +479,9 @@ export default function CheckoutFlowPage() {
                       </div>
                     </label>
 
+                    {codEnabled && (
                     <label className={`theme-option-card flex items-start gap-3 p-4 cursor-pointer ${
-                      paymentMethod === 'cod'
+                        effectivePaymentMethod === 'cod'
                         ? 'theme-option-card-active'
                         : ''
                     }`}>
@@ -485,19 +489,25 @@ export default function CheckoutFlowPage() {
                         type="radio"
                         name="paymentMethod"
                         value="cod"
-                        checked={paymentMethod === 'cod'}
+                          checked={effectivePaymentMethod === 'cod'}
                         onChange={(e) => setPaymentMethod(e.target.value as 'cod')}
                         className="theme-check w-5 h-5 mt-0.5"
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-dark-theme">Cash on Delivery</div>
                         <div className="theme-info-note text-sm">Pay on delivery</div>
-                        {paymentMethod === 'cod' && (
+                          {effectivePaymentMethod === 'cod' && (
                           <div className="text-xs text-orange-600 mt-2 font-medium">💰 +{formatPrice(codFee)} handling fee</div>
                         )}
                       </div>
                     </label>
+                    )}
                   </div>
+                  {!codEnabled && (
+                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                      Cash on Delivery is currently unavailable. Online payment is enabled for this store.
+                    </div>
+                  )}
                 </div>
 
                 {/* Shipping Information */}
@@ -866,7 +876,7 @@ export default function CheckoutFlowPage() {
                     </svg>
                   )}
                   <span>
-                    {loading ? 'Processing...' : paymentMethod === 'cod' ? `Place Order - ${formatPrice(total)}` : `Pay ${formatPrice(total)}`}
+                    {loading ? 'Processing...' : effectivePaymentMethod === 'cod' ? `Place Order - ${formatPrice(total)}` : `Pay ${formatPrice(total)}`}
                   </span>
                 </button>
               </form>
@@ -952,7 +962,7 @@ export default function CheckoutFlowPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     <span>
-                      {paymentMethod === 'cod' ? 'Secure COD order' : 'Secure payment with Razorpay'}
+                      {effectivePaymentMethod === 'cod' ? 'Secure COD order' : 'Secure payment with Razorpay'}
                     </span>
                   </div>
                 </div>
