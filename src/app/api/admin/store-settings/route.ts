@@ -60,6 +60,9 @@ export async function PUT(request: NextRequest) {
       codEnabled,
       homeBestSellerProductIds,
       homeTrendingProductIds,
+      heroSlides,
+      socialLinks,
+      footerHighlights,
     } = await request.json();
 
     if (typeof codEnabled !== 'boolean') {
@@ -73,6 +76,27 @@ export async function PUT(request: NextRequest) {
     if (typeof themeKey !== 'string' || !allowedThemes.includes(themeKey)) {
       return NextResponse.json(
         { success: false, error: 'Invalid theme selected' },
+        { status: 400 }
+      );
+    }
+
+    if (heroSlides !== undefined && !Array.isArray(heroSlides)) {
+      return NextResponse.json(
+        { success: false, error: 'heroSlides must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (socialLinks !== undefined && !Array.isArray(socialLinks)) {
+      return NextResponse.json(
+        { success: false, error: 'socialLinks must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (footerHighlights !== undefined && !Array.isArray(footerHighlights)) {
+      return NextResponse.json(
+        { success: false, error: 'footerHighlights must be an array' },
         { status: 400 }
       );
     }
@@ -112,6 +136,9 @@ export async function PUT(request: NextRequest) {
         homeTrendingProductIds: Array.isArray(homeTrendingProductIds)
           ? homeTrendingProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
           : [],
+        heroSlides: Array.isArray(heroSlides) ? heroSlides : [],
+        socialLinks: Array.isArray(socialLinks) ? socialLinks : [],
+        footerHighlights: Array.isArray(footerHighlights) ? footerHighlights : [],
       } as Record<string, unknown>,
     });
 

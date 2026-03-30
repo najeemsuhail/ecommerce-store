@@ -28,6 +28,9 @@ type AdminStoreSettings = {
   codEnabled: boolean;
   homeBestSellerProductIds: string[];
   homeTrendingProductIds: string[];
+  heroSlides?: unknown;
+  socialLinks?: unknown;
+  footerHighlights?: unknown;
 };
 
 type StoreSettingsForm = {
@@ -43,6 +46,9 @@ type StoreSettingsForm = {
   codEnabled: boolean;
   homeBestSellerProductIds: string[];
   homeTrendingProductIds: string[];
+  heroSlidesJson: string;
+  socialLinksJson: string;
+  footerHighlightsJson: string;
 };
 
 type ProductSearchState = {
@@ -64,6 +70,9 @@ const EMPTY_FORM: StoreSettingsForm = {
   codEnabled: true,
   homeBestSellerProductIds: [],
   homeTrendingProductIds: [],
+  heroSlidesJson: '[]',
+  socialLinksJson: '[]',
+  footerHighlightsJson: '[]',
 };
 
 const EMPTY_SEARCH: ProductSearchState = {
@@ -71,6 +80,10 @@ const EMPTY_SEARCH: ProductSearchState = {
   results: [],
   loading: false,
 };
+
+function formatJson(value: unknown) {
+  return JSON.stringify(value ?? [], null, 2);
+}
 
 function ProductPickerSection({
   title,
@@ -262,6 +275,9 @@ export default function AdminSettingsPage() {
         codEnabled: Boolean(data.settings.codEnabled),
         homeBestSellerProductIds: data.settings.homeBestSellerProductIds || [],
         homeTrendingProductIds: data.settings.homeTrendingProductIds || [],
+        heroSlidesJson: formatJson(data.settings.heroSlides),
+        socialLinksJson: formatJson(data.settings.socialLinks),
+        footerHighlightsJson: formatJson(data.settings.footerHighlights),
       });
 
       const [selectedBestSellers, selectedTrending] = await Promise.all([
@@ -427,13 +443,31 @@ export default function AdminSettingsPage() {
     setMessage('');
 
     try {
+      let heroSlides: unknown;
+      let socialLinks: unknown;
+      let footerHighlights: unknown;
+
+      try {
+        heroSlides = JSON.parse(formData.heroSlidesJson || '[]');
+        socialLinks = JSON.parse(formData.socialLinksJson || '[]');
+        footerHighlights = JSON.parse(formData.footerHighlightsJson || '[]');
+      } catch {
+        setMessage('One of the JSON fields is invalid. Please correct it and try again.');
+        return;
+      }
+
       const response = await fetch('/api/admin/store-settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          heroSlides,
+          socialLinks,
+          footerHighlights,
+        }),
       });
 
       const data = await response.json();
@@ -545,6 +579,48 @@ export default function AdminSettingsPage() {
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium mb-1">Footer Description</label>
                     <textarea name="footerDescription" value={formData.footerDescription} onChange={handleChange} rows={4} className="theme-form-input" placeholder="Short footer copy about the store" />
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold text-gray-900">Advanced Content</h2>
+                <p className="text-sm text-gray-600">
+                  Edit the homepage slides, footer social links, and footer highlight cards as simple JSON arrays.
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Hero Slides JSON</label>
+                    <textarea
+                      name="heroSlidesJson"
+                      value={formData.heroSlidesJson}
+                      onChange={handleChange}
+                      rows={10}
+                      className="theme-form-input font-mono text-xs"
+                      placeholder='[{"badge":"New","badgeEmoji":"✨","category":"Collection","mainHeading":"Heading","subHeading":"Sub heading","description":"Copy","primaryCTA":{"label":"Shop Now","href":"/products"},"secondaryCTA":{"label":"View More","href":"/collections"},"image":{"src":"https://...","alt":"Hero"}}]'
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Social Links JSON</label>
+                    <textarea
+                      name="socialLinksJson"
+                      value={formData.socialLinksJson}
+                      onChange={handleChange}
+                      rows={6}
+                      className="theme-form-input font-mono text-xs"
+                      placeholder='[{"platform":"instagram","url":"https://instagram.com/yourstore","label":"Instagram"}]'
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Footer Highlights JSON</label>
+                    <textarea
+                      name="footerHighlightsJson"
+                      value={formData.footerHighlightsJson}
+                      onChange={handleChange}
+                      rows={6}
+                      className="theme-form-input font-mono text-xs"
+                      placeholder='[{"icon":"🚚","title":"Fast Delivery","description":"Across India"}]'
+                    />
                   </div>
                 </div>
               </section>

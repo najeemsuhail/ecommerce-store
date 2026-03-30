@@ -201,7 +201,7 @@ export default function ProductCarousel({
               key={product.id}
               className={`theme-product-card group/card flex-shrink-0 overflow-hidden snap-start ${
                 type === 'bestseller'
-                  ? 'w-[72vw] min-w-[72vw] sm:w-80 sm:min-w-80'
+                  ? 'w-[46vw] min-w-[46vw] sm:w-80 sm:min-w-80'
                   : 'w-[84vw] min-w-[84vw] sm:w-80 sm:min-w-80'
               }`}
             >
