@@ -15,6 +15,25 @@ interface Attribute {
   filterable: boolean;
 }
 
+interface AttributeApiRow {
+  id: string;
+  name: string;
+  type: string;
+  options?: Array<string | { value: string }>;
+  filterable: boolean;
+}
+
+interface ProductAttributeValueRow {
+  value?: string;
+  attribute?: {
+    name?: string;
+  };
+}
+
+interface ProductForAttributeCounts {
+  attributeValues?: ProductAttributeValueRow[];
+}
+
 interface FacetFilters {
   brands: string[];
   categories: string[];
@@ -127,7 +146,7 @@ export default function FacetFilter({
             const data = await res.json();
             if (Array.isArray(data)) {
               data
-                .filter((a: any) => a.filterable)
+                .filter((a: AttributeApiRow) => a.filterable)
                 .forEach((attr: Attribute) => {
                   // Merge attributes with same name (from different categories)
                   if (!attributeMap.has(attr.name)) {
@@ -164,7 +183,7 @@ export default function FacetFilter({
             const data = await res.json();
             if (Array.isArray(data)) {
               data
-                .filter((a: any) => a.filterable)
+                .filter((a: AttributeApiRow) => a.filterable)
                 .forEach((attr: Attribute) => {
                   // Merge attributes with same name
                   if (!attributeMap.has(attr.name)) {
@@ -204,9 +223,9 @@ export default function FacetFilter({
             // Calculate counts for each attribute option
             attributeMap.forEach((attr) => {
               attr.options.forEach((opt) => {
-                opt.count = data.products.filter((p: any) => {
+                opt.count = data.products.filter((p: ProductForAttributeCounts) => {
                   if (p.attributeValues && Array.isArray(p.attributeValues)) {
-                    return p.attributeValues.some((av: any) => 
+                    return p.attributeValues.some((av: ProductAttributeValueRow) =>
                       av.attribute?.name === attr.name && av.value === opt.value
                     );
                   }
@@ -254,6 +273,28 @@ export default function FacetFilter({
       ...selectedFilters, 
       categories: newCategories,
       categoryIds: newCategoryIds,
+    });
+  };
+
+  const toggleAttributeValue = (attributeId: string, value: string) => {
+    const newFilters = { ...(selectedFilters.attributes || {}) };
+    if (!newFilters[attributeId]) {
+      newFilters[attributeId] = [];
+    }
+
+    if (newFilters[attributeId].includes(value)) {
+      newFilters[attributeId] = newFilters[attributeId].filter((entry) => entry !== value);
+    } else {
+      newFilters[attributeId].push(value);
+    }
+
+    if (newFilters[attributeId].length === 0) {
+      delete newFilters[attributeId];
+    }
+
+    onFilterChange({
+      ...selectedFilters,
+      attributes: newFilters,
     });
   };
 
@@ -430,9 +471,15 @@ export default function FacetFilter({
   };
 
   useEffect(() => {
-    if (!selectedFilters.categoryIds.length) return;
     setExpandedCategoryIds((prev) => {
-      const next = new Set(prev);
+      const next = new Set<string>();
+
+      for (const [categoryId, children] of childrenByParent.entries()) {
+        if (children.length > 0) {
+          next.add(categoryId);
+        }
+      }
+
       for (const categoryId of selectedFilters.categoryIds) {
         let current = hierarchyMap.get(categoryId);
         while (current?.parentId) {
@@ -442,7 +489,7 @@ export default function FacetFilter({
       }
       return next;
     });
-  }, [selectedFilters.categoryIds, hierarchyMap]);
+  }, [childrenByParent, selectedFilters.categoryIds, hierarchyMap]);
 
   return (
     <div className="bg-light-theme rounded-lg shadow p-6 h-fit sticky top-20 overflow-y-auto max-h-[calc(100vh-120px)] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent" style={{ contain: 'layout' }}>
@@ -537,15 +584,17 @@ export default function FacetFilter({
                 return (
                   <div key={category.id} className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <label className="flex items-center gap-3 cursor-pointer hover:text-primary-theme min-w-0">
-                        <input
-                          type="checkbox"
-                          checked={selectedFilters.categoryIds.includes(category.id)}
-                          onChange={() => handleCategoryChange(category.name, category.id)}
-                          className="w-4 h-4 rounded border-gray-300"
-                        />
-                        <span className="text-gray-700 min-w-0 break-words">{category.name}</span>
-                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleCategoryChange(category.name, category.id)}
+                        className={`min-w-0 text-left text-sm transition ${
+                          selectedFilters.categoryIds.includes(category.id)
+                            ? 'theme-inline-link font-semibold underline'
+                            : 'text-gray-700 hover:text-primary-theme'
+                        }`}
+                      >
+                        <span className="break-words">{category.name}</span>
+                      </button>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {children.length > 0 && (
                           <button
@@ -563,17 +612,18 @@ export default function FacetFilter({
                     {isExpanded && children.length > 0 && (
                       <div className="ml-6 space-y-2 border-l border-gray-200 pl-3">
                         {children.map((child) => (
-                          <label key={child.id} className="flex items-center justify-between gap-3 cursor-pointer hover:text-primary-theme">
-                            <span className="flex items-center gap-3 min-w-0">
-                              <input
-                                type="checkbox"
-                                checked={selectedFilters.categoryIds.includes(child.id)}
-                                onChange={() => handleCategoryChange(child.name, child.id)}
-                                className="w-4 h-4 rounded border-gray-300"
-                              />
-                              <span className="text-gray-700 min-w-0 break-words">{child.name}</span>
-                            </span>
-                          </label>
+                          <button
+                            key={child.id}
+                            type="button"
+                            onClick={() => handleCategoryChange(child.name, child.id)}
+                            className={`w-full text-left text-sm transition ${
+                              selectedFilters.categoryIds.includes(child.id)
+                                ? 'theme-inline-link font-semibold underline'
+                                : 'text-gray-700 hover:text-primary-theme'
+                            }`}
+                          >
+                            <span className="break-words">{child.name}</span>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -604,100 +654,58 @@ export default function FacetFilter({
                 <div key={attr.name}>
                   <p className="text-sm font-medium text-gray-700 mb-2">{attr.name}</p>
                   <div className="space-y-2">
-                    {attr.type === 'select' || attr.type === 'size' || attr.type === 'text' || attr.type === 'number' || attr.type === 'multiselect' ? (
-                      attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
-                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt.value) || false}
-                            onChange={(e) => {
-                              const newFilters = { ...selectedFilters.attributes || {} };
-                              if (!newFilters[attr.id]) {
-                                newFilters[attr.id] = [];
-                              }
-                              if (e.target.checked) {
-                                newFilters[attr.id].push(opt.value);
-                              } else {
-                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt.value);
-                              }
-                              if (newFilters[attr.id].length === 0) {
-                                delete newFilters[attr.id];
-                              }
-                              onFilterChange({
-                                ...selectedFilters,
-                                attributes: newFilters,
-                              });
-                            }}
-                            className="w-4 h-4 rounded"
-                          />
-                          <span className="text-sm text-gray-700">{opt.value}</span>
-                        </label>
+                    <div className="flex flex-wrap gap-2">
+                     {attr.type === 'select' || attr.type === 'size' || attr.type === 'text' || attr.type === 'number' || attr.type === 'multiselect' ? (
+                       attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => toggleAttributeValue(attr.id, opt.value)}
+                          className={`text-sm transition ${
+                            selectedFilters.attributes?.[attr.id]?.includes(opt.value)
+                              ? 'theme-inline-link font-semibold underline'
+                              : 'text-gray-700 hover:text-primary-theme'
+                          }`}
+                        >
+                          {opt.value}
+                        </button>
                       )) : null
                     ) : attr.type === 'color' ? (
                       attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
-                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt.value) || false}
-                            onChange={(e) => {
-                              const newFilters = { ...selectedFilters.attributes || {} };
-                              if (!newFilters[attr.id]) {
-                                newFilters[attr.id] = [];
-                              }
-                              if (e.target.checked) {
-                                newFilters[attr.id].push(opt.value);
-                              } else {
-                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt.value);
-                              }
-                              if (newFilters[attr.id].length === 0) {
-                                delete newFilters[attr.id];
-                              }
-                              onFilterChange({
-                                ...selectedFilters,
-                                attributes: newFilters,
-                              });
-                            }}
-                            className="w-4 h-4 rounded"
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => toggleAttributeValue(attr.id, opt.value)}
+                          className={`flex items-center gap-2 text-sm transition ${
+                            selectedFilters.attributes?.[attr.id]?.includes(opt.value)
+                              ? 'theme-inline-link font-semibold underline'
+                              : 'text-gray-700 hover:text-primary-theme'
+                          }`}
+                        >
+                          <div
+                            className="h-4 w-4 rounded-full border border-gray-300"
+                            style={{ backgroundColor: opt.value }}
                           />
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-4 h-4 rounded border border-gray-300"
-                              style={{ backgroundColor: opt.value }}
-                            />
-                            <span className="text-sm text-gray-700">{opt.value}</span>
-                          </div>
-                        </label>
+                          <span>{opt.value}</span>
+                        </button>
                       )) : null
                     ) : (
                       attr.options && Array.isArray(attr.options) ? attr.options.map((opt) => (
-                        <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedFilters.attributes?.[attr.id]?.includes(opt.value) || false}
-                            onChange={(e) => {
-                              const newFilters = { ...selectedFilters.attributes || {} };
-                              if (!newFilters[attr.id]) {
-                                newFilters[attr.id] = [];
-                              }
-                              if (e.target.checked) {
-                                newFilters[attr.id].push(opt.value);
-                              } else {
-                                newFilters[attr.id] = newFilters[attr.id].filter(v => v !== opt.value);
-                              }
-                              if (newFilters[attr.id].length === 0) {
-                                delete newFilters[attr.id];
-                              }
-                              onFilterChange({
-                                ...selectedFilters,
-                                attributes: newFilters,
-                              });
-                            }}
-                            className="w-4 h-4 rounded"
-                          />
-                          <span className="text-sm text-gray-700">{opt.value}</span>
-                        </label>
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => toggleAttributeValue(attr.id, opt.value)}
+                          className={`text-sm transition ${
+                            selectedFilters.attributes?.[attr.id]?.includes(opt.value)
+                              ? 'theme-inline-link font-semibold underline'
+                              : 'text-gray-700 hover:text-primary-theme'
+                          }`}
+                        >
+                          {opt.value}
+                        </button>
                       )) : null
                     )}
+                    </div>
                   </div>
                 </div>
               ))}
