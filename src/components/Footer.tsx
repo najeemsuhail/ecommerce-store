@@ -129,7 +129,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div className="min-w-0 md:col-span-2 lg:col-span-2" suppressHydrationWarning>
+          <div className="min-w-0 md:col-span-2 lg:col-span-1" suppressHydrationWarning>
             <h3 className="mb-6 text-lg font-bold text-white">Subscribe</h3>
             <p className="mb-4 text-sm text-white/75">Get exclusive deals and updates delivered to your inbox.</p>
 
@@ -145,7 +145,7 @@ export default function Footer() {
               </div>
             )}
 
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-2 lg:flex-row lg:items-stretch">
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
               <input
                 type="email"
                 value={email}
@@ -157,7 +157,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={subscribeStatus === 'loading'}
-                className="theme-cta-primary w-full shrink-0 rounded-lg px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 lg:w-auto"
+                className="theme-cta-primary w-full rounded-lg px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {subscribeStatus === 'loading' ? '...' : 'Join'}
               </button>
