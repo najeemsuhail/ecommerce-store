@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
 import { isAdmin } from '@/lib/adminAuth';
 
@@ -113,6 +114,10 @@ export async function PUT(request: NextRequest) {
           : [],
       } as Record<string, unknown>,
     });
+
+    revalidatePath('/', 'layout');
+    revalidatePath('/');
+    revalidatePath('/admin/settings');
 
     return NextResponse.json({
       success: true,

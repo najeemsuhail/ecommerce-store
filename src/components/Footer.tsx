@@ -145,7 +145,7 @@ export default function Footer() {
               </div>
             )}
 
-            <form onSubmit={handleSubscribe} className="flex flex-col gap-2 xl:flex-row">
+            <form onSubmit={handleSubscribe} className="flex flex-col gap-2 lg:flex-row lg:items-stretch">
               <input
                 type="email"
                 value={email}
@@ -157,7 +157,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={subscribeStatus === 'loading'}
-                className="theme-cta-primary w-full rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50 xl:w-auto"
+                className="theme-cta-primary w-full shrink-0 rounded-lg px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 lg:w-auto"
               >
                 {subscribeStatus === 'loading' ? '...' : 'Join'}
               </button>
