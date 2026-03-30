@@ -230,6 +230,7 @@ export async function GET(request: NextRequest) {
     const includeFacetsRequested = searchParams.get('includeFacets') === 'true';
     const facetsOnlyRequested = searchParams.get('facetsOnly') === 'true';
     const sort = searchParams.get('sort') || 'newest';
+    const idsParam = searchParams.get('ids');
     const skip = parseInt(searchParams.get('skip') || '0');
     const limit = parseInt(searchParams.get('limit') || '12');
     
@@ -253,6 +254,37 @@ export async function GET(request: NextRequest) {
     const parsedIsDigital =
       isDigital === 'true' ? true : isDigital === 'false' ? false : undefined;
     const parsedIsFeatured = isFeatured === 'true' ? true : undefined;
+    const requestedIds = idsParam
+      ? Array.from(new Set(idsParam.split(',').map((id) => id.trim()).filter(Boolean)))
+      : [];
+
+    if (requestedIds.length > 0) {
+      const products = await prisma.product.findMany({
+        where: {
+          isActive: true,
+          id: { in: requestedIds },
+        },
+        select: productListSelect,
+      });
+
+      const orderMap = new Map(requestedIds.map((id, index) => [id, index]));
+      products.sort(
+        (a, b) => (orderMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+      );
+
+      return NextResponse.json(
+        {
+          success: true,
+          products,
+          count: products.length,
+          total: products.length,
+          facets: null,
+        },
+        {
+          headers: buildResponseHeaders(),
+        }
+      );
+    }
 
     const hasNonSearchFilters =
       categories.length > 0 ||

@@ -303,6 +303,8 @@ model StoreSettings {
   contactEmail      String?
   contactPhone      String?
   codEnabled        Boolean  @default(true)
+  homeBestSellerProductIds String[] @default([])
+  homeTrendingProductIds   String[] @default([])
   themeKey          String   @default("default")
   heroSlides        Json?
   socialLinks       Json?

@@ -14,19 +14,6 @@ export async function GET(request: NextRequest) {
 
     const settings = await prisma.storeSettings.findFirst({
       orderBy: { createdAt: 'asc' },
-      select: {
-        id: true,
-        storeName: true,
-        domain: true,
-        logoUrl: true,
-        seoTitle: true,
-        seoDescription: true,
-        footerDescription: true,
-        themeKey: true,
-        codEnabled: true,
-        contactEmail: true,
-        contactPhone: true,
-      },
     });
 
     if (!settings) {
@@ -70,6 +57,8 @@ export async function PUT(request: NextRequest) {
       contactPhone,
       themeKey,
       codEnabled,
+      homeBestSellerProductIds,
+      homeTrendingProductIds,
     } = await request.json();
 
     if (typeof codEnabled !== 'boolean') {
@@ -116,20 +105,13 @@ export async function PUT(request: NextRequest) {
           typeof contactPhone === 'string' && contactPhone.trim() ? contactPhone.trim() : null,
         themeKey,
         codEnabled,
-      },
-      select: {
-        id: true,
-        storeName: true,
-        domain: true,
-        logoUrl: true,
-        seoTitle: true,
-        seoDescription: true,
-        footerDescription: true,
-        themeKey: true,
-        codEnabled: true,
-        contactEmail: true,
-        contactPhone: true,
-      },
+        homeBestSellerProductIds: Array.isArray(homeBestSellerProductIds)
+          ? homeBestSellerProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+          : [],
+        homeTrendingProductIds: Array.isArray(homeTrendingProductIds)
+          ? homeTrendingProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+          : [],
+      } as Record<string, unknown>,
     });
 
     return NextResponse.json({

@@ -35,6 +35,8 @@ interface ProductRecommendationsProps {
   onProductClick?: (product: Product) => void;
   onAddToCart?: (product: Product) => void;
   className?: string;
+  productsOverride?: Product[];
+  recommendationTypeOverride?: string;
 }
 
 export default function ProductRecommendations({
@@ -48,6 +50,8 @@ export default function ProductRecommendations({
   onProductClick,
   onAddToCart,
   className = '',
+  productsOverride,
+  recommendationTypeOverride,
 }: ProductRecommendationsProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +70,14 @@ export default function ProductRecommendations({
   });
 
   useEffect(() => {
+    if (productsOverride) {
+      setProducts(productsOverride);
+      setRecommendationType(recommendationTypeOverride || 'manual');
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const fetchRecommendations = async () => {
       try {
         setLoading(true);
@@ -95,14 +107,14 @@ export default function ProductRecommendations({
     };
 
     fetchRecommendations();
-  }, [productId, category, userId, excludeIdsKey, limit]);
+  }, [productId, category, userId, excludeIdsKey, limit, productsOverride, recommendationTypeOverride]);
 
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 grid-rows-2 gap-3 sm:grid-cols-2 sm:grid-rows-none sm:gap-6 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-gray-200 rounded-lg h-80"></div>
+            <div key={i} className="h-64 rounded-lg bg-gray-200 sm:h-80"></div>
           ))}
         </div>
       </div>
@@ -158,17 +170,17 @@ export default function ProductRecommendations({
   };
 
   return (
-    <section className={`py-12 ${className}`}>
+    <section className={`py-10 sm:py-12 ${className}`}>
       {showTitle && (
-        <div className="mb-8">
-          <h2 className="theme-section-heading text-3xl md:text-4xl font-bold">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="theme-section-heading text-2xl font-bold sm:text-3xl md:text-4xl">
             {getTitle()}
           </h2>
           <div className="theme-heading-rule mt-2 h-1 w-20"></div>
         </div>
       )}
 
-      <div className="grid grid-cols-2 grid-rows-2 sm:grid-cols-2 sm:grid-rows-none lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 grid-rows-2 gap-3 sm:grid-cols-2 sm:grid-rows-none sm:gap-6 lg:grid-cols-4">
         {products.map((product) => (
           <div
             key={product.id}
@@ -180,7 +192,7 @@ export default function ProductRecommendations({
               scroll={true}
               onClick={() => onProductClick?.(product)}
             >
-              <div className="theme-product-media relative h-56 overflow-hidden">
+              <div className="theme-product-media relative h-40 overflow-hidden sm:h-48 md:h-56">
                 {product.images?.[0] ? (
                   <Image
                     src={product.images[0]}
@@ -251,14 +263,14 @@ export default function ProductRecommendations({
 
             {/* Product Info - Only show for non-trending sections */}
             {recommendationType !== 'trending' && (
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 {/* Title */}
                 <Link
                   href={`/products/${product.slug}`}
                   scroll={true}
                   onClick={() => onProductClick?.(product)}
                 >
-                  <h3 className="font-semibold text-dark-theme line-clamp-2 group-hover:text-primary-theme transition-colors min-h-[3rem]">
+                  <h3 className="min-h-[2.5rem] line-clamp-2 text-sm font-semibold text-dark-theme transition-colors group-hover:text-primary-theme sm:min-h-[3rem] sm:text-base">
                     {product.name}
                   </h3>
                 </Link>
@@ -302,12 +314,12 @@ export default function ProductRecommendations({
 
                 {/* Rating */}
                 {product.averageRating !== undefined && product.averageRating !== null && product.averageRating > 0 && (
-                  <div className="flex items-center gap-2 my-2">
+                  <div className="my-2 flex items-center gap-2">
                     <div className="flex items-center gap-1">
                       <svg className="w-4 h-4 fill-yellow-400" viewBox="0 0 20 20">
                         <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                       </svg>
-                      <span className="text-sm font-semibold text-gray-theme">
+                      <span className="text-xs font-semibold text-gray-theme sm:text-sm">
                         {product.averageRating}
                       </span>
                     </div>
@@ -318,8 +330,8 @@ export default function ProductRecommendations({
                 )}
 
                 {/* Price */}
-                <div className="flex items-center gap-2 my-3">
-                  <span className="text-xl font-bold text-primary-theme">
+                <div className="my-3 flex items-center gap-2">
+                  <span className="text-lg font-bold text-primary-theme sm:text-xl">
                     {formatPrice(product.price)}
                   </span>
                   {product.comparePrice && (
@@ -337,13 +349,13 @@ export default function ProductRecommendations({
 
             {/* For Trending - Only show title */}
             {recommendationType === 'trending' && (
-                <div className="p-3 bg-white-theme">
+                <div className="bg-white-theme p-3 sm:p-4">
                   <Link
                     href={`/products/${product.slug}`}
                     scroll={true}
                     onClick={() => onProductClick?.(product)}
                   >
-                    <h3 className="font-semibold text-sm text-dark-theme line-clamp-2 group-hover:text-primary-theme transition-colors">
+                    <h3 className="line-clamp-2 text-sm font-semibold text-dark-theme transition-colors group-hover:text-primary-theme sm:text-base">
                       {product.name}
                     </h3>
                   </Link>

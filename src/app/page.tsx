@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Layout from '@/components/Layout';
 import AddToCartNotification from '@/components/AddToCartNotification';
 import ProductCarousel from '@/components/ProductCarousel';
 import HeroCarousel from '@/components/HeroCarousel';
-// import StatsSection from '@/components/StatsSection'; // Commented out temporarily
 import CategoryCarousel from '@/components/CategoryCarousel';
 import FeaturedProductsSection from '@/components/FeaturedProductsSection';
 import FeaturesSection from '@/components/FeaturesSection';
@@ -14,130 +13,220 @@ import LatestBlogPostsSection from '@/components/LatestBlogPostsSection';
 import ProductRecommendations from '@/components/ProductRecommendations';
 import RecentlyViewedSection from '@/components/RecentlyViewedSection';
 import { getClientCache, setClientCache } from '@/lib/clientCache';
+import { useStoreSettings } from '@/contexts/StoreSettingsContext';
 
 const STORE_HOME_CACHE_TTL_MS = 5 * 60 * 1000;
 
+type HomeProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  comparePrice?: number;
+  images?: string[];
+  averageRating?: number;
+  reviewCount?: number;
+  isFeatured?: boolean;
+  isDigital?: boolean;
+  isActive?: boolean;
+  stock?: number;
+  weight?: number;
+};
+
+type HomeCategory = {
+  name: string;
+  id: string;
+  slug: string;
+  imageUrl?: string | null;
+};
+
+type CategoryApiRow = {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl?: string | null;
+  parentId?: string | null;
+  children?: Array<unknown>;
+};
+
+function getBestSellerCacheKey(ids: string[]) {
+  return ids.length > 0 ? `home:best-sellers:${ids.join('|')}` : 'home:best-sellers:auto';
+}
+
+function getTrendingCacheKey(ids: string[], bestSellerIds: string[]) {
+  return ids.length > 0 ? `home:trending:${ids.join('|')}` : `home:trending:auto:${bestSellerIds.join('|')}`;
+}
+
 export default function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const [bestSellers, setBestSellers] = useState<any[]>([]);
-  const [categories, setCategories] = useState<Array<{ name: string; id: string; slug: string; imageUrl?: string | null }>>([]);
-  const [stats, setStats] = useState({ products: 0, customers: 0, orders: 0 });
+  const { homeBestSellerProductIds, homeTrendingProductIds } = useStoreSettings();
+  const { addItem } = useCart();
+
+  const [featuredProducts, setFeaturedProducts] = useState<HomeProduct[]>(
+    () => getClientCache<HomeProduct[]>('home:featured-products') || []
+  );
+  const [bestSellers, setBestSellers] = useState<HomeProduct[]>(
+    () => getClientCache<HomeProduct[]>(getBestSellerCacheKey(homeBestSellerProductIds)) || []
+  );
+  const [trendingProducts, setTrendingProducts] = useState<HomeProduct[]>(
+    () =>
+      getClientCache<HomeProduct[]>(
+        getTrendingCacheKey(
+          homeTrendingProductIds,
+          (getClientCache<HomeProduct[]>(getBestSellerCacheKey(homeBestSellerProductIds)) || []).map(
+            (product) => product.id
+          )
+        )
+      ) || []
+  );
+  const [categories, setCategories] = useState<HomeCategory[]>(
+    () => getClientCache<HomeCategory[]>('home:categories') || []
+  );
   const [notification, setNotification] = useState<{ message: string; visible: boolean }>({
     message: '',
     visible: false,
   });
-  const { totalItems, addItem } = useCart();
+
+  const fetchProductsByIds = async (ids: string[], cacheKey: string): Promise<HomeProduct[]> => {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    try {
+      const response = await fetch(`/api/products?ids=${encodeURIComponent(ids.join(','))}`);
+      const data = await response.json();
+      if (data.success) {
+        const nextProducts = (data.products ?? []) as HomeProduct[];
+        setClientCache(cacheKey, nextProducts, STORE_HOME_CACHE_TTL_MS);
+        return nextProducts;
+      }
+    } catch {
+      console.error(`Failed to fetch products for cache key: ${cacheKey}`);
+    }
+
+    return [];
+  };
 
   const fetchFeaturedProducts = async () => {
-    const cacheKey = 'home:featured-products';
     try {
       const response = await fetch('/api/products?isFeatured=true');
       const data = await response.json();
       if (data.success) {
-        const nextProducts = data.products.slice(0, 8);
+        const nextProducts = (data.products.slice(0, 8) ?? []) as HomeProduct[];
         setFeaturedProducts(nextProducts);
-        setClientCache(cacheKey, nextProducts, STORE_HOME_CACHE_TTL_MS);
+        setClientCache('home:featured-products', nextProducts, STORE_HOME_CACHE_TTL_MS);
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch featured products');
     }
   };
 
   const fetchBestSellers = async () => {
-    const cacheKey = 'home:best-sellers';
+    if (homeBestSellerProductIds.length > 0) {
+      const nextProducts = await fetchProductsByIds(
+        homeBestSellerProductIds,
+        getBestSellerCacheKey(homeBestSellerProductIds)
+      );
+      setBestSellers(nextProducts);
+      return;
+    }
+
     try {
       const response = await fetch('/api/products/recommendations?mode=bestsellers&limit=8');
       const data = await response.json();
       if (data.success) {
-        const nextProducts = data.recommendations ?? [];
+        const nextProducts = (data.recommendations ?? []) as HomeProduct[];
         setBestSellers(nextProducts);
-        setClientCache(cacheKey, nextProducts, STORE_HOME_CACHE_TTL_MS);
+        setClientCache('home:best-sellers:auto', nextProducts, STORE_HOME_CACHE_TTL_MS);
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch best sellers');
     }
   };
 
+  const fetchTrendingProducts = async () => {
+    if (homeTrendingProductIds.length > 0) {
+      const nextProducts = await fetchProductsByIds(
+        homeTrendingProductIds,
+        getTrendingCacheKey(homeTrendingProductIds, [])
+      );
+      setTrendingProducts(nextProducts);
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams();
+      params.set('limit', '8');
+      bestSellers.forEach((product) => params.append('excludeId', product.id));
+
+      const response = await fetch(`/api/products/recommendations?${params.toString()}`);
+      const data = await response.json();
+      if (data.success) {
+        const nextProducts = (data.recommendations ?? []) as HomeProduct[];
+        setTrendingProducts(nextProducts);
+        setClientCache(
+          getTrendingCacheKey([], bestSellers.map((product) => product.id)),
+          nextProducts,
+          STORE_HOME_CACHE_TTL_MS
+        );
+      }
+    } catch {
+      console.error('Failed to fetch trending products');
+    }
+  };
+
   const fetchCategories = async () => {
-    const cacheKey = 'home:categories';
     try {
       const response = await fetch('/api/admin/categories');
-      const data = await response.json();
+      const data = (await response.json()) as CategoryApiRow[];
       if (Array.isArray(data)) {
-        // Prefer true parent categories (top-level categories that have children).
         const parentCategories = data
-          .filter((cat: any) => !cat.parentId && Array.isArray(cat.children) && cat.children.length > 0)
-          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
+          .filter((cat) => !cat.parentId && Array.isArray(cat.children) && cat.children.length > 0)
+          .map((cat) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
 
-        // Fallback to top-level categories when no parent categories exist.
         const topLevelCategories = data
-          .filter((cat: any) => !cat.parentId)
-          .map((cat: any) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
+          .filter((cat) => !cat.parentId)
+          .map((cat) => ({ name: cat.name, id: cat.id, slug: cat.slug, imageUrl: cat.imageUrl ?? null }));
+
         const categoriesToUse = parentCategories.length > 0 ? parentCategories : topLevelCategories;
-        
-        // Remove duplicates by name (keep first occurrence)
         const uniqueCategories = categoriesToUse.filter(
-          (cat: any, index: number, self: any[]) =>
-            index === self.findIndex((c: any) => c.name === cat.name)
+          (cat, index, self) => index === self.findIndex((candidate) => candidate.name === cat.name)
         );
-        
         const shuffledCategories = [...uniqueCategories].sort(() => Math.random() - 0.5);
         const nextCategories = shuffledCategories.slice(0, 6);
         setCategories(nextCategories);
-        setClientCache(cacheKey, nextCategories, STORE_HOME_CACHE_TTL_MS);
+        setClientCache('home:categories', nextCategories, STORE_HOME_CACHE_TTL_MS);
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch categories');
     }
   };
 
-  const fetchStats = async () => {
-    const cacheKey = 'home:stats';
-    try {
-      const response = await fetch('/api/products');
-      const data = await response.json();
-      if (data.success) {
-        const nextStats = {
-          products: data.count,
-          customers: 1000,
-          orders: 500,
-        };
-        setStats(nextStats);
-        setClientCache(cacheKey, nextStats, STORE_HOME_CACHE_TTL_MS);
-      }
-    } catch (error) {
-      console.error('Failed to fetch stats');
-    }
-  };
+  const refreshTopSections = useEffectEvent(() => {
+    void fetchFeaturedProducts();
+    void fetchBestSellers();
+  });
+
+  const refreshTrendingSection = useEffectEvent(() => {
+    void fetchTrendingProducts();
+  });
+
+  const refreshCategories = useEffectEvent(() => {
+    void fetchCategories();
+  });
 
   useEffect(() => {
-    const cachedFeaturedProducts = getClientCache<any[]>('home:featured-products');
-    if (cachedFeaturedProducts) {
-      setFeaturedProducts(cachedFeaturedProducts);
-    }
+    refreshTopSections();
+  }, [homeBestSellerProductIds]);
 
-    const cachedBestSellers = getClientCache<any[]>('home:best-sellers');
-    if (cachedBestSellers) {
-      setBestSellers(cachedBestSellers);
-    }
+  useEffect(() => {
+    refreshTrendingSection();
+  }, [homeTrendingProductIds, bestSellers]);
 
-    const cachedCategories = getClientCache<Array<{ name: string; id: string; slug: string; imageUrl?: string | null }>>('home:categories');
-    if (cachedCategories) {
-      setCategories(cachedCategories);
-    }
-
-    const cachedStats = getClientCache<{ products: number; customers: number; orders: number }>('home:stats');
-    if (cachedStats) {
-      setStats(cachedStats);
-    }
-
-    fetchFeaturedProducts();
-    fetchBestSellers();
-    fetchCategories();
-    fetchStats();
+  useEffect(() => {
+    refreshCategories();
   }, []);
 
-  const handleQuickAdd = (product: any) => {
+  const handleAddProduct = (product: HomeProduct) => {
     addItem({
       productId: product.id,
       name: product.name,
@@ -145,28 +234,7 @@ export default function HomePage() {
       quantity: 1,
       image: product.images?.[0],
       slug: product.slug,
-      isDigital: product.isDigital,
-      weight: product.weight || undefined,
-    });
-    setNotification({
-      message: `${product.name} added to cart!`,
-      visible: true,
-    });
-  };
-
-  const handleNotificationClose = useCallback(() => {
-    setNotification({ message: '', visible: false });
-  }, []);
-
-  const handleAddToCartRecommendations = (product: any) => {
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.images?.[0],
-      slug: product.slug,
-      isDigital: product.isDigital,
+      isDigital: Boolean(product.isDigital),
       weight: product.weight || undefined,
     });
     setNotification({
@@ -180,14 +248,13 @@ export default function HomePage() {
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
-        onClose={handleNotificationClose}
+        onClose={() => setNotification({ message: '', visible: false })}
       />
       <div className="bg-bg-gray">
         <HeroCarousel />
-        {/* <StatsSection stats={stats} /> */} {/* Commented out temporarily */}
         <CategoryCarousel categories={categories} />
         <RecentlyViewedSection />
-        <FeaturedProductsSection products={featuredProducts} onQuickAdd={handleQuickAdd} />
+        <FeaturedProductsSection products={featuredProducts} onQuickAdd={handleAddProduct} />
         {bestSellers.length > 0 && (
           <ProductCarousel
             products={bestSellers}
@@ -198,12 +265,14 @@ export default function HomePage() {
         )}
         <section className="theme-section-shell py-16 md:py-20">
           <div className="max-w-7xl mx-auto px-4">
-            <ProductRecommendations 
+            <ProductRecommendations
               limit={8}
               title="Trending Now"
               showTitle={true}
+              productsOverride={trendingProducts}
+              recommendationTypeOverride="trending"
               excludeProductIds={bestSellers.map((product) => product.id)}
-              onAddToCart={handleAddToCartRecommendations}
+              onAddToCart={handleAddProduct}
             />
           </div>
         </section>

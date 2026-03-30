@@ -503,11 +503,7 @@ export default function CheckoutFlowPage() {
                     </label>
                     )}
                   </div>
-                  {!codEnabled && (
-                    <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                      Cash on Delivery is currently unavailable. Online payment is enabled for this store.
-                    </div>
-                  )}
+           
                 </div>
 
                 {/* Shipping Information */}

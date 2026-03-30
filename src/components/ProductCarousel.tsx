@@ -89,10 +89,10 @@ export default function ProductCarousel({
   const scroll = (direction: 'left' | 'right') => {
     const element = carouselRef.current;
     if (element) {
-      let itemWidth = 344;
-      if (type === 'bestseller' && window.innerWidth < 640) {
-        itemWidth = 344 * 2 + 24;
-      }
+      const itemWidth = Math.max(
+        type === 'bestseller' ? element.clientWidth * 0.82 : element.clientWidth * 0.88,
+        260
+      );
       element.scrollBy({
         left: direction === 'left' ? -itemWidth : itemWidth,
         behavior: 'smooth',
@@ -136,7 +136,7 @@ export default function ProductCarousel({
   }, []);
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-20">
+    <section className="max-w-7xl mx-auto px-4 py-12 md:py-20">
       <AddToCartNotification
         message={notification.message}
         isVisible={notification.visible}
@@ -152,17 +152,19 @@ export default function ProductCarousel({
         productSlug={wishlistModal.productSlug}
       />
 
-      <div className="mb-12">
-        <h2 className="text-4xl font-bold mb-4">
+      <div className="mb-8 md:mb-12">
+        <h2 className="text-2xl font-bold mb-3 md:mb-4 md:text-4xl">
           <span className="theme-heading-accent">{title}</span>
         </h2>
-        {description && <p className="text-text-light text-lg">{description}</p>}
+        {description && (
+          <p className="max-w-2xl text-sm text-text-light md:text-lg">{description}</p>
+        )}
       </div>
 
       <div className="relative group">
         <button
           onClick={() => scroll('left')}
-          className="theme-button-primary absolute left-0 top-1/2 z-20 -ml-6 -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100"
+          className="theme-button-primary absolute left-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100 md:flex"
           aria-label="Scroll left"
         >
           <svg
@@ -182,7 +184,7 @@ export default function ProductCarousel({
 
         <div
           ref={carouselRef}
-          className="flex gap-6 overflow-x-auto scroll-smooth"
+          className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-2 md:gap-6"
           style={{
             scrollBehavior: 'smooth',
             scrollbarWidth: 'none',
@@ -197,16 +199,14 @@ export default function ProductCarousel({
           {products.map((product) => (
             <div
               key={product.id}
-              className={
-                type === 'bestseller' &&
-                typeof window !== 'undefined' &&
-                window.innerWidth < 640
-                  ? 'theme-product-card group/card flex-shrink-0 w-1/2 min-w-[50vw] overflow-hidden'
-                  : 'theme-product-card group/card flex-shrink-0 w-80 overflow-hidden'
-              }
+              className={`theme-product-card group/card flex-shrink-0 overflow-hidden snap-start ${
+                type === 'bestseller'
+                  ? 'w-[72vw] min-w-[72vw] sm:w-80 sm:min-w-80'
+                  : 'w-[84vw] min-w-[84vw] sm:w-80 sm:min-w-80'
+              }`}
             >
               <Link href={`/products/${product.slug}`} scroll={true} className="block">
-                <div className="theme-product-media relative h-64 overflow-hidden">
+                <div className="theme-product-media relative h-48 overflow-hidden sm:h-56 md:h-64">
                   {product.images?.[0] ? (
                     <img
                       src={product.images[0]}
@@ -258,14 +258,14 @@ export default function ProductCarousel({
               </Link>
 
               {type === 'default' ? (
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <Link href={`/products/${product.slug}`} scroll={true}>
-                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover/card:text-primary-theme transition-colors min-h-[3.5rem]">
+                    <h3 className="mb-2 min-h-[3rem] line-clamp-2 text-base font-semibold transition-colors group-hover/card:text-primary-theme sm:min-h-[3.5rem] sm:text-lg">
                       {product.name}
                     </h3>
                   </Link>
                   {product.isActive !== false && (
-                    <div className="flex gap-2 md:hidden items-center pb-3">
+                    <div className="flex items-center gap-2 pb-3 md:hidden">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -293,9 +293,9 @@ export default function ProductCarousel({
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
                     <div>
-                      <span className="text-2xl font-bold text-primary-theme">
+                      <span className="text-xl font-bold text-primary-theme sm:text-2xl">
                         {formatPrice(product.price)}
                       </span>
                       {product.comparePrice && (
@@ -327,14 +327,14 @@ export default function ProductCarousel({
                   </div>
                 </div>
               ) : (
-                <div className="p-3 bg-white-theme">
+                <div className="bg-white-theme p-3 sm:p-4">
                   <Link href={`/products/${product.slug}`} scroll={true}>
-                    <h3 className="font-semibold text-sm text-dark-theme line-clamp-2 group-hover/card:text-primary-theme transition-colors">
+                    <h3 className="line-clamp-2 text-sm font-semibold text-dark-theme transition-colors group-hover/card:text-primary-theme sm:text-base">
                       {product.name}
                     </h3>
                   </Link>
                   {product.isActive !== false && (
-                    <div className="flex gap-2 md:hidden items-center pt-3">
+                    <div className="flex items-center gap-2 pt-3 md:hidden">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -369,7 +369,7 @@ export default function ProductCarousel({
 
         <button
           onClick={() => scroll('right')}
-          className="theme-button-primary absolute right-0 top-1/2 z-20 -mr-6 -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100"
+          className="theme-button-primary absolute right-0 top-1/2 z-20 hidden -translate-y-1/2 rounded-full p-3 opacity-0 transition-all duration-300 group-hover:opacity-100 md:flex"
           aria-label="Scroll right"
         >
           <svg

@@ -45,6 +45,8 @@ export interface PublicStoreSettings {
   contactEmail: string | null;
   contactPhone: string | null;
   codEnabled: boolean;
+  homeBestSellerProductIds: string[];
+  homeTrendingProductIds: string[];
   themeKey: string;
   heroSlides: StoreHeroSlide[];
   socialLinks: StoreSocialLink[];
@@ -147,6 +149,12 @@ function mapSettings(settings: Record<string, unknown>): PublicStoreSettings {
     contactPhone:
       typeof settings.contactPhone === 'string' && settings.contactPhone.trim() ? settings.contactPhone : null,
     codEnabled: typeof settings.codEnabled === 'boolean' ? settings.codEnabled : true,
+    homeBestSellerProductIds: Array.isArray(settings.homeBestSellerProductIds)
+      ? settings.homeBestSellerProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+      : [],
+    homeTrendingProductIds: Array.isArray(settings.homeTrendingProductIds)
+      ? settings.homeTrendingProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
+      : [],
     themeKey: typeof settings.themeKey === 'string' && settings.themeKey.trim() ? settings.themeKey : '',
     heroSlides: parseHeroSlides(settings.heroSlides),
     socialLinks: parseSocialLinks(settings.socialLinks),
