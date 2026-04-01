@@ -37,6 +37,7 @@ export interface StoreHighlight {
 
 export interface PublicStoreSettings {
   storeName: string;
+  storeAbbreviation: string | null;
   domain: string | null;
   logoUrl: string;
   seoTitle: string;
@@ -135,6 +136,10 @@ function parseFooterHighlights(value: unknown): StoreHighlight[] {
 function mapSettings(settings: Record<string, unknown>): PublicStoreSettings {
   return {
     storeName: typeof settings.storeName === 'string' && settings.storeName.trim() ? settings.storeName : '',
+    storeAbbreviation:
+      typeof settings.storeAbbreviation === 'string' && settings.storeAbbreviation.trim()
+        ? settings.storeAbbreviation
+        : null,
     domain: typeof settings.domain === 'string' && settings.domain.trim() ? settings.domain : null,
     logoUrl: typeof settings.logoUrl === 'string' && settings.logoUrl.trim() ? settings.logoUrl : '',
     seoTitle: typeof settings.seoTitle === 'string' && settings.seoTitle.trim() ? settings.seoTitle : '',

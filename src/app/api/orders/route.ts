@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { extractToken, verifyToken } from '@/lib/auth';
 import { calculateShippingCost } from '@/lib/shipping';
 import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from '@/lib/emailService';
+import { generateUniqueOrderId } from '@/lib/orderId';
 
 type OrderRequestItem = {
   productId: string;
@@ -343,8 +344,11 @@ export async function POST(request: NextRequest) {
     const total = subtotal + shippingCost - discountAmount;
 
     // Create order
+    const generatedOrderId = await generateUniqueOrderId();
+
     const order = await prisma.order.create({
       data: {
+        id: generatedOrderId,
         userId: decoded?.userId || null,
         guestEmail: guestEmail || null,
         guestName: guestName || null,

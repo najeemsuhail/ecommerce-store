@@ -130,7 +130,7 @@ export default function OrdersPage() {
                   {/* Order Header */}
                   <div className="flex flex-wrap justify-between items-start gap-4 mb-4 pb-4 border-b">
                     <div>
-                      <p className="font-bold text-lg">Order #{order.id.substring(0, 8)}</p>
+                      <p className="font-bold text-lg">Order #{order.id}</p>
                       <p className="text-sm text-gray-600">
                         Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', {
                           day: 'numeric',

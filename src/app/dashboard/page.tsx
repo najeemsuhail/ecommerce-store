@@ -200,7 +200,7 @@ export default function DashboardPage() {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="font-semibold">Order #{order.id.substring(0, 8)}</p>
+                      <p className="font-semibold">Order #{order.id}</p>
                       <p className="text-sm text-gray-600">
                         {new Date(order.createdAt).toLocaleDateString('en-IN', {
                           day: 'numeric',

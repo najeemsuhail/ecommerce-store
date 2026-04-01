@@ -17,6 +17,7 @@ type ProductOption = {
 type AdminStoreSettings = {
   id: string;
   storeName: string;
+  storeAbbreviation: string | null;
   domain: string | null;
   logoUrl: string | null;
   seoTitle: string | null;
@@ -35,6 +36,7 @@ type AdminStoreSettings = {
 
 type StoreSettingsForm = {
   storeName: string;
+  storeAbbreviation: string;
   domain: string;
   logoUrl: string;
   seoTitle: string;
@@ -59,6 +61,7 @@ type ProductSearchState = {
 
 const EMPTY_FORM: StoreSettingsForm = {
   storeName: '',
+  storeAbbreviation: '',
   domain: '',
   logoUrl: '',
   seoTitle: '',
@@ -264,6 +267,7 @@ export default function AdminSettingsPage() {
       setSettings(data.settings);
       setFormData({
         storeName: data.settings.storeName || '',
+        storeAbbreviation: data.settings.storeAbbreviation || '',
         domain: data.settings.domain || '',
         logoUrl: data.settings.logoUrl || '',
         seoTitle: data.settings.seoTitle || '',
@@ -530,6 +534,19 @@ export default function AdminSettingsPage() {
                   <div>
                     <label className="block text-sm font-medium mb-1">Store Name</label>
                     <input type="text" name="storeName" value={formData.storeName} onChange={handleChange} className="theme-form-input" placeholder="OnlyInKani" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Store Abbreviation</label>
+                    <input
+                      type="text"
+                      name="storeAbbreviation"
+                      value={formData.storeAbbreviation}
+                      onChange={handleChange}
+                      className="theme-form-input"
+                      placeholder="OINK"
+                      maxLength={6}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Used as the order ID prefix. Letters and numbers only, uppercase, max 6 characters.</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Theme</label>

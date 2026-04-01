@@ -295,6 +295,7 @@ model Newsletter {
 model StoreSettings {
   id                String   @id @default(cuid())
   storeName         String   @default("OnlyInKani")
+  storeAbbreviation String?
   domain            String?
   logoUrl           String?
   seoTitle          String?

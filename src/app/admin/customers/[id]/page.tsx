@@ -273,7 +273,7 @@ export default function CustomerDetailPage() {
                             href={`/admin/orders#${order.id}`}
                             className="text-blue-600 hover:underline font-mono text-xs"
                           >
-                            {order.id.substring(0, 8)}...
+                            {order.id}
                           </Link>
                         </td>
                         <td className="px-4 py-3 text-xs">

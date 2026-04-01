@@ -49,6 +49,7 @@ export async function PUT(request: NextRequest) {
 
     const {
       storeName,
+      storeAbbreviation,
       domain,
       logoUrl,
       seoTitle,
@@ -101,6 +102,21 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    if (
+      storeAbbreviation !== undefined &&
+      typeof storeAbbreviation !== 'string'
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'storeAbbreviation must be a string' },
+        { status: 400 }
+      );
+    }
+
+    const normalizedStoreAbbreviation =
+      typeof storeAbbreviation === 'string'
+        ? storeAbbreviation.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6)
+        : '';
+
     const existingSettings = await prisma.storeSettings.findFirst({
       orderBy: { createdAt: 'asc' },
       select: { id: true },
@@ -117,6 +133,7 @@ export async function PUT(request: NextRequest) {
       where: { id: existingSettings.id },
       data: {
         storeName: typeof storeName === 'string' ? storeName.trim() : '',
+        storeAbbreviation: normalizedStoreAbbreviation || null,
         domain: typeof domain === 'string' && domain.trim() ? domain.trim() : null,
         logoUrl: typeof logoUrl === 'string' && logoUrl.trim() ? logoUrl.trim() : null,
         seoTitle: typeof seoTitle === 'string' && seoTitle.trim() ? seoTitle.trim() : null,

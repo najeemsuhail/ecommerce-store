@@ -133,7 +133,7 @@ export default function OrderDetailPage() {
               >
                 ← Back to Orders
               </Link>
-              <h2 className="text-2xl font-bold">Order #{order.id.substring(0, 8)}</h2>
+              <h2 className="text-2xl font-bold">Order #{order.id}</h2>
               <p className="text-gray-600">
                 Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', {
                   day: 'numeric',

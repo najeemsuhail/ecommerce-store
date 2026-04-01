@@ -356,7 +356,7 @@ export default function AdminOrders() {
                     <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <p className="text-sm font-mono">
-                          {order.id.substring(0, 8)}...
+                          {order.id}
                         </p>
                       </td>
                       <td className="px-6 py-4">

@@ -92,7 +92,7 @@ export async function sendOrderConfirmationEmail(order: any) {
     const { data, error } = await resend.emails.send({
       from: TRANSACTIONAL_EMAIL,
       to: email,
-      subject: `Order Confirmation - Order #${order.id.substring(0, 8)}`,
+      subject: `Order Confirmation - Order #${order.id}`,
       html: getOrderConfirmationEmail(order),
     });
 
@@ -120,7 +120,7 @@ export async function sendOrderShippedEmail(order: any) {
     const { data, error } = await resend.emails.send({
       from: TRANSACTIONAL_EMAIL,
       to: email,
-      subject: `Order Shipped - Order #${order.id.substring(0, 8)}`,
+      subject: `Order Shipped - Order #${order.id}`,
       html: getOrderShippedEmail(order),
     });
 
@@ -148,7 +148,7 @@ export async function sendOrderDeliveredEmail(order: any) {
     const { data, error } = await resend.emails.send({
       from: TRANSACTIONAL_EMAIL,
       to: email,
-      subject: `Order Delivered - Order #${order.id.substring(0, 8)}`,
+      subject: `Order Delivered - Order #${order.id}`,
       html: getOrderDeliveredEmail(order),
     });
 
@@ -273,7 +273,7 @@ export async function sendAdminNewOrderEmail(order: any) {
     const { data, error } = await resend.emails.send({
       from: TRANSACTIONAL_EMAIL,
       to,
-      subject: `New Order Received - ${order.id.substring(0, 8)}`,
+      subject: `New Order Received - ${order.id}`,
       html: getAdminNewOrderEmail(order),
     });
 
