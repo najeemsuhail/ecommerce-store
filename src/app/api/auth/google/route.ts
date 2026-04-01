@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { generateToken, hashPassword } from '@/lib/auth';
 import { isAdminEmail } from '@/lib/adminAuth';
 import { verifyGoogleCredential } from '@/lib/googleAuth';
+import { sendAdminNewUserEmail, sendWelcomeEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,6 +66,19 @@ export async function POST(request: NextRequest) {
           googleId: true,
         },
       });
+
+      const [welcomeEmailResult, adminEmailResult] = await Promise.allSettled([
+        sendWelcomeEmail(user),
+        sendAdminNewUserEmail(user),
+      ]);
+
+      if (welcomeEmailResult.status === 'rejected') {
+        console.error('Failed to send Google welcome email:', welcomeEmailResult.reason);
+      }
+
+      if (adminEmailResult.status === 'rejected') {
+        console.error('Failed to send admin new Google user email:', adminEmailResult.reason);
+      }
     } else {
       user = await prisma.user.update({
         where: { id: user.id },
