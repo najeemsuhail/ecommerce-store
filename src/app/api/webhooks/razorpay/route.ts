@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 
+type RazorpayWebhookPayment = {
+  id: string;
+  notes?: {
+    orderId?: string;
+  };
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
@@ -46,7 +53,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentSuccess(payment: any) {
+async function handlePaymentSuccess(payment: RazorpayWebhookPayment) {
   const orderId = payment.notes?.orderId;
 
   if (!orderId) {
@@ -54,19 +61,42 @@ async function handlePaymentSuccess(payment: any) {
     return;
   }
 
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      status: true,
+      paymentMethod: true,
+      notes: true,
+    },
+  });
+
+  if (!order) {
+    console.error(`Order not found for payment success: ${orderId}`);
+    return;
+  }
+
+  const updatedNotes =
+    order.paymentMethod === 'cod'
+      ? order.notes
+        ? `${order.notes}\n[${new Date().toISOString()}] Payment converted from COD to prepaid via Razorpay webhook.`
+        : `[${new Date().toISOString()}] Payment converted from COD to prepaid via Razorpay webhook.`
+      : order.notes;
+
   await prisma.order.update({
     where: { id: orderId },
     data: {
       paymentStatus: 'paid',
-      status: 'processing',
+      status: order.status === 'pending' ? 'processing' : order.status,
+      paymentMethod: 'razorpay',
       paymentId: payment.id,
+      notes: updatedNotes,
     },
   });
 
   console.log(`✅ Payment successful for order: ${orderId}`);
 }
 
-async function handlePaymentFailure(payment: any) {
+async function handlePaymentFailure(payment: RazorpayWebhookPayment) {
   const orderId = payment.notes?.orderId;
 
   if (!orderId) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from '@/lib/emailService';
+import { isOrderPayNowEligible } from '@/lib/orderPayment';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,13 +27,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { success: false, error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    if (!isOrderPayNowEligible(existingOrder) && existingOrder.paymentStatus !== 'paid') {
+      return NextResponse.json(
+        { success: false, error: 'This order is not eligible for online payment' },
+        { status: 400 }
+      );
+    }
+
+    const updatedNotes =
+      existingOrder.paymentMethod === 'cod'
+        ? existingOrder.notes
+          ? `${existingOrder.notes}\n[${new Date().toISOString()}] Payment converted from COD to prepaid via Razorpay.`
+          : `[${new Date().toISOString()}] Payment converted from COD to prepaid via Razorpay.`
+        : existingOrder.notes;
+
     // Update order status
     await prisma.order.update({
       where: { id: orderId },
       data: {
         paymentStatus: 'paid',
-        status: 'processing',
+        status: existingOrder.status === 'pending' ? 'processing' : existingOrder.status,
+        paymentMethod: 'razorpay',
         paymentId: razorpay_payment_id,
+        notes: updatedNotes,
       },
     });
 

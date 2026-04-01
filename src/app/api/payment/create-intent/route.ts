@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 import prisma from '@/lib/prisma';
+import { extractToken, verifyToken } from '@/lib/auth';
+import { isOrderPayNowEligible } from '@/lib/orderPayment';
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
@@ -10,7 +12,7 @@ const razorpay = new Razorpay({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { orderId } = body;
+    const { orderId, guestEmail } = body;
 
     if (!orderId) {
       return NextResponse.json(
@@ -18,6 +20,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const authHeader = request.headers.get('Authorization');
+    const token = extractToken(authHeader);
+    const decoded = token ? verifyToken(token) : null;
 
     // Get order
     const order = await prisma.order.findUnique({
@@ -38,10 +44,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if order is already paid
-    if (order.paymentStatus === 'paid') {
+    if (decoded) {
+      if (order.userId !== decoded.userId) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized' },
+          { status: 403 }
+        );
+      }
+    } else if (order.guestEmail !== guestEmail) {
       return NextResponse.json(
-        { success: false, error: 'Order is already paid' },
+        { success: false, error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
+    if (!isOrderPayNowEligible(order)) {
+      return NextResponse.json(
+        { success: false, error: 'This order is not eligible for online payment' },
         { status: 400 }
       );
     }
@@ -71,10 +90,13 @@ export async function POST(request: NextRequest) {
       currency: razorpayOrder.currency,
       keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating Razorpay order:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to create payment' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create payment',
+      },
       { status: 500 }
     );
   }

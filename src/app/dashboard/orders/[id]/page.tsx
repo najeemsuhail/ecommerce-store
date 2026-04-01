@@ -1,21 +1,60 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/currency';
 import { getDeliveryEstimateMessage } from '@/lib/deliveryEstimate';
+import { getOrderPaymentMethodLabel, isOrderPayNowEligible } from '@/lib/orderPayment';
+import {
+  loadRazorpayCheckoutScript,
+  type RazorpayPaymentResponse,
+} from '@/lib/razorpayClient';
 import {
   formatOrderStatus,
   getOrderStatusBadgeClass,
   getOrderStatusTimeline,
 } from '@/lib/orderStatus';
 
+type OrderDetailItem = {
+  id: string;
+  quantity: number;
+  price: number;
+  product: {
+    name: string;
+    slug: string;
+    images?: string[];
+  };
+};
+
+type OrderDetail = {
+  id: string;
+  createdAt: string;
+  status: string;
+  paymentStatus: string;
+  paymentMethod?: string | null;
+  total: number;
+  shippingCost: number;
+  trackingNumber?: string | null;
+  shippingAddress?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+    phone?: string;
+  } | null;
+  user?: {
+    email?: string;
+  } | null;
+  items: OrderDetailItem[];
+};
+
 export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderDetail | null>(null);
   const [returnEligibility, setReturnEligibility] = useState<{
     eligible: boolean;
     reason: string | null;
@@ -24,25 +63,16 @@ export default function OrderDetailPage() {
   const [requestingAction, setRequestingAction] = useState<'return' | 'refund' | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
   const [requestMessageType, setRequestMessageType] = useState<'success' | 'error' | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentMessageType, setPaymentMessageType] = useState<'success' | 'error' | null>(null);
+  const [isPayingNow, setIsPayingNow] = useState(false);
   const [selectedRequestType, setSelectedRequestType] = useState<'return' | 'refund' | null>(null);
   const [requestReason, setRequestReason] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchOrder();
-
-    // Listen for storage changes (login/logout in other tabs)
-    const handleStorageChange = () => {
-      fetchOrder();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     const token = localStorage.getItem('token');
-    
+
     try {
       const response = await fetch(`/api/orders/${params.id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -55,13 +85,35 @@ export default function OrderDetailPage() {
       } else {
         router.push('/dashboard/orders');
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to fetch order');
       router.push('/dashboard/orders');
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, router]);
+
+  useEffect(() => {
+    void fetchOrder();
+
+    // Listen for storage changes (login/logout in other tabs)
+    const handleStorageChange = () => {
+      void fetchOrder();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [fetchOrder]);
+
+  useEffect(() => {
+    if (!order || !isOrderPayNowEligible(order)) {
+      return;
+    }
+
+    void loadRazorpayCheckoutScript().catch(() => {
+      // Visible error handling happens when the user clicks Pay Now.
+    });
+  }, [order]);
 
   const handleRequestReturnOrRefund = async (requestType: 'return' | 'refund', reason: string) => {
     const token = localStorage.getItem('token');
@@ -95,11 +147,113 @@ export default function OrderDetailPage() {
       setSelectedRequestType(null);
       setRequestReason('');
       await fetchOrder();
-    } catch (error) {
+    } catch {
       setRequestMessage('Failed to submit request');
       setRequestMessageType('error');
     } finally {
       setRequestingAction(null);
+    }
+  };
+
+  const getStoredUserEmail = () => {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      return '';
+    }
+
+    try {
+      const user = JSON.parse(userData) as { email?: string };
+      return user.email || '';
+    } catch {
+      return '';
+    }
+  };
+
+  const handlePayNow = async () => {
+    if (!order || !isOrderPayNowEligible(order) || isPayingNow) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+
+    try {
+      setIsPayingNow(true);
+      setPaymentMessage('');
+      setPaymentMessageType(null);
+
+      await loadRazorpayCheckoutScript();
+
+      const paymentResponse = await fetch('/api/payment/create-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+
+      const paymentResult = await paymentResponse.json();
+      if (!paymentResponse.ok || !paymentResult.success) {
+        setPaymentMessage(paymentResult.error || 'Unable to start payment.');
+        setPaymentMessageType('error');
+        setIsPayingNow(false);
+        return;
+      }
+
+      const razorpay = new window.Razorpay({
+        key: paymentResult.keyId,
+        amount: paymentResult.amount,
+        currency: paymentResult.currency,
+        name: 'onlyinkani.in',
+        description: `Payment for Order #${order.id}`,
+        order_id: paymentResult.razorpayOrderId,
+        prefill: {
+          name: order.shippingAddress?.name || '',
+          email: order.user?.email || getStoredUserEmail(),
+          contact: order.shippingAddress?.phone || '',
+        },
+        theme: {
+          color: '#2563eb',
+        },
+        handler: async (response: RazorpayPaymentResponse) => {
+          const verifyResponse = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: order.id,
+            }),
+          });
+
+          const verifyResult = await verifyResponse.json();
+          if (!verifyResponse.ok || !verifyResult.success) {
+            setPaymentMessage(verifyResult.error || 'Payment verification failed.');
+            setPaymentMessageType('error');
+            setIsPayingNow(false);
+            return;
+          }
+
+          setPaymentMessage('Payment completed successfully.');
+          setPaymentMessageType('success');
+          await fetchOrder();
+          setIsPayingNow(false);
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentMessage('Payment cancelled.');
+            setPaymentMessageType('error');
+            setIsPayingNow(false);
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch {
+      setPaymentMessage('Unable to launch Razorpay checkout.');
+      setPaymentMessageType('error');
+      setIsPayingNow(false);
     }
   };
 
@@ -166,6 +320,18 @@ export default function OrderDetailPage() {
               }`}
             >
               {requestMessage}
+            </div>
+          )}
+
+          {paymentMessage && (
+            <div
+              className={`mt-4 text-sm font-medium rounded-lg px-3 py-2 border ${
+                paymentMessageType === 'error'
+                  ? 'text-red-700 bg-red-50 border-red-200'
+                  : 'text-green-700 bg-green-50 border-green-200'
+              }`}
+            >
+              {paymentMessage}
             </div>
           )}
 
@@ -289,7 +455,7 @@ export default function OrderDetailPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="font-bold text-lg mb-4">Order Items</h3>
           <div className="space-y-4">
-            {order.items.map((item: any) => (
+            {order.items.map((item) => (
               <div key={item.id} className="flex gap-4 pb-4 border-b last:border-0">
                 <div className="w-20 h-20 bg-gray-200 rounded flex-shrink-0">
                   {item.product.images?.[0] && (
@@ -364,7 +530,7 @@ export default function OrderDetailPage() {
               <div>
                 <p className="text-sm text-gray-600">Payment Method</p>
                 <p className="font-semibold">
-                  {order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Razorpay (Online)'}
+                  {getOrderPaymentMethodLabel(order)}
                 </p>
               </div>
               <div>
@@ -379,6 +545,20 @@ export default function OrderDetailPage() {
                   {order.paymentStatus}
                 </span>
               </div>
+              {isOrderPayNowEligible(order) && (
+                <div className="pt-2">
+                  <button
+                    onClick={() => void handlePayNow()}
+                    disabled={isPayingNow}
+                    className="btn-primary-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isPayingNow ? 'Opening Payment...' : `Pay Now ${formatPrice(order.total)}`}
+                  </button>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Complete payment online any time before delivery.
+                  </p>
+                </div>
+              )}
               {order.trackingNumber && (
                 <div>
                   <p className="text-sm text-gray-600">Tracking Number</p>
