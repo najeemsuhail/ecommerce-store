@@ -50,7 +50,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (order.userId !== decoded.userId) {
+    const normalizedTokenEmail = decoded.email.trim().toLowerCase();
+    const normalizedOrderGuestEmail = (order.guestEmail || '').trim().toLowerCase();
+    const isAuthorizedUser =
+      order.userId === decoded.userId ||
+      (normalizedOrderGuestEmail !== '' && normalizedOrderGuestEmail === normalizedTokenEmail);
+
+    if (!isAuthorizedUser) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 403 }

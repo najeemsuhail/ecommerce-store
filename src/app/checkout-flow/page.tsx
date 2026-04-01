@@ -143,6 +143,24 @@ function mapSavedAddressToBilling(address: SavedAddress): BillingAddressForm {
   };
 }
 
+function validateShippingAddress(address: AddressForm): string | null {
+  if (!address.name.trim()) return 'Shipping full name is required.';
+  if (!address.phone.trim()) return 'Shipping phone number is required.';
+  if (!/^\d{10}$/.test(address.phone.trim())) return 'Shipping phone number must be 10 digits.';
+  if (!address.address.trim()) return 'Shipping address is required.';
+  if (!address.city.trim()) return 'Shipping city is required.';
+  if (!/^\d{6}$/.test(address.postalCode.trim())) return 'Shipping PIN code must be 6 digits.';
+  return null;
+}
+
+function validateBillingAddress(address: BillingAddressForm): string | null {
+  if (!address.name.trim()) return 'Billing full name is required.';
+  if (!address.address.trim()) return 'Billing address is required.';
+  if (!address.city.trim()) return 'Billing city is required.';
+  if (!/^\d{6}$/.test(address.postalCode.trim())) return 'Billing PIN code must be 6 digits.';
+  return null;
+}
+
 declare global {
   interface Window {
     Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
@@ -288,8 +306,23 @@ export default function CheckoutFlowPage() {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setMessage('');
+
+    const shippingValidationError = validateShippingAddress(shippingAddress);
+    if (shippingValidationError) {
+      setMessage(shippingValidationError);
+      return;
+    }
+
+    if (!billingSameAsShipping) {
+      const billingValidationError = validateBillingAddress(billingAddress);
+      if (billingValidationError) {
+        setMessage(billingValidationError);
+        return;
+      }
+    }
+
+    setLoading(true);
 
     try {
       // Step 1: Create order
@@ -349,7 +382,10 @@ export default function CheckoutFlowPage() {
       // Step 2: Create Razorpay order
       const paymentResponse = await fetch('/api/payment/create-intent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ orderId }),
       });
 
