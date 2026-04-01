@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/contexts/CartContext';
@@ -29,15 +29,15 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { totalItems } = useCart();
-  const [hasMounted, setHasMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  const hasMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     const syncAuthFromStorage = () => {
@@ -101,6 +101,16 @@ export default function Header() {
                 }`}
               >
                 Collections
+              </Link>
+              <Link 
+                href="/landing" 
+                className={`font-medium transition-colors ${
+                  pathname === '/landing'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-text-light hover:text-primary'
+                }`}
+              >
+                Landing
               </Link>
               <Link 
                 href="/blog" 
@@ -294,6 +304,17 @@ export default function Header() {
                 }`}
               >
                 Collections
+              </Link>
+              <Link 
+                href="/landing" 
+                onClick={() => setMenuOpen(false)} 
+                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
+                  pathname === '/landing'
+                    ? 'bg-primary-theme text-white-theme'
+                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
+                }`}
+              >
+                Landing
               </Link>
               <Link 
                 href="/blog" 

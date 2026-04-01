@@ -5,6 +5,7 @@ const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://onlyinkani.in').re
 
 const staticRoutes = [
   '',
+  '/landing',
   '/products',
   '/categories',
   '/blog',

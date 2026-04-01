@@ -30,6 +30,7 @@ type AdminStoreSettings = {
   homeBestSellerProductIds: string[];
   homeTrendingProductIds: string[];
   heroSlides?: unknown;
+  landingPage?: unknown;
   socialLinks?: unknown;
   footerHighlights?: unknown;
 };
@@ -49,6 +50,7 @@ type StoreSettingsForm = {
   homeBestSellerProductIds: string[];
   homeTrendingProductIds: string[];
   heroSlidesJson: string;
+  landingPageJson: string;
   socialLinksJson: string;
   footerHighlightsJson: string;
 };
@@ -74,6 +76,7 @@ const EMPTY_FORM: StoreSettingsForm = {
   homeBestSellerProductIds: [],
   homeTrendingProductIds: [],
   heroSlidesJson: '[]',
+  landingPageJson: '{}',
   socialLinksJson: '[]',
   footerHighlightsJson: '[]',
 };
@@ -280,6 +283,7 @@ export default function AdminSettingsPage() {
         homeBestSellerProductIds: data.settings.homeBestSellerProductIds || [],
         homeTrendingProductIds: data.settings.homeTrendingProductIds || [],
         heroSlidesJson: formatJson(data.settings.heroSlides),
+        landingPageJson: JSON.stringify(data.settings.landingPage ?? {}, null, 2),
         socialLinksJson: formatJson(data.settings.socialLinks),
         footerHighlightsJson: formatJson(data.settings.footerHighlights),
       });
@@ -448,11 +452,13 @@ export default function AdminSettingsPage() {
 
     try {
       let heroSlides: unknown;
+      let landingPage: unknown;
       let socialLinks: unknown;
       let footerHighlights: unknown;
 
       try {
         heroSlides = JSON.parse(formData.heroSlidesJson || '[]');
+        landingPage = JSON.parse(formData.landingPageJson || '{}');
         socialLinks = JSON.parse(formData.socialLinksJson || '[]');
         footerHighlights = JSON.parse(formData.footerHighlightsJson || '[]');
       } catch {
@@ -469,6 +475,7 @@ export default function AdminSettingsPage() {
         body: JSON.stringify({
           ...formData,
           heroSlides,
+          landingPage,
           socialLinks,
           footerHighlights,
         }),
@@ -603,7 +610,7 @@ export default function AdminSettingsPage() {
               <section className="space-y-4">
                 <h2 className="text-lg font-semibold text-gray-900">Advanced Content</h2>
                 <p className="text-sm text-gray-600">
-                  Edit the homepage slides, footer social links, and footer highlight cards as simple JSON arrays.
+                  Edit storefront-managed content for the homepage, landing page, and footer with JSON.
                 </p>
                 <div className="space-y-4">
                   <div>
@@ -615,6 +622,17 @@ export default function AdminSettingsPage() {
                       rows={10}
                       className="theme-form-input font-mono text-xs"
                       placeholder='[{"badge":"New","badgeEmoji":"✨","category":"Collection","mainHeading":"Heading","subHeading":"Sub heading","description":"Copy","primaryCTA":{"label":"Shop Now","href":"/products"},"secondaryCTA":{"label":"View More","href":"/collections"},"image":{"src":"https://...","alt":"Hero"}}]'
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Landing Page JSON</label>
+                    <textarea
+                      name="landingPageJson"
+                      value={formData.landingPageJson}
+                      onChange={handleChange}
+                      rows={14}
+                      className="theme-form-input font-mono text-xs"
+                      placeholder='{"badge":"OnlyInKani","title":"Landing headline","description":"Short campaign copy","primaryCTA":{"label":"Shop Products","href":"/products"},"secondaryCTA":{"label":"Talk to Us","href":"/contact"},"audiencePillars":[{"title":"Curated Picks","description":"..."},{"title":"Fast Support","description":"..."},{"title":"Flexible Checkout","description":"..."}],"steps":[{"title":"Explore Collections","description":"...","label":"View Categories","href":"/categories"}],"promoCards":[{"eyebrow":"Featured","title":"Show premium picks","description":"...","label":"Open Featured","href":"/products?isFeatured=true"}]}'
                     />
                   </div>
                   <div>

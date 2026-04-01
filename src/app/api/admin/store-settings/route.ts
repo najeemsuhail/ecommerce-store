@@ -62,6 +62,7 @@ export async function PUT(request: NextRequest) {
       homeBestSellerProductIds,
       homeTrendingProductIds,
       heroSlides,
+      landingPage,
       socialLinks,
       footerHighlights,
     } = await request.json();
@@ -91,6 +92,16 @@ export async function PUT(request: NextRequest) {
     if (socialLinks !== undefined && !Array.isArray(socialLinks)) {
       return NextResponse.json(
         { success: false, error: 'socialLinks must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (
+      landingPage !== undefined &&
+      (typeof landingPage !== 'object' || landingPage === null || Array.isArray(landingPage))
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'landingPage must be an object' },
         { status: 400 }
       );
     }
@@ -154,6 +165,8 @@ export async function PUT(request: NextRequest) {
           ? homeTrendingProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
           : [],
         heroSlides: Array.isArray(heroSlides) ? heroSlides : [],
+        landingPage:
+          landingPage && typeof landingPage === 'object' && !Array.isArray(landingPage) ? landingPage : {},
         socialLinks: Array.isArray(socialLinks) ? socialLinks : [],
         footerHighlights: Array.isArray(footerHighlights) ? footerHighlights : [],
       } as Record<string, unknown>,
@@ -161,6 +174,7 @@ export async function PUT(request: NextRequest) {
 
     revalidatePath('/', 'layout');
     revalidatePath('/');
+    revalidatePath('/landing');
     revalidatePath('/admin/settings');
 
     return NextResponse.json({
