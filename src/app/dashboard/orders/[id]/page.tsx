@@ -22,6 +22,7 @@ type OrderDetailItem = {
   quantity: number;
   price: number;
   product: {
+    isDigital?: boolean;
     name: string;
     slug: string;
     images?: string[];
@@ -31,6 +32,7 @@ type OrderDetailItem = {
 type OrderDetail = {
   id: string;
   createdAt: string;
+  updatedAt?: string;
   status: string;
   paymentStatus: string;
   paymentMethod?: string | null;
