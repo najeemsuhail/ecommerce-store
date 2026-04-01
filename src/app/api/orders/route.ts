@@ -4,6 +4,12 @@ import { extractToken, verifyToken } from '@/lib/auth';
 import { calculateShippingCost } from '@/lib/shipping';
 import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from '@/lib/emailService';
 
+type OrderRequestItem = {
+  productId: string;
+  quantity: number;
+  variantId?: string | null;
+};
+
 // GET all orders (for logged-in user)
 export async function GET(request: NextRequest) {
   try {
@@ -211,7 +217,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch products and variants together
-    const productIds = items.map((item: any) => item.productId) as string[];
+    const typedItems = items as OrderRequestItem[];
+    const productIds = typedItems.map((item) => item.productId);
     const uniqueProductIds: string[] = Array.from(new Set(productIds)); // Remove duplicates
     
     console.log('Order items:', items);
@@ -252,7 +259,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check stock for physical products and variants
-    for (const item of items) {
+    for (const item of typedItems) {
       const product = products.find((p) => p.id === item.productId);
       if (!product) {
         console.error('Product not found for item:', item);
@@ -261,7 +268,7 @@ export async function POST(request: NextRequest) {
 
       // If item has a variant, check variant stock
       if (item.variantId) {
-        const variant = product.variants.find((v: any) => v.id === item.variantId);
+        const variant = product.variants.find((v) => v.id === item.variantId);
         if (!variant) {
           console.error('Variant not found:', item.variantId, 'for product:', item.productId);
           return NextResponse.json(
@@ -290,7 +297,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate totals
     let subtotal = 0;
-    const orderItems = items.map((item: any) => {
+    const orderItems = typedItems.map((item) => {
       const product = products.find((p) => p.id === item.productId);
       if (!product) throw new Error('Product not found');
 
@@ -298,7 +305,7 @@ export async function POST(request: NextRequest) {
       
       // Use variant price if variant is selected
       if (item.variantId) {
-        const variant = product.variants.find((v: any) => v.id === item.variantId);
+        const variant = product.variants.find((v) => v.id === item.variantId);
         if (variant) {
           itemPrice = variant.price;
         }
@@ -386,7 +393,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Reduce stock for physical products
-    for (const item of items) {
+    for (const item of typedItems) {
       const product = products.find((p) => p.id === item.productId);
       if (!product || product.isDigital || !product.trackInventory) continue;
 
@@ -416,12 +423,18 @@ export async function POST(request: NextRequest) {
       });
 
       if (fullOrder) {
-        sendOrderConfirmationEmail(fullOrder).catch((err) =>
-          console.error('Failed to send COD order confirmation email:', err)
-        );
-        sendAdminNewOrderEmail(fullOrder).catch((err) =>
-          console.error('Failed to send admin COD order notification email:', err)
-        );
+        const [customerEmailResult, adminEmailResult] = await Promise.allSettled([
+          sendOrderConfirmationEmail(fullOrder),
+          sendAdminNewOrderEmail(fullOrder),
+        ]);
+
+        if (customerEmailResult.status === 'rejected') {
+          console.error('Failed to send COD order confirmation email:', customerEmailResult.reason);
+        }
+
+        if (adminEmailResult.status === 'rejected') {
+          console.error('Failed to send admin COD order notification email:', adminEmailResult.reason);
+        }
       }
     }
 

@@ -49,21 +49,27 @@ const fullOrder = await prisma.order.findUnique({
   },
 });
 
-  // Send confirmation email
-  if (fullOrder) {
-    sendOrderConfirmationEmail(fullOrder).catch((err) =>
-      console.error('Failed to send confirmation email:', err)
-    );
-    sendAdminNewOrderEmail(fullOrder).catch((err) =>
-      console.error('Failed to send admin new order email:', err)
-    );
-  }
+    // Await email sends so the request lifecycle does not end before Resend finishes.
+    if (fullOrder) {
+      const [customerEmailResult, adminEmailResult] = await Promise.allSettled([
+        sendOrderConfirmationEmail(fullOrder),
+        sendAdminNewOrderEmail(fullOrder),
+      ]);
+
+      if (customerEmailResult.status === 'rejected') {
+        console.error('Failed to send confirmation email:', customerEmailResult.reason);
+      }
+
+      if (adminEmailResult.status === 'rejected') {
+        console.error('Failed to send admin new order email:', adminEmailResult.reason);
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Payment verified successfully',
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error verifying payment:', error);
     return NextResponse.json(
       { success: false, error: 'Payment verification failed' },

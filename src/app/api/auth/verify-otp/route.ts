@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { generateToken, verifyEmailOtp } from '@/lib/auth';
 import { isAdminEmail } from '@/lib/adminAuth';
+import { sendWelcomeEmail } from '@/lib/emailService';
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
         emailVerified: true,
       },
     });
+
+    if (!user.emailVerified) {
+      const welcomeEmailResult = await sendWelcomeEmail(verifiedUser);
+      if (!welcomeEmailResult.success) {
+        console.error('Failed to send welcome email:', welcomeEmailResult.error);
+      }
+    }
 
     const token = generateToken({
       userId: verifiedUser.id,
