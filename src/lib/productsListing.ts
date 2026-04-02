@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import { stripHtml } from '@/lib/html';
@@ -147,6 +148,51 @@ function buildListingWhere(search?: string, categories: string[] = []): Prisma.P
   return where;
 }
 
+const getCachedInitialProductsPageData = unstable_cache(
+  async (
+    search: string | undefined,
+    categories: string[],
+    sort: 'newest' | 'price-low' | 'price-high' | 'popular',
+    limit: number
+  ) => {
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
+    if (sort === 'price-low') {
+      orderBy = { price: 'asc' };
+    } else if (sort === 'price-high') {
+      orderBy = { price: 'desc' };
+    }
+
+    const where = buildListingWhere(search, categories);
+
+    const products = await prisma.product.findMany({
+      where,
+      orderBy,
+      take: limit,
+      select: productListingSelect,
+    });
+
+    const total = await prisma.product.count({ where });
+    const facets = await buildDatabaseFacets(where);
+    const categoryHierarchy = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        parentId: true,
+      },
+      orderBy: [{ name: 'asc' }],
+    });
+
+    return {
+      products: products.map(serializeListingProduct),
+      total,
+      facets,
+      categoryHierarchy: categoryHierarchy as ListingCategoryHierarchyItem[],
+    };
+  },
+  ['initial-products-page-data'],
+  { revalidate: 300, tags: ['products'] }
+);
+
 export async function getInitialProductsPageData(params: {
   search?: string;
   categories?: string[];
@@ -158,37 +204,5 @@ export async function getInitialProductsPageData(params: {
   const limit = params.limit ?? 12;
   const sort = params.sort ?? 'newest';
 
-  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
-  if (sort === 'price-low') {
-    orderBy = { price: 'asc' };
-  } else if (sort === 'price-high') {
-    orderBy = { price: 'desc' };
-  }
-
-  const where = buildListingWhere(search, categories);
-
-  const products = await prisma.product.findMany({
-    where,
-    orderBy,
-    take: limit,
-    select: productListingSelect,
-  });
-
-  const total = await prisma.product.count({ where });
-  const facets = await buildDatabaseFacets(where);
-  const categoryHierarchy = await prisma.category.findMany({
-    select: {
-      id: true,
-      name: true,
-      parentId: true,
-    },
-    orderBy: [{ name: 'asc' }],
-  });
-
-  return {
-    products: products.map(serializeListingProduct),
-    total,
-    facets,
-    categoryHierarchy: categoryHierarchy as ListingCategoryHierarchyItem[],
-  };
+  return getCachedInitialProductsPageData(search, categories, sort, limit);
 }
