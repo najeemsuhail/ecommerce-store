@@ -76,8 +76,8 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
       return () => window.cancelIdleCallback(idleId);
     }
 
-    const timeoutId = window.setTimeout(sendViewItem, 1200);
-    return () => window.clearTimeout(timeoutId);
+    const timeoutId = setTimeout(sendViewItem, 1200);
+    return () => clearTimeout(timeoutId);
   }, [activePrice, product.id, product.name, selectedVariant?.name]);
 
   const handleAddToCart = () => {

@@ -48,12 +48,14 @@ interface ProductListItem {
   name: string;
   description: string;
   price: number;
+  comparePrice?: number | null;
   slug: string;
   images?: string[];
   isDigital?: boolean;
   isActive?: boolean;
   isFeatured?: boolean;
-  weight?: number;
+  brand?: string | null;
+  weight?: number | null;
   averageRating?: number;
   reviewCount?: number;
   categories?: ProductCategoryEntry[];
