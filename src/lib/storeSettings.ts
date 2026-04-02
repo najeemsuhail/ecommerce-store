@@ -56,6 +56,18 @@ export interface StoreLandingPromoCard extends StoreLandingLink {
   description: string;
 }
 
+export interface StoreHomeFeatureItem {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface StoreHomeFeaturesSection {
+  title: string;
+  description: string;
+  items: StoreHomeFeatureItem[];
+}
+
 export interface StoreLandingPage {
   badge: string;
   title: string;
@@ -82,6 +94,7 @@ export interface PublicStoreSettings {
   homeTrendingProductIds: string[];
   themeKey: string;
   heroSlides: StoreHeroSlide[];
+  homeFeatures: StoreHomeFeaturesSection;
   landingPage: StoreLandingPage;
   socialLinks: StoreSocialLink[];
   footerHighlights: StoreHighlight[];
@@ -172,6 +185,52 @@ function parseLandingLink(value: unknown): StoreLandingLink {
   return {
     label: typeof record.label === 'string' ? record.label : '',
     href: typeof record.href === 'string' ? record.href : '',
+  };
+}
+
+function parseHomeFeatures(value: unknown): StoreHomeFeaturesSection {
+  const record = isRecord(value) ? value : {};
+
+  const items = Array.isArray(record.items)
+    ? record.items
+        .filter(isRecord)
+        .map((item) => ({
+          icon: typeof item.icon === 'string' ? item.icon : '',
+          title: typeof item.title === 'string' ? item.title : '',
+          description: typeof item.description === 'string' ? item.description : '',
+        }))
+        .filter((item) => item.icon && item.title && item.description)
+    : [];
+
+  return {
+    title:
+      typeof record.title === 'string' && record.title.trim()
+        ? record.title
+        : 'Why Shoppers Choose Us',
+    description:
+      typeof record.description === 'string' && record.description.trim()
+        ? record.description
+        : 'Reliable service, secure checkout, and everyday convenience built into every order.',
+    items:
+      items.length > 0
+        ? items
+        : [
+            {
+              icon: 'BOX',
+              title: 'Free Shipping',
+              description: 'On orders over Rs.1000',
+            },
+            {
+              icon: 'LOCK',
+              title: 'Secure Payment',
+              description: '100% secure transactions',
+            },
+            {
+              icon: 'EASY',
+              title: 'Easy Returns',
+              description: '48 hours guarantee',
+            },
+          ],
   };
 }
 
@@ -331,6 +390,7 @@ function mapSettings(settings: Record<string, unknown>): PublicStoreSettings {
       : [],
     themeKey: typeof settings.themeKey === 'string' && settings.themeKey.trim() ? settings.themeKey : '',
     heroSlides: parseHeroSlides(settings.heroSlides),
+    homeFeatures: parseHomeFeatures(settings.homeFeatures),
     landingPage: parseLandingPage(settings.landingPage, storeName || 'Your Store'),
     socialLinks: parseSocialLinks(settings.socialLinks),
     footerHighlights: parseFooterHighlights(settings.footerHighlights),

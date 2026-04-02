@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
@@ -6,7 +7,16 @@ import { formatPrice } from '@/lib/currency';
 import { getProductDetailBySlug } from '@/lib/productDetail';
 import ProductImageGallery from './ProductImageGallery';
 import ProductPurchasePanel from './ProductPurchasePanel';
-import ProductDetailEnhancements from './ProductDetailEnhancements';
+
+const ProductDetailEnhancements = dynamic(() => import('./ProductDetailEnhancements'), {
+  loading: () => (
+    <div className="mt-12">
+      <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-500">
+        Scroll down to load recommendations and review tools.
+      </div>
+    </div>
+  ),
+});
 
 export const revalidate = 300;
 

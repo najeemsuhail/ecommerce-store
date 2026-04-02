@@ -59,25 +59,6 @@ export interface ProductMetadata {
   images: string[];
 }
 
-const getProductMetadataRecordBySlug = unstable_cache(
-  async (slug: string) => {
-    const product = await prisma.product.findUnique({
-      where: { slug },
-      select: {
-        name: true,
-        description: true,
-        metaTitle: true,
-        metaDescription: true,
-        images: true,
-      },
-    });
-
-    return product;
-  },
-  ['product-metadata-by-slug'],
-  { revalidate: 300, tags: ['products'] }
-);
-
 const getProductDetailRecordBySlug = unstable_cache(
   async (slug: string) => {
     const product = await prisma.product.findUnique({
@@ -93,9 +74,7 @@ const getProductDetailRecordBySlug = unstable_cache(
         isActive: true,
         stock: true,
         weight: true,
-        brand: true,
         specifications: true,
-        tags: true,
         metaTitle: true,
         metaDescription: true,
         images: true,
@@ -109,28 +88,27 @@ const getProductDetailRecordBySlug = unstable_cache(
             isActive: true,
           },
         },
-        categories: {
-          select: {
-            categoryId: true,
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
       },
     });
 
-    return product;
+    if (!product) {
+      return null;
+    }
+
+    const sanitizedDescription = sanitizeRichHtml(product.description);
+
+    return {
+      ...product,
+      description: sanitizedDescription,
+      plainTextDescription: stripHtml(sanitizedDescription),
+    };
   },
   ['product-detail-by-slug'],
   { revalidate: 300, tags: ['products'] }
 );
 
 export async function getProductMetadataBySlug(slug: string): Promise<ProductMetadata | null> {
-  const product = await getProductMetadataRecordBySlug(slug);
+  const product = await getProductDetailRecordBySlug(slug);
 
   if (!product) {
     return null;
@@ -138,7 +116,7 @@ export async function getProductMetadataBySlug(slug: string): Promise<ProductMet
 
   return {
     name: product.name,
-    description: stripHtml(product.description),
+    description: product.plainTextDescription,
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
     images: product.images,
@@ -154,8 +132,10 @@ export async function getProductDetailBySlug(slug: string): Promise<ProductDetai
 
   return {
     ...product,
-    description: sanitizeRichHtml(product.description),
     specifications: product.specifications as Record<string, unknown> | null,
+    brand: null,
+    tags: [],
+    categories: [],
     averageRating: 0,
     reviewCount: 0,
     reviews: [],

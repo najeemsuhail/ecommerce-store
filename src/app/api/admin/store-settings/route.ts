@@ -62,6 +62,7 @@ export async function PUT(request: NextRequest) {
       homeBestSellerProductIds,
       homeTrendingProductIds,
       heroSlides,
+      homeFeatures,
       landingPage,
       socialLinks,
       footerHighlights,
@@ -92,6 +93,16 @@ export async function PUT(request: NextRequest) {
     if (socialLinks !== undefined && !Array.isArray(socialLinks)) {
       return NextResponse.json(
         { success: false, error: 'socialLinks must be an array' },
+        { status: 400 }
+      );
+    }
+
+    if (
+      homeFeatures !== undefined &&
+      (typeof homeFeatures !== 'object' || homeFeatures === null || Array.isArray(homeFeatures))
+    ) {
+      return NextResponse.json(
+        { success: false, error: 'homeFeatures must be an object' },
         { status: 400 }
       );
     }
@@ -165,6 +176,8 @@ export async function PUT(request: NextRequest) {
           ? homeTrendingProductIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
           : [],
         heroSlides: Array.isArray(heroSlides) ? heroSlides : [],
+        homeFeatures:
+          homeFeatures && typeof homeFeatures === 'object' && !Array.isArray(homeFeatures) ? homeFeatures : {},
         landingPage:
           landingPage && typeof landingPage === 'object' && !Array.isArray(landingPage) ? landingPage : {},
         socialLinks: Array.isArray(socialLinks) ? socialLinks : [],
