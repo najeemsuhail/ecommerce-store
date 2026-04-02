@@ -484,7 +484,7 @@ export async function GET(request: NextRequest) {
                 in: elasticsearchResult.productIds,
               },
             },
-            select: productListSelect,
+            select: productListingSelect,
           });
         }
       } else if (databaseSearchResult) {
@@ -496,7 +496,7 @@ export async function GET(request: NextRequest) {
                 in: databaseSearchResult.productIds,
               },
             },
-            select: productListSelect,
+            select: productListingSelect,
           });
         }
       } else {
@@ -506,14 +506,14 @@ export async function GET(request: NextRequest) {
             OR: buildSearchOrConditions(search),
           },
           orderBy,
-          select: productListSelect,
+          select: productListingSelect,
         });
       }
 
       const facetProducts = await prisma.product.findMany({
         where: facetWhere,
         orderBy,
-        select: productListSelect,
+        select: productListingSelect,
       });
 
       const mergedById = new Map<string, ProductListRow>();
@@ -564,7 +564,7 @@ export async function GET(request: NextRequest) {
           orderBy: undefined,
           skip: 0,
           take: undefined,
-          select: productListSelect,
+          select: productListingSelect,
         });
         totalCount = elasticsearchResult.total;
       } else if (databaseSearchResult) {
@@ -573,7 +573,7 @@ export async function GET(request: NextRequest) {
           orderBy: undefined,
           skip: 0,
           take: undefined,
-          select: productListSelect,
+          select: productListingSelect,
         });
         totalCount = databaseSearchResult.total;
       } else {
@@ -583,7 +583,7 @@ export async function GET(request: NextRequest) {
             orderBy,
             skip,
             take: limit,
-            select: productListSelect,
+            select: productListingSelect,
           }),
           prisma.product.count({ where: combinedWhere }),
           shouldIncludeFacets && !responseFacets ? buildDatabaseFacets(combinedWhere) : Promise.resolve(null),
