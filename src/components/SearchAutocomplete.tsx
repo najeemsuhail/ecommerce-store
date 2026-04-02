@@ -2,6 +2,7 @@
 
 import { startTransition, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faBox } from '@fortawesome/free-solid-svg-icons';
 import { formatPrice } from '@/lib/currency';
@@ -368,9 +369,12 @@ export default function SearchAutocomplete({
                           >
                             {product.image ? (
                               <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg overflow-hidden">
-                                <img
+                                <Image
                                   src={product.image}
                                   alt={product.name}
+                                  width={48}
+                                  height={48}
+                                  sizes="48px"
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -436,13 +440,13 @@ export default function SearchAutocomplete({
                           {/* Product Image */}
                           {product.image ? (
                             <div className="w-12 h-12 flex-shrink-0 bg-bg-gray rounded-lg overflow-hidden">
-                              <img
+                              <Image
                                 src={product.image}
                                 alt={product.name}
+                                width={48}
+                                height={48}
+                                sizes="48px"
                                 className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                }}
                               />
                             </div>
                           ) : (

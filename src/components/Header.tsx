@@ -103,16 +103,6 @@ export default function Header() {
                 Collections
               </Link>
               <Link 
-                href="/landing" 
-                className={`font-medium transition-colors ${
-                  pathname === '/landing'
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-text-light hover:text-primary'
-                }`}
-              >
-                Landing
-              </Link>
-              <Link 
                 href="/blog" 
                 className={`font-medium transition-colors ${
                   pathname === '/blog' || pathname.startsWith('/blog/')

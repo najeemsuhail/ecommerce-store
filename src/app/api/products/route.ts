@@ -6,41 +6,12 @@ import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/li
 import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
 import { searchProductIdsFromDatabase } from '@/lib/postgresSearch';
 import { getExternalSearchProvider } from '@/lib/searchProvider';
+import { productListingSelect, serializeListingProduct } from '@/lib/productsListing';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
-const productListSelect = {
-  id: true,
-  name: true,
-  description: true,
-  price: true,
-  comparePrice: true,
-  isDigital: true,
-  stock: true,
-  images: true,
-  slug: true,
-  isActive: true,
-  isFeatured: true,
-  brand: true,
-  tags: true,
-  weight: true,
-  createdAt: true,
-  categories: {
-    select: {
-      categoryId: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-        },
-      },
-    },
-  },
-} as const;
-
 type ProductListRow = Prisma.ProductGetPayload<{
-  select: typeof productListSelect;
+  select: typeof productListingSelect;
 }>;
 
 type ApiFacets = {
@@ -275,7 +246,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          products,
+          products: products.map(serializeListingProduct),
           count: products.length,
           total: products.length,
           facets: null,
@@ -660,7 +631,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        products: finalProducts,
+        products: finalProducts.map(serializeListingProduct),
         count: finalProducts.length,
         total: totalCount,
         facets: responseFacets,

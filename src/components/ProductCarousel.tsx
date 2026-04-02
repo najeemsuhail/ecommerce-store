@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import AddToCartNotification from './AddToCartNotification';
 import AddToWishlistModal from './AddToWishlistModal';
 import { useCart } from '@/contexts/CartContext';
@@ -208,9 +209,11 @@ export default function ProductCarousel({
               <Link href={`/products/${product.slug}`} scroll={true} className="block">
                 <div className="theme-product-media relative h-48 overflow-hidden sm:h-56 md:h-64">
                   {product.images?.[0] ? (
-                    <img
+                    <Image
                       src={product.images[0]}
                       alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 84vw, (max-width: 1024px) 320px, 320px"
                       className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                     />
                   ) : (

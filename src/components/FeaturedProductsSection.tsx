@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatPrice } from '@/lib/currency';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
@@ -85,9 +86,11 @@ export default function FeaturedProductsSection({ products, onQuickAdd }: Featur
             <Link href={`/products/${product.slug}`} scroll={true} className="block">
               <div className="theme-product-media relative h-64 overflow-hidden">
                 {product.images?.[0] ? (
-                  <img
+                  <Image
                     src={product.images[0]}
                     alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 ) : (

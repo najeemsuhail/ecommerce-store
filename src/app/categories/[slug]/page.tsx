@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Layout from '@/components/Layout';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShoppingCart, faHeart, faStar } from '@fortawesome/free-solid-svg-icons';
 import { useCart } from '@/contexts/CartContext';
@@ -302,11 +303,12 @@ export default function CategoryPage() {
                   {/* Product Image */}
                   <div className="relative aspect-square bg-gray-100">
                     {product.images && product.images[0] ? (
-                      <img
+                      <Image
                         src={product.images[0]}
                         alt={product.name}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">

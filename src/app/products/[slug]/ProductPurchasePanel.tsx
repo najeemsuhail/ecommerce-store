@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
@@ -40,6 +40,7 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [wishlistModalOpen, setWishlistModalOpen] = useState(false);
+  const trackedProductIdRef = useRef<string | null>(null);
 
   const activePrice = selectedVariant ? selectedVariant.price : product.price;
   const canPurchase = product.isActive && (!selectedVariant || selectedVariant.isActive !== false);
@@ -54,13 +55,29 @@ export default function ProductPurchasePanel({ product }: ProductPurchasePanelPr
   });
 
   useEffect(() => {
-    trackViewItem({
-      item_id: product.id,
-      item_name: product.name,
-      item_variant: selectedVariant?.name,
-      price: activePrice,
-      quantity: 1,
-    });
+    if (trackedProductIdRef.current === product.id) {
+      return;
+    }
+
+    trackedProductIdRef.current = product.id;
+
+    const sendViewItem = () => {
+      trackViewItem({
+        item_id: product.id,
+        item_name: product.name,
+        item_variant: selectedVariant?.name,
+        price: activePrice,
+        quantity: 1,
+      });
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(() => sendViewItem(), { timeout: 2000 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(sendViewItem, 1200);
+    return () => window.clearTimeout(timeoutId);
   }, [activePrice, product.id, product.name, selectedVariant?.name]);
 
   const handleAddToCart = () => {

@@ -308,7 +308,6 @@ model StoreSettings {
   homeTrendingProductIds   String[] @default([])
   themeKey          String   @default("default")
   heroSlides        Json?
-  homeFeatures      Json?
   landingPage       Json?
   socialLinks       Json?
   footerHighlights  Json?
