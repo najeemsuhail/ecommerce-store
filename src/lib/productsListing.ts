@@ -71,28 +71,28 @@ function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
 }
 
 async function buildDatabaseFacets(where: Prisma.ProductWhereInput): Promise<ListingFacetData> {
-  const [brandGroups, priceAggregate, categoryGroups] = await Promise.all([
-    prisma.product.groupBy({
-      by: ['brand'],
-      where: {
-        ...where,
-        brand: { not: null },
-      },
-      _count: { brand: true },
-    }),
-    prisma.product.aggregate({
-      where,
-      _min: { price: true },
-      _max: { price: true },
-    }),
-    prisma.productCategory.groupBy({
-      by: ['categoryId'],
-      where: {
-        product: where,
-      },
-      _count: { categoryId: true },
-    }),
-  ]);
+  const brandGroups = await prisma.product.groupBy({
+    by: ['brand'],
+    where: {
+      ...where,
+      brand: { not: null },
+    },
+    _count: { brand: true },
+  });
+
+  const priceAggregate = await prisma.product.aggregate({
+    where,
+    _min: { price: true },
+    _max: { price: true },
+  });
+
+  const categoryGroups = await prisma.productCategory.groupBy({
+    by: ['categoryId'],
+    where: {
+      product: where,
+    },
+    _count: { categoryId: true },
+  });
 
   const categoryIds = categoryGroups.map((group) => group.categoryId);
   const categoryRows =
@@ -167,24 +167,23 @@ export async function getInitialProductsPageData(params: {
 
   const where = buildListingWhere(search, categories);
 
-  const [products, total, facets, categoryHierarchy] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy,
-      take: limit,
-      select: productListingSelect,
-    }),
-    prisma.product.count({ where }),
-    buildDatabaseFacets(where),
-    prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        parentId: true,
-      },
-      orderBy: [{ name: 'asc' }],
-    }),
-  ]);
+  const products = await prisma.product.findMany({
+    where,
+    orderBy,
+    take: limit,
+    select: productListingSelect,
+  });
+
+  const total = await prisma.product.count({ where });
+  const facets = await buildDatabaseFacets(where);
+  const categoryHierarchy = await prisma.category.findMany({
+    select: {
+      id: true,
+      name: true,
+      parentId: true,
+    },
+    orderBy: [{ name: 'asc' }],
+  });
 
   return {
     products: products.map(serializeListingProduct),
