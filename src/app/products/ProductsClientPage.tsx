@@ -229,45 +229,6 @@ export default function ProductsClientPage({
     facetFilters.priceRange.min > basePriceMin ||
     facetFilters.priceRange.max < basePriceMax;
 
-  // Fetch products when filters/sort/search change
-  useEffect(() => {
-    if (!hasHydratedInitialProductsRef.current) {
-      hasHydratedInitialProductsRef.current = true;
-      return;
-    }
-
-    resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setHasMore(true);
-    fetchProducts(0, false);
-  }, [facetFilters, sortBy, searchTerm, fetchProducts]);
-
-  useEffect(() => {
-    if (!hasHydratedInitialFacetsRef.current) {
-      hasHydratedInitialFacetsRef.current = true;
-      return;
-    }
-
-    fetchFacets(0);
-  }, [facetFilters, searchTerm, fetchFacets]);
-  
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingMore, loading, products.length, totalProducts, loadMore]);
-
   const fetchPopularProducts = useCallback(async () => {
     const cacheKey = 'products:popular';
     const cachedData = getClientCache<ProductListItem[]>(cacheKey);
@@ -460,6 +421,45 @@ export default function ProductsClientPage({
     if (loadingMore || loading || !hasMore) return;
     await fetchProducts(products.length, true);
   }, [fetchProducts, hasMore, loading, loadingMore, products.length]);
+
+  // Fetch products when filters/sort/search change
+  useEffect(() => {
+    if (!hasHydratedInitialProductsRef.current) {
+      hasHydratedInitialProductsRef.current = true;
+      return;
+    }
+
+    resultsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setHasMore(true);
+    fetchProducts(0, false);
+  }, [facetFilters, sortBy, searchTerm, fetchProducts]);
+
+  useEffect(() => {
+    if (!hasHydratedInitialFacetsRef.current) {
+      hasHydratedInitialFacetsRef.current = true;
+      return;
+    }
+
+    fetchFacets(0);
+  }, [facetFilters, searchTerm, fetchFacets]);
+  
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, products.length, totalProducts, loadMore]);
 
   const handleAddToCart = (product: ProductListItem, e: React.MouseEvent) => {
     e.preventDefault();
