@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
           isActive: true,
           id: { in: requestedIds },
         },
-        select: productListSelect,
+        select: productListingSelect,
       });
 
       const orderMap = new Map(requestedIds.map((id, index) => [id, index]));
