@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlassPlus } from '@fortawesome/free-solid-svg-icons';
 import ProductVideo from '@/components/ProductVideo';
 
 interface ProductImageGalleryProps {
@@ -74,23 +74,22 @@ export default function ProductImageGallery({
           {images.length > 1 && (
             <>
               <button
+                type="button"
                 onClick={handlePrevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 text-gray-800 shadow hover:bg-white"
+                className="absolute inset-y-0 left-0 z-[1] w-1/2"
                 aria-label="Previous image"
-              >
-                <FontAwesomeIcon icon={faChevronLeft} />
-              </button>
+              />
               <button
+                type="button"
                 onClick={handleNextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 text-gray-800 shadow hover:bg-white"
+                className="absolute inset-y-0 right-0 z-[1] w-1/2"
                 aria-label="Next image"
-              >
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
+              />
             </>
           )}
 
           <button
+            type="button"
             onClick={() => setShowImageZoom(!showImageZoom)}
             className={`absolute bottom-4 right-4 flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all duration-200 z-10 ${
               showImageZoom
@@ -110,6 +109,7 @@ export default function ProductImageGallery({
               {images.map((image, index) => (
                 <button
                   key={image}
+                  type="button"
                   onClick={() => setSelectedImage(index)}
                   className={`relative flex-shrink-0 w-20 h-20 rounded-lg border-2 overflow-hidden transition-all duration-200 hover:shadow-md ${
                     selectedImage === index
