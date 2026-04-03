@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useCart } from '@/contexts/CartContext';
 import { useRecentlyViewed } from '@/contexts/RecentlyViewedContext';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const PRODUCT_REVIEWS_CACHE_TTL_MS = 60 * 1000;
 
 const ReviewForm = dynamic(() => import('@/components/ReviewForm'), {
   loading: () => <div className="h-28 rounded-lg bg-gray-100 animate-pulse" />,
@@ -49,12 +52,6 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
   const [reviewCount, setReviewCount] = useState(0);
   const [averageRating, setAverageRating] = useState(0);
   const [reviewsLoading, setReviewsLoading] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-  }, [product.id]);
 
   useEffect(() => {
     addToRecentlyViewed({
@@ -106,10 +103,25 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
     const controller = new AbortController();
 
     const loadReviews = async () => {
+      const url = `/api/products/${product.slug}/reviews?take=10`;
+      const cacheKey = `product-reviews:${url}`;
+      const cachedData = getClientCache<{
+        reviews: DeferredReview[];
+        totalCount: number;
+        averageRating: number;
+      }>(cacheKey);
+
+      if (cachedData) {
+        setReviews(cachedData.reviews || []);
+        setReviewCount(cachedData.totalCount || 0);
+        setAverageRating(cachedData.averageRating || 0);
+        return;
+      }
+
       setReviewsLoading(true);
 
       try {
-        const response = await fetch(`/api/products/${product.slug}/reviews?take=10`, {
+        const response = await fetch(url, {
           signal: controller.signal,
         });
         const data = await response.json();
@@ -121,6 +133,11 @@ export default function ProductDetailEnhancements({ product }: ProductDetailEnha
         setReviews(data.reviews || []);
         setReviewCount(data.totalCount || 0);
         setAverageRating(data.averageRating || 0);
+        setClientCache(cacheKey, {
+          reviews: data.reviews || [],
+          totalCount: data.totalCount || 0,
+          averageRating: data.averageRating || 0,
+        }, PRODUCT_REVIEWS_CACHE_TTL_MS);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Failed to load product reviews:', error);

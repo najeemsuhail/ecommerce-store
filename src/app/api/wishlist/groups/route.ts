@@ -18,8 +18,13 @@ async function getUser(request: NextRequest) {
   if (!decoded) {
     return null;
   }
-  
-  return decoded.userId;
+
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.userId },
+    select: { id: true },
+  });
+
+  return user?.id ?? null;
 }
 
 const DEFAULT_WISHLIST_NAME = 'My Wishlist';

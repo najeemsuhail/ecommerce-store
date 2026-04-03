@@ -7,6 +7,9 @@ import { formatPrice } from '@/lib/currency';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import AddToWishlistModal from '@/components/AddToWishlistModal';
+import { getClientCache, setClientCache } from '@/lib/clientCache';
+
+const PRODUCT_RECOMMENDATIONS_CACHE_TTL_MS = 60 * 1000;
 
 interface Product {
   id: string;
@@ -78,35 +81,61 @@ export default function ProductRecommendations({
       return;
     }
 
+    const controller = new AbortController();
+
     const fetchRecommendations = async () => {
+      const params = new URLSearchParams();
+      const resolvedExcludeIds = excludeIdsKey ? excludeIdsKey.split('|').filter(Boolean) : [];
+      params.append('limit', limit.toString());
+
+      if (productId) params.append('productId', productId);
+      if (category) params.append('category', category);
+      if (userId) params.append('userId', userId);
+      resolvedExcludeIds.forEach((id) => params.append('excludeId', id));
+
+      const url = `/api/products/recommendations?${params.toString()}`;
+      const cacheKey = `product-recommendations:${url}`;
+      const cachedData = getClientCache<{ recommendations: Product[]; recommendationType: string }>(cacheKey);
+
+      if (cachedData) {
+        setProducts(cachedData.recommendations);
+        setRecommendationType(cachedData.recommendationType);
+        setLoading(false);
+        setError(null);
+        return;
+      }
+
       try {
         setLoading(true);
-        const params = new URLSearchParams();
-        const resolvedExcludeIds = excludeIdsKey ? excludeIdsKey.split('|').filter(Boolean) : [];
-        params.append('limit', limit.toString());
-
-        if (productId) params.append('productId', productId);
-        if (category) params.append('category', category);
-        if (userId) params.append('userId', userId);
-        resolvedExcludeIds.forEach((id) => params.append('excludeId', id));
-
-        const response = await fetch(`/api/products/recommendations?${params}`);
+        const response = await fetch(url, {
+          signal: controller.signal,
+        });
         const data = await response.json();
 
         if (data.success) {
           setProducts(data.recommendations);
           setRecommendationType(data.recommendationType);
+          setClientCache(cacheKey, {
+            recommendations: data.recommendations,
+            recommendationType: data.recommendationType,
+          }, PRODUCT_RECOMMENDATIONS_CACHE_TTL_MS);
         } else {
           setError(data.error);
         }
-      } catch {
-        setError('Failed to load recommendations');
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setError('Failed to load recommendations');
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchRecommendations();
+
+    return () => controller.abort();
   }, [productId, category, userId, excludeIdsKey, limit, productsOverride, recommendationTypeOverride]);
 
   if (loading) {

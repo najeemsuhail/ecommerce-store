@@ -210,6 +210,7 @@ export default function ProductsClientPage({
   const resultsTopRef = useRef<HTMLDivElement>(null);
   const hasHydratedInitialProductsRef = useRef(false);
   const hasHydratedInitialFacetsRef = useRef(false);
+  const hasUserScrolledRef = useRef(false);
   const basePriceMin = defaultFacets.priceRange.min > 0 ? defaultFacets.priceRange.min : 0;
   const basePriceMax = defaultFacets.priceRange.max;
   const activeFiltersCount =
@@ -447,13 +448,35 @@ export default function ProductsClientPage({
   
   // Infinite scroll observer
   useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200) {
+        hasUserScrolledRef.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+        if (
+          entries[0].isIntersecting &&
+          hasUserScrolledRef.current &&
+          hasMore &&
+          !loadingMore &&
+          !loading
+        ) {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      {
+        rootMargin: '0px 0px 320px 0px',
+        threshold: 0.01,
+      }
     );
 
     if (observerTarget.current) {

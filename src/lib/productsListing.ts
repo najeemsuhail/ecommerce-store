@@ -46,6 +46,8 @@ export type ProductListingItem = Prisma.ProductGetPayload<{
   select: typeof productListingSelect;
 }>;
 
+export type ListingSort = 'newest' | 'price-low' | 'price-high' | 'popular';
+
 export function serializeListingProduct<T extends { description: string }>(product: T) {
   return {
     ...product,
@@ -148,20 +150,26 @@ function buildListingWhere(search?: string, categories: string[] = []): Prisma.P
   return where;
 }
 
+export function getListingOrderBy(sort: ListingSort): Prisma.ProductOrderByWithRelationInput {
+  if (sort === 'price-low') {
+    return { price: 'asc' };
+  }
+
+  if (sort === 'price-high') {
+    return { price: 'desc' };
+  }
+
+  return { createdAt: 'desc' };
+}
+
 const getCachedInitialProductsPageData = unstable_cache(
   async (
     search: string | undefined,
     categories: string[],
-    sort: 'newest' | 'price-low' | 'price-high' | 'popular',
+    sort: ListingSort,
     limit: number
   ) => {
-    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
-    if (sort === 'price-low') {
-      orderBy = { price: 'asc' };
-    } else if (sort === 'price-high') {
-      orderBy = { price: 'desc' };
-    }
-
+    const orderBy = getListingOrderBy(sort);
     const where = buildListingWhere(search, categories);
 
     const products = await prisma.product.findMany({
@@ -193,10 +201,44 @@ const getCachedInitialProductsPageData = unstable_cache(
   { revalidate: 300, tags: ['products'] }
 );
 
+const getCachedDefaultProductsApiData = unstable_cache(
+  async (
+    sort: ListingSort,
+    skip: number,
+    limit: number,
+    includeFacets: boolean
+  ) => {
+    const where = buildListingWhere();
+    const orderBy = getListingOrderBy(sort);
+
+    const [products, total, facets] = await Promise.all([
+      limit > 0
+        ? prisma.product.findMany({
+            where,
+            orderBy,
+            skip,
+            take: limit,
+            select: productListingSelect,
+          })
+        : Promise.resolve([]),
+      prisma.product.count({ where }),
+      includeFacets ? buildDatabaseFacets(where) : Promise.resolve(null),
+    ]);
+
+    return {
+      products: products.map(serializeListingProduct),
+      total,
+      facets,
+    };
+  },
+  ['default-products-api-data'],
+  { revalidate: 300, tags: ['products'] }
+);
+
 export async function getInitialProductsPageData(params: {
   search?: string;
   categories?: string[];
-  sort?: 'newest' | 'price-low' | 'price-high' | 'popular';
+  sort?: ListingSort;
   limit?: number;
 }) {
   const search = params.search?.trim() || undefined;
@@ -205,4 +247,18 @@ export async function getInitialProductsPageData(params: {
   const sort = params.sort ?? 'newest';
 
   return getCachedInitialProductsPageData(search, categories, sort, limit);
+}
+
+export async function getDefaultProductsApiData(params: {
+  sort?: ListingSort;
+  skip?: number;
+  limit?: number;
+  includeFacets?: boolean;
+}) {
+  return getCachedDefaultProductsApiData(
+    params.sort ?? 'newest',
+    params.skip ?? 0,
+    params.limit ?? 12,
+    params.includeFacets ?? false
+  );
 }

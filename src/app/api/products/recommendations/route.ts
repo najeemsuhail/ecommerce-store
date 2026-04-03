@@ -6,33 +6,130 @@ import { getExternalSearchProvider } from '@/lib/searchProvider';
 
 export const revalidate = 60; // ISR: Revalidate every 60 seconds
 
-function withRating<T extends { reviews: Array<{ rating: number }> }>(items: T[]) {
-  return items.map((p) => ({
-    ...p,
-    averageRating:
-      p.reviews.length > 0
-        ? Math.round(
-            (p.reviews.reduce((sum, r) => sum + r.rating, 0) / p.reviews.length) * 2
-          ) / 2
-        : 0,
-    reviewCount: p.reviews.length,
-  }));
-}
+const recommendationProductSelect = {
+  id: true,
+  name: true,
+  price: true,
+  comparePrice: true,
+  slug: true,
+  images: true,
+  isDigital: true,
+  isActive: true,
+  stock: true,
+  weight: true,
+  isFeatured: true,
+  createdAt: true,
+} as const;
 
 type RecommendationProduct = Prisma.ProductGetPayload<{
-  include: {
-    reviews: {
-      select: {
-        rating: true;
-      };
+  select: typeof recommendationProductSelect;
+}> & {
+  averageRating: number;
+  reviewCount: number;
+  totalSales?: number;
+};
+
+function sortProductsByRank<T extends { id: string }>(products: T[], rankedIds: string[]) {
+  const rankMap = new Map(rankedIds.map((id, index) => [id, index]));
+
+  return [...products].sort(
+    (a, b) =>
+      (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+      (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+  );
+}
+
+async function fetchRecommendationProducts(ids: string[], excludeIds: string[] = []) {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const products = await prisma.product.findMany({
+    where: {
+      id: excludeIds.length > 0 ? { in: ids, notIn: excludeIds } : { in: ids },
+      isActive: true,
+    },
+    select: recommendationProductSelect,
+  });
+
+  return sortProductsByRank(products, ids);
+}
+
+async function fetchReviewMetrics(productIds: string[]) {
+  if (productIds.length === 0) {
+    return new Map<string, { averageRating: number; reviewCount: number }>();
+  }
+
+  const [reviewCounts, reviewAverages] = await Promise.all([
+    prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds } },
+      _count: { _all: true },
+    }),
+    prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds } },
+      _avg: { rating: true },
+    }),
+  ]);
+
+  const metrics = new Map<string, { averageRating: number; reviewCount: number }>();
+
+  for (const row of reviewCounts) {
+    metrics.set(row.productId, {
+      averageRating: 0,
+      reviewCount: row._count._all,
+    });
+  }
+
+  for (const row of reviewAverages) {
+    const existing = metrics.get(row.productId) || { averageRating: 0, reviewCount: 0 };
+    existing.averageRating = row._avg.rating
+      ? Math.round(row._avg.rating * 2) / 2
+      : 0;
+    metrics.set(row.productId, existing);
+  }
+
+  return metrics;
+}
+
+async function fetchSalesMetrics(productIds: string[]) {
+  if (productIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const salesGroups = await prisma.orderItem.groupBy({
+    by: ['productId'],
+    where: { productId: { in: productIds } },
+    _sum: { quantity: true },
+  });
+
+  return new Map(
+    salesGroups.map((row) => [row.productId, row._sum.quantity ?? 0])
+  );
+}
+
+async function attachRecommendationMetrics(
+  products: Prisma.ProductGetPayload<{ select: typeof recommendationProductSelect }>[],
+  options?: { includeSales?: boolean; salesMetrics?: Map<string, number> }
+): Promise<RecommendationProduct[]> {
+  const productIds = products.map((product) => product.id);
+  const reviewMetrics = await fetchReviewMetrics(productIds);
+  const salesMetrics = options?.includeSales
+    ? options.salesMetrics ?? await fetchSalesMetrics(productIds)
+    : null;
+
+  return products.map((product) => {
+    const reviewMetric = reviewMetrics.get(product.id);
+
+    return {
+      ...product,
+      averageRating: reviewMetric?.averageRating ?? 0,
+      reviewCount: reviewMetric?.reviewCount ?? 0,
+      ...(salesMetrics ? { totalSales: salesMetrics.get(product.id) ?? 0 } : {}),
     };
-    orderItems: {
-      select: {
-        quantity: true;
-      };
-    };
-  };
-}>;
+  });
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,47 +152,6 @@ export async function GET(request: NextRequest) {
         },
       });
 
-    const fetchProductsByRankedIds = async (ids: string[]) => {
-      if (ids.length === 0) return [];
-      const rankMap = new Map(ids.map((id, index) => [id, index]));
-      const products = await prisma.product.findMany({
-        where: {
-          id: excludeIds.length > 0 ? { in: ids, notIn: excludeIds } : { in: ids },
-          isActive: true,
-        },
-        include: {
-          reviews: {
-            select: { rating: true },
-          },
-          orderItems: {
-            select: { quantity: true },
-          },
-        },
-      });
-
-      return products.sort(
-        (a, b) =>
-          (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
-          (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
-      );
-    };
-
-    const withMetrics = (items: RecommendationProduct[]) =>
-      items.map((p) => {
-        const totalSales = p.orderItems.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0);
-        return {
-          ...p,
-          averageRating:
-            p.reviews.length > 0
-              ? Math.round(
-                  (p.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / p.reviews.length) * 2
-                ) / 2
-              : 0,
-          reviewCount: p.reviews.length,
-          totalSales,
-        };
-      });
-
     if (mode === 'bestsellers') {
       const salesGroups = await prisma.orderItem.groupBy({
         by: ['productId'],
@@ -111,28 +167,30 @@ export async function GET(request: NextRequest) {
         take: limit * 4,
       });
 
-      const bestSellers = await fetchProductsByRankedIds(salesGroups.map((group) => group.productId));
+      const salesMetrics = new Map(
+        salesGroups.map((group) => [group.productId, group._sum.quantity ?? 0])
+      );
+      const rankedIds = salesGroups.map((group) => group.productId);
+      const bestSellerBase = await fetchRecommendationProducts(rankedIds, excludeIds);
+      const bestSellers = await attachRecommendationMetrics(bestSellerBase, {
+        includeSales: true,
+        salesMetrics,
+      });
 
       if (bestSellers.length < limit) {
-        const fallback = await prisma.product.findMany({
+        const fallbackBase = await prisma.product.findMany({
           where: {
             isActive: true,
             ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
           },
           take: Math.max(limit * 2, 16),
-          include: {
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-            orderItems: {
-              select: {
-                quantity: true,
-              },
-            },
-          },
+          select: recommendationProductSelect,
           orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+        });
+        const fallbackSalesMetrics = await fetchSalesMetrics(fallbackBase.map((product) => product.id));
+        const fallback = await attachRecommendationMetrics(fallbackBase, {
+          includeSales: true,
+          salesMetrics: fallbackSalesMetrics,
         });
 
         const seen = new Set(bestSellers.map((product) => product.id));
@@ -145,7 +203,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const ranked = withMetrics(bestSellers)
+      const ranked = bestSellers
         .sort((a, b) => {
           const salesDiff = (b.totalSales ?? 0) - (a.totalSales ?? 0);
           if (salesDiff !== 0) return salesDiff;
@@ -263,7 +321,8 @@ export async function GET(request: NextRequest) {
             excludeIds: [productId],
             size: limit,
           });
-          recommendations = await fetchProductsByRankedIds(candidateIds);
+          const recommendationBase = await fetchRecommendationProducts(candidateIds, excludeIds);
+          recommendations = await attachRecommendationMetrics(recommendationBase);
           if (recommendations.length > 0) {
             recommendationSource = getExternalSearchProvider() || 'database';
           }
@@ -273,7 +332,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (recommendations.length === 0) {
-        recommendations = await prisma.product.findMany({
+        const recommendationBase = await prisma.product.findMany({
           where: {
             isActive: true,
             id: excludeIds.length > 0 ? { not: productId, notIn: excludeIds } : { not: productId },
@@ -299,25 +358,15 @@ export async function GET(request: NextRequest) {
             ],
           },
           take: limit,
-          include: {
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-            orderItems: {
-              select: {
-                quantity: true,
-              },
-            },
-          },
+          select: recommendationProductSelect,
           orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
         });
+        recommendations = await attachRecommendationMetrics(recommendationBase);
       }
 
       return json({
         success: true,
-        recommendations: withRating(recommendations),
+        recommendations,
         recommendationType: 'similar',
       });
     }
@@ -335,7 +384,8 @@ export async function GET(request: NextRequest) {
               categories: [category],
             },
           });
-          recommendations = await fetchProductsByRankedIds(result?.productIds || []);
+          const recommendationBase = await fetchRecommendationProducts(result?.productIds || [], excludeIds);
+          recommendations = await attachRecommendationMetrics(recommendationBase);
           if (recommendations.length > 0) {
             recommendationSource = getExternalSearchProvider() || 'database';
           }
@@ -345,7 +395,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (recommendations.length === 0) {
-        recommendations = await prisma.product.findMany({
+        const recommendationBase = await prisma.product.findMany({
           where: {
             isActive: true,
             ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
@@ -358,25 +408,15 @@ export async function GET(request: NextRequest) {
             },
           },
           take: limit,
-          include: {
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-            orderItems: {
-              select: {
-                quantity: true,
-              },
-            },
-          },
+          select: recommendationProductSelect,
           orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
         });
+        recommendations = await attachRecommendationMetrics(recommendationBase);
       }
 
       return json({
         success: true,
-        recommendations: withRating(recommendations),
+        recommendations,
         recommendationType: 'category',
       });
     }
@@ -400,21 +440,16 @@ export async function GET(request: NextRequest) {
       });
 
       if (userOrders.length === 0) {
-        const featured = await prisma.product.findMany({
+        const featuredBase = await prisma.product.findMany({
           where: { isActive: true, isFeatured: true },
           take: limit,
-          include: {
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-          },
+          select: recommendationProductSelect,
         });
+        const featured = await attachRecommendationMetrics(featuredBase);
 
         return json({
           success: true,
-          recommendations: withRating(featured),
+          recommendations: featured,
           recommendationType: 'featured',
         });
       }
@@ -448,7 +483,8 @@ export async function GET(request: NextRequest) {
             excludeIds: Array.from(purchasedIds),
             size: limit,
           });
-          recommendations = await fetchProductsByRankedIds(candidateIds);
+          const recommendationBase = await fetchRecommendationProducts(candidateIds, excludeIds);
+          recommendations = await attachRecommendationMetrics(recommendationBase);
           if (recommendations.length > 0) {
             recommendationSource = getExternalSearchProvider() || 'database';
           }
@@ -458,7 +494,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (recommendations.length === 0) {
-        recommendations = await prisma.product.findMany({
+        const recommendationBase = await prisma.product.findMany({
           where: {
             isActive: true,
             id: {
@@ -489,25 +525,15 @@ export async function GET(request: NextRequest) {
             ],
           },
           take: limit,
-          include: {
-            reviews: {
-              select: {
-                rating: true,
-              },
-            },
-            orderItems: {
-              select: {
-                quantity: true,
-              },
-            },
-          },
+          select: recommendationProductSelect,
           orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
         });
+        recommendations = await attachRecommendationMetrics(recommendationBase);
       }
 
       return json({
         success: true,
-        recommendations: withRating(recommendations),
+        recommendations,
         recommendationType: 'personalized',
       });
     }
@@ -521,7 +547,8 @@ export async function GET(request: NextRequest) {
           sort: 'featured-newest',
           includeFacets: false,
         });
-        trending = await fetchProductsByRankedIds(result?.productIds || []);
+        const trendingBase = await fetchRecommendationProducts(result?.productIds || [], excludeIds);
+        trending = await attachRecommendationMetrics(trendingBase);
         if (trending.length > 0) {
           recommendationSource = getExternalSearchProvider() || 'database';
         }
@@ -531,26 +558,16 @@ export async function GET(request: NextRequest) {
     }
 
     if (trending.length === 0) {
-      trending = await prisma.product.findMany({
+      const trendingBase = await prisma.product.findMany({
         where: {
           isActive: true,
           ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
         },
         take: limit,
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-          orderItems: {
-            select: {
-              quantity: true,
-            },
-          },
-        },
+        select: recommendationProductSelect,
         orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
       });
+      trending = await attachRecommendationMetrics(trendingBase);
     }
 
     if (trending.length === 0) {
@@ -563,7 +580,7 @@ export async function GET(request: NextRequest) {
 
     return json({
       success: true,
-      recommendations: withMetrics(trending).slice(0, limit),
+      recommendations: trending.slice(0, limit),
       recommendationType: 'trending',
     });
   } catch (error) {

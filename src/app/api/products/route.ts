@@ -6,7 +6,11 @@ import { isExternalSearchEnabled, searchProductIdsFromElasticsearch } from '@/li
 import { syncProductToElasticsearch } from '@/lib/elasticsearchSync';
 import { searchProductIdsFromDatabase } from '@/lib/postgresSearch';
 import { getExternalSearchProvider } from '@/lib/searchProvider';
-import { productListingSelect, serializeListingProduct } from '@/lib/productsListing';
+import {
+  getDefaultProductsApiData,
+  productListingSelect,
+  serializeListingProduct,
+} from '@/lib/productsListing';
 
 export const revalidate = 300; // ISR: Revalidate every 5 minutes (industry standard)
 
@@ -25,6 +29,17 @@ type ElasticsearchFacets = {
   categories: Array<{ id: string; count: number }>;
   priceRange: { min: number; max: number };
 };
+
+function sortProductsByRank(
+  products: ProductListRow[],
+  rankedIds: string[]
+): ProductListRow[] {
+  const rankMap = new Map(rankedIds.map((id, index) => [id, index]));
+
+  return [...products].sort(
+    (a, b) => (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
+  );
+}
 
 function buildSearchOrConditions(search: string): Prisma.ProductWhereInput[] {
   return [
@@ -78,48 +93,6 @@ async function normalizeElasticsearchFacets(
     priceRange: {
       min: facets.priceRange.min ?? 0,
       max: facets.priceRange.max ?? 0,
-    },
-  };
-}
-
-function buildFacetsFromProducts(products: ProductListRow[]): ApiFacets {
-  const brands = new Map<string, number>();
-  const categories = new Map<string, { id: string; count: number }>();
-  let minPrice = Number.MAX_VALUE;
-  let maxPrice = 0;
-
-  for (const product of products) {
-    if (product.brand) {
-      brands.set(product.brand, (brands.get(product.brand) || 0) + 1);
-    }
-
-    for (const productCategory of product.categories || []) {
-      const categoryName = productCategory.category?.name || productCategory.categoryId;
-      const categoryId = productCategory.category?.id || productCategory.categoryId;
-      const existing = categories.get(categoryName);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        categories.set(categoryName, { id: categoryId, count: 1 });
-      }
-    }
-
-    if (typeof product.price === 'number') {
-      minPrice = Math.min(minPrice, product.price);
-      maxPrice = Math.max(maxPrice, product.price);
-    }
-  }
-
-  return {
-    brands: Array.from(brands.entries())
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => a.name.localeCompare(b.name)),
-    categories: Array.from(categories.entries())
-      .map(([name, value]) => ({ name, id: value.id, count: value.count }))
-      .sort((a, b) => b.count - a.count),
-    priceRange: {
-      min: minPrice === Number.MAX_VALUE ? 0 : minPrice,
-      max: maxPrice,
     },
   };
 }
@@ -271,6 +244,28 @@ export async function GET(request: NextRequest) {
     const shouldIncludeFacets = includeFacetsRequested || facetsOnlyRequested;
     const shouldTryElasticsearch = isExternalSearchEnabled() && attributeFilters.size === 0;
 
+    if (!hasSearch && !hasNonSearchFilters) {
+      const defaultData = await getDefaultProductsApiData({
+        sort: sort as 'newest' | 'price-low' | 'price-high' | 'popular',
+        skip,
+        limit: facetsOnlyRequested ? 0 : limit,
+        includeFacets: shouldIncludeFacets,
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          products: facetsOnlyRequested ? [] : defaultData.products,
+          count: facetsOnlyRequested ? 0 : defaultData.products.length,
+          total: defaultData.total,
+          facets: defaultData.facets,
+        },
+        {
+          headers: buildResponseHeaders(),
+        }
+      );
+    }
+
     let elasticsearchResult: {
       productIds: string[];
       total: number;
@@ -316,9 +311,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!elasticsearchResult && hasSearch) {
-      const dbFrom = hasNonSearchFilters ? 0 : skip;
-      const dbSize = facetsOnlyRequested ? 10000 : hasNonSearchFilters ? 10000 : limit;
+    if (!elasticsearchResult && hasSearch && !hasNonSearchFilters) {
+      const dbFrom = skip;
+      const dbSize = facetsOnlyRequested ? 10000 : limit;
       databaseSearchResult = await searchProductIdsFromDatabase({
         query: search as string,
         from: dbFrom,
@@ -467,133 +462,79 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const shouldUnionSearchAndFacets = hasSearch && hasNonSearchFilters;
-
     let products: ProductListRow[] = [];
     let totalCount = 0;
+    const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
+    const searchIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds || [];
 
-    if (shouldUnionSearchAndFacets && search) {
-      let searchProducts: ProductListRow[] = [];
-
-      if (elasticsearchResult) {
-        if (elasticsearchResult.productIds.length > 0) {
-          searchProducts = await prisma.product.findMany({
-            where: {
-              isActive: true,
-              id: {
-                in: elasticsearchResult.productIds,
-              },
-            },
-            select: productListingSelect,
-          });
-        }
-      } else if (databaseSearchResult) {
-        if (databaseSearchResult.productIds.length > 0) {
-          searchProducts = await prisma.product.findMany({
-            where: {
-              isActive: true,
-              id: {
-                in: databaseSearchResult.productIds,
-              },
-            },
-            select: productListingSelect,
-          });
-        }
-      } else {
-        searchProducts = await prisma.product.findMany({
-          where: {
-            isActive: true,
-            OR: buildSearchOrConditions(search),
+    if (elasticsearchResult || databaseSearchResult) {
+      if (searchIds.length === 0) {
+        return NextResponse.json(
+          {
+            success: true,
+            products: [],
+            count: 0,
+            total: 0,
+            facets: responseFacets,
           },
-          orderBy,
-          select: productListingSelect,
-        });
+          {
+            headers: buildResponseHeaders(),
+          }
+        );
       }
 
-      const facetProducts = await prisma.product.findMany({
-        where: facetWhere,
-        orderBy,
+      combinedWhere.id = {
+        in: searchIds,
+      };
+    } else if (search) {
+      combinedWhere.OR = buildSearchOrConditions(search);
+    }
+
+    if (elasticsearchResult) {
+      const pagedIds = elasticsearchResult.productIds.slice(0, limit);
+      combinedWhere.id = {
+        in: pagedIds,
+      };
+      products = await prisma.product.findMany({
+        where: combinedWhere,
+        orderBy: undefined,
+        skip: 0,
+        take: pagedIds.length || undefined,
         select: productListingSelect,
       });
-
-      const mergedById = new Map<string, ProductListRow>();
-      for (const product of facetProducts) {
-        mergedById.set(product.id, product);
-      }
-      for (const product of searchProducts) {
-        if (!mergedById.has(product.id)) {
-          mergedById.set(product.id, product);
-        }
-      }
-      products = Array.from(mergedById.values());
-      totalCount = products.length;
-
-      if (shouldIncludeFacets && !responseFacets) {
-        responseFacets = buildFacetsFromProducts(products);
-      }
+      products = sortProductsByRank(products, pagedIds);
+      totalCount = elasticsearchResult.total;
+    } else if (databaseSearchResult) {
+      const pagedIds = databaseSearchResult.productIds.slice(0, limit);
+      combinedWhere.id = {
+        in: pagedIds,
+      };
+      products = await prisma.product.findMany({
+        where: combinedWhere,
+        orderBy: undefined,
+        skip: 0,
+        take: pagedIds.length || undefined,
+        select: productListingSelect,
+      });
+      products = sortProductsByRank(products, pagedIds);
+      totalCount = databaseSearchResult.total;
     } else {
-      const combinedWhere: Prisma.ProductWhereInput = { ...facetWhere };
-      const searchIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds || [];
-
-      if (elasticsearchResult || databaseSearchResult) {
-        if (searchIds.length === 0) {
-          return NextResponse.json(
-            {
-              success: true,
-              products: [],
-              count: 0,
-              total: 0,
-              facets: responseFacets,
-            },
-            {
-              headers: buildResponseHeaders(),
-            }
-          );
-        }
-
-        combinedWhere.id = {
-          in: searchIds,
-        };
-      } else if (search) {
-        combinedWhere.OR = buildSearchOrConditions(search);
-      }
-
-      if (elasticsearchResult) {
-        products = await prisma.product.findMany({
+      const [dbProducts, dbTotalCount, builtFacets] = await Promise.all([
+        prisma.product.findMany({
           where: combinedWhere,
-          orderBy: undefined,
-          skip: 0,
-          take: undefined,
+          orderBy,
+          skip,
+          take: limit,
           select: productListingSelect,
-        });
-        totalCount = elasticsearchResult.total;
-      } else if (databaseSearchResult) {
-        products = await prisma.product.findMany({
-          where: combinedWhere,
-          orderBy: undefined,
-          skip: 0,
-          take: undefined,
-          select: productListingSelect,
-        });
-        totalCount = databaseSearchResult.total;
-      } else {
-        const [dbProducts, dbTotalCount, builtFacets] = await Promise.all([
-          prisma.product.findMany({
-            where: combinedWhere,
-            orderBy,
-            skip,
-            take: limit,
-            select: productListingSelect,
-          }),
-          prisma.product.count({ where: combinedWhere }),
-          shouldIncludeFacets && !responseFacets ? buildDatabaseFacets(combinedWhere) : Promise.resolve(null),
-        ]);
+        }),
+        prisma.product.count({ where: combinedWhere }),
+        shouldIncludeFacets && !responseFacets ? buildDatabaseFacets(combinedWhere) : Promise.resolve(null),
+      ]);
 
-        products = dbProducts;
-        totalCount = dbTotalCount;
-        if (shouldIncludeFacets && !responseFacets && builtFacets) {
-          responseFacets = builtFacets;
-        }
+      products = dbProducts;
+      totalCount = dbTotalCount;
+      if (shouldIncludeFacets && !responseFacets && builtFacets) {
+        responseFacets = builtFacets;
       }
     }
 
@@ -613,26 +554,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Preserve external or database search ranking order when applicable
-    if (elasticsearchResult || databaseSearchResult) {
-      const rankedIds = elasticsearchResult?.productIds || databaseSearchResult?.productIds || [];
-      const rankMap = new Map(rankedIds.map((id, index) => [id, index]));
-      products.sort(
-        (a, b) => (rankMap.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rankMap.get(b.id) ?? Number.MAX_SAFE_INTEGER)
-      );
-    }
-
-    // For union mode, paginate after merging/deduping both result sets.
-    const finalProducts =
-      shouldUnionSearchAndFacets
-        ? products.slice(skip, skip + limit)
-        : products;
-
     return NextResponse.json(
       {
         success: true,
-        products: finalProducts.map(serializeListingProduct),
-        count: finalProducts.length,
+        products: products.map(serializeListingProduct),
+        count: products.length,
         total: totalCount,
         facets: responseFacets,
       },

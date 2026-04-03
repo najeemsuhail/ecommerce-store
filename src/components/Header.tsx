@@ -296,17 +296,6 @@ export default function Header() {
                 Collections
               </Link>
               <Link 
-                href="/landing" 
-                onClick={() => setMenuOpen(false)} 
-                className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${
-                  pathname === '/landing'
-                    ? 'bg-primary-theme text-white-theme'
-                    : 'text-gray-900 hover:bg-light-gray-theme hover:text-primary-theme'
-                }`}
-              >
-                Landing
-              </Link>
-              <Link 
                 href="/blog" 
                 onClick={() => setMenuOpen(false)} 
                 className={`block w-full py-4 px-4 text-base font-bold rounded-lg transition-all duration-150 ${

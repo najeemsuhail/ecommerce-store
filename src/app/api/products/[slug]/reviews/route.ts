@@ -19,7 +19,6 @@ export async function GET(
       );
     }
 
-    // Get product to verify it exists
     const product = await prisma.product.findUnique({
       where: { slug },
       select: { id: true },
@@ -42,7 +41,6 @@ export async function GET(
           user: {
             select: {
               name: true,
-              email: true,
             },
           },
         },
