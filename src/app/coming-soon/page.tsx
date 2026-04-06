@@ -14,13 +14,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: '/',
+      url: '/coming-soon',
       siteName: settings.storeName,
     },
   };
 }
 
-export default async function HomePage() {
+export default async function ComingSoonPage() {
   const settings = await getStoreSettings();
 
   return <ComingSoonClient settings={settings} />;
