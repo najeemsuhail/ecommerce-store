@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
-import ComingSoonClient from '@/components/ComingSoonClient';
 import { getStoreSettings } from '@/lib/storeSettings';
+import HomePageContent from './HomePageContent';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getStoreSettings();
-  const title = `${settings.storeName} | Coming Soon`;
-  const description =
-    settings.seoDescription || `${settings.storeName} is coming soon. Join the waitlist for launch updates.`;
+  const title = settings.seoTitle || settings.storeName;
+  const description = settings.seoDescription || `Shop ${settings.storeName} online.`;
 
   return {
     title,
@@ -21,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const settings = await getStoreSettings();
+  await getStoreSettings();
 
-  return <ComingSoonClient settings={settings} />;
+  return <HomePageContent />;
 }
