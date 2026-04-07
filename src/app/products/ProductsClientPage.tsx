@@ -224,6 +224,7 @@ export default function ProductsClientPage({
       : 0);
   const isRefreshingResults = loading && products.length > 0;
   const isNoResultsState = !loading && products.length === 0;
+  const isRefreshingPopularProducts = popularProductsLoading && popularProducts.length > 0;
   const hasActiveFilters =
     facetFilters.brands.length > 0 ||
     facetFilters.categories.length > 0 ||
@@ -242,7 +243,7 @@ export default function ProductsClientPage({
     setPopularProductsLoading(true);
     try {
       const response = await fetch('/api/products?sort=popular&limit=8', {
-        next: { revalidate: 300 },
+        cache: 'no-store',
       });
       const data = await response.json();
       if (data.success && Array.isArray(data.products)) {
@@ -909,13 +910,14 @@ export default function ProductsClientPage({
                       <h3 className="text-lg font-semibold text-text-900">Popular Products</h3>
                       <button
                         onClick={fetchPopularProducts}
-                        className="text-sm text-primary-theme hover:underline"
+                        disabled={popularProductsLoading}
+                        className="text-sm text-primary-theme hover:underline disabled:cursor-wait disabled:opacity-60"
                       >
-                        Refresh picks
+                        {isRefreshingPopularProducts ? 'Refreshing...' : 'Refresh picks'}
                       </button>
                     </div>
 
-                    {popularProductsLoading ? (
+                    {popularProductsLoading && popularProducts.length === 0 ? (
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         {[...Array(4)].map((_, i) => (
                           <div key={i} className="rounded-lg border border-border-200 p-3 animate-pulse">
@@ -926,7 +928,7 @@ export default function ProductsClientPage({
                         ))}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity ${isRefreshingPopularProducts ? 'opacity-70' : 'opacity-100'}`}>
                         {popularProducts.map((item) => (
                           <Link
                             key={item.id}
